@@ -33,14 +33,16 @@
   align-content: start;
   grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
   grid-template-areas:
-    'query  search'
-    'result plan';
+    'query search'
+    'cost  plan'
+    'cost  result';
 }
 
 .app-query { grid-area: query; }
 .app-search { grid-area: search; }
 .app-plan { grid-area: plan; }
 .app-result { grid-area: result; }
+.app-cost { grid-area: cost; }
 
 .app-main > .panel { padding: var(--s2) var(--s3) var(--s3); min-width: 0; }
 
@@ -81,7 +83,7 @@
 @media (max-width: 900px) {
   .app-main {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: 'query' 'search' 'plan' 'result';
+    grid-template-areas: 'query' 'search' 'plan' 'cost' 'result';
   }
   .app-header { flex-wrap: wrap; }
 }

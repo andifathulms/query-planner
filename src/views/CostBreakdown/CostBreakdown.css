@@ -1,0 +1,38 @@
+.cost-breakdown { display: flex; flex-direction: column; gap: var(--s1); }
+.cost-breakdown-empty { color: var(--ink-faint); }
+
+.cost-breakdown-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s2);
+}
+.cost-breakdown-head .t-small { color: var(--ink-mid); }
+
+.cost-breakdown-legend { display: flex; gap: var(--s2); color: var(--ink-mid); }
+.cost-breakdown-legend span { display: inline-flex; align-items: center; gap: 4px; }
+
+.cost-breakdown-bars { position: relative; }
+.cost-breakdown-bars svg { display: block; }
+
+/* Bars move rather than redraw, so the moment one overtakes another is visible
+ * — and that overtake is the plan flip (DESIGN.md §5.5). */
+.cost-bar-row { transition: transform var(--d-resort) var(--ease-out); }
+
+.cost-bar-label { fill: var(--ink-mid); }
+.cost-bar-row.is-winner .cost-bar-label { fill: var(--ink); font-weight: 500; }
+.cost-bar-total { fill: var(--ink-mid); text-anchor: end; }
+.cost-bar-row.is-winner .cost-bar-total { fill: var(--ink); }
+
+.cost-bar-marker { fill: var(--ink); }
+
+/* I/O hatched, CPU solid: separable without spending hue. */
+.term-io { fill: url(#io-hatch); stroke: var(--rule); stroke-width: 0.5; }
+.term-cpu { fill: var(--ink-faint); }
+.cost-bar-row.is-winner .term-cpu { fill: var(--ink-mid); }
+
+.cost-breakdown-note { color: var(--ink-faint); max-width: 68ch; }
+
+@media (prefers-reduced-motion: reduce) {
+  .cost-bar-row { transition: none; }
+}

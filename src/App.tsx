@@ -12,6 +12,7 @@ import { CostBar } from './ui/CostBar.js';
 import { SpanLegend } from './ui/Span.js';
 import { PlanTree } from './views/PlanTree/PlanTree.js';
 import { Lattice } from './views/Lattice/Lattice.js';
+import { CostBreakdown } from './views/CostBreakdown/CostBreakdown.js';
 import { useFill, usePrefersReducedMotion } from './ui/useFill.js';
 import { DEFAULT_COST_PARAMS } from './planner/types.js';
 import { DATASETS } from './storage/datasets/index.js';
@@ -101,6 +102,19 @@ export function App() {
             stats={execution?.stats ?? null}
             selectedId={state.selected.node}
             onSelect={selectNode}
+          />
+        </section>
+
+        <section className="app-cost panel" aria-label="Cost breakdown">
+          <div className="app-panel-head">
+            <h2 className="t-h2">Cost breakdown</h2>
+            <p className="t-small">
+              {state.selected.cell ? 'candidates for the selected cell' : 'select a lattice cell'}
+            </p>
+          </div>
+          <CostBreakdown
+            cell={planning?.cells.find((c) => c.key === state.selected.cell) ?? null}
+            fallback={planning?.winner ?? null}
           />
         </section>
 

@@ -121,3 +121,26 @@ describe('the lattice', () => {
     }
   });
 });
+
+describe('the cost breakdown', () => {
+  it('shows the chosen plan when no cell is selected', () => {
+    renderApp('n=6000&s=2000');
+    const table = screen.getByRole('table', { name: 'Candidate plans by cost' });
+    expect(within(table).getAllByRole('row').length).toBeGreaterThan(0);
+  });
+
+  it('decomposes each bar into the terms the cost model produced', () => {
+    const sql = 'SELECT k.nama, c.nama FROM kelurahan k JOIN kecamatan c ON k.kecamatan_id = c.id';
+    renderApp(`n=6000&s=2000&q=${encodeURIComponent(sql)}`);
+    const table = screen.getByRole('table', { name: 'Candidate plans by cost' });
+    // Terms are drawn, and the two kinds are told apart by hatch rather than hue.
+    expect(table.querySelectorAll('.term-cpu, .term-io').length).toBeGreaterThan(1);
+    expect(within(table).getAllByRole('row')[0].getAttribute('aria-label')).toMatch(/cost [\d.]+/);
+  });
+
+  it('states the simplification beside the numbers it affects', () => {
+    renderApp('n=6000&s=2000');
+    const panel = screen.getByRole('region', { name: 'Cost breakdown' });
+    expect(panel.querySelector('.cost-breakdown-note')?.textContent?.length).toBeGreaterThan(30);
+  });
+});
