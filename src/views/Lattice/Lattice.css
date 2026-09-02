@@ -1,0 +1,65 @@
+.lattice { display: flex; flex-direction: column; gap: var(--s1); }
+.lattice-empty { color: var(--ink-faint); }
+
+.lattice-levels { display: flex; flex-direction: column; gap: 3px; }
+
+.lattice-level { display: flex; align-items: center; gap: var(--s1); min-width: 0; }
+
+/* The level label stays put while its cells scroll (DESIGN.md §4.5). */
+.lattice-level-label {
+  flex: 0 0 26px;
+  color: var(--ink-faint);
+  text-align: right;
+}
+
+.lattice-level-scroll { flex: 1 1 auto; min-width: 0; }
+.lattice-level-scroll svg { display: block; }
+
+/* §6.6: no hover transitions on lattice cells. */
+.lattice-cell { cursor: pointer; }
+.lattice-cell-box {
+  fill: var(--stock);
+  stroke: var(--rule);
+  stroke-width: 1;
+}
+
+/* Unfilled cells are recessed; filled cells are ink (§5.1). */
+.lattice-cell.is-empty .lattice-cell-box { fill: var(--stock-deep); stroke: var(--stock-deep); }
+.lattice-cell.is-empty { cursor: default; }
+.lattice-cell.is-empty .lattice-cell-label { fill: var(--ink-faint); }
+
+.lattice-cell.is-resolved .lattice-cell-box { stroke: var(--ink); }
+.lattice-cell.is-selected .lattice-cell-box { stroke-width: 2; fill: var(--stock-panel); }
+/* The final cell: the winner is not a colour, it is simply drawn fully. */
+.lattice-cell.is-root.is-resolved .lattice-cell-box { fill: var(--stock-panel); stroke-width: 2; }
+
+.lattice-cell-label { fill: var(--ink); font-weight: 500; }
+.lattice-cell-cost { fill: var(--ink-mid); text-anchor: end; }
+
+.lattice-cell-candidates .is-winner { fill: var(--winner); }
+.lattice-cell-candidates .is-pruned { fill: var(--pruned); }
+
+/* The one extra hue in the app: a plan retained for an interesting order. */
+.lattice-cell-order { fill: var(--order); }
+
+.lattice-controls {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s2);
+  flex-wrap: wrap;
+}
+
+.lattice-buttons { display: flex; gap: var(--s1); }
+.lattice-buttons button {
+  padding: 2px var(--s1);
+  background: transparent;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  color: var(--ink-mid);
+  cursor: pointer;
+}
+.lattice-buttons button:not(:disabled):hover { color: var(--ink); border-color: var(--ink-faint); }
+.lattice-buttons button:disabled { opacity: 0.4; cursor: default; }
+
+.lattice-status { color: var(--ink-mid); }

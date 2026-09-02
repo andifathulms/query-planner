@@ -85,3 +85,39 @@ describe('state round-trips through the URL', () => {
     expect((screen.getByLabelText('SQL query') as HTMLTextAreaElement).value).toBe(sql);
   });
 });
+
+describe('the lattice', () => {
+  it('draws a level per subset size, with the cells in a stable order', () => {
+    const sql = 'SELECT k.nama, c.nama FROM kelurahan k JOIN kecamatan c ON k.kecamatan_id = c.id';
+    renderApp(`n=6000&s=2000&q=${encodeURIComponent(sql)}`);
+
+    // Two relations: level 1 with two cells, level 2 with one.
+    expect(screen.getByRole('group', { name: /Level 1: 2 subsets/ })).toBeTruthy();
+    expect(screen.getByRole('group', { name: /Level 2: 1 subset/ })).toBeTruthy();
+  });
+
+  it('labels each cell with its operator, cost and candidate count', () => {
+    const sql = 'SELECT k.nama, c.nama FROM kelurahan k JOIN kecamatan c ON k.kecamatan_id = c.id';
+    renderApp(`n=6000&s=2000&q=${encodeURIComponent(sql)}`);
+    const cells = screen.getAllByRole('button', { name: /candidate/ });
+    expect(cells.length).toBeGreaterThan(0);
+    expect(cells.some((c) => /Hash Join|Merge Join|Nested Loop/.test(c.getAttribute('aria-label') ?? ''))).toBe(true);
+  });
+
+  it('shows disconnected subsets as unfilled rather than omitting them', () => {
+    // A chain k-c-b: the subset {k, b} has no clause connecting it.
+    const sql = `SELECT k.nama, c.nama, b.nama FROM kelurahan k
+      JOIN kecamatan c ON k.kecamatan_id = c.id
+      JOIN kabupaten b ON c.kabupaten_id = b.id`;
+    renderApp(`n=6000&s=2000&q=${encodeURIComponent(sql)}`);
+    const level2 = screen.getByRole('group', { name: /Level 2: 3 subsets/ });
+    expect(level2.querySelectorAll('.lattice-cell.is-empty').length).toBe(1);
+  });
+
+  it('offers play, step and fill controls', () => {
+    renderApp('n=6000&s=2000');
+    for (const name of ['step cell', 'step level', 'fill']) {
+      expect(screen.getByRole('button', { name })).toBeTruthy();
+    }
+  });
+});

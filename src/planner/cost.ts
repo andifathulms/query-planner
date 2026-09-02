@@ -47,21 +47,44 @@ function terms(...entries: Array<Term | null>): Term[] {
 }
 
 /**
- * Build a cost whose `terms` are computed on first access.
+ * A cost, with its decomposition computed on first access.
  *
- * Enumerating eight relations produces around 25,000 candidates, and each one's
- * decomposition carries formatted labels. Only the winner and the candidates of
- * whichever lattice cell is selected are ever rendered, so building every label
- * eagerly spends most of the planning budget on strings nobody reads. The
- * property is still a plain array to every reader.
+ * Two things about this class earn their keep at eight relations, where the
+ * search produces around 20,000 candidates:
+ *
+ * The terms are lazy. Each decomposition carries formatted labels, and only the
+ * winner and the candidates of whichever lattice cell is selected are ever
+ * rendered — building every label eagerly spent most of the planning budget on
+ * strings nobody reads.
+ *
+ * It is a class rather than an object literal so that every cost in the search
+ * shares one hidden class. With literals, the spilling operators returned a
+ * different shape from the rest, and `cost.total` in the DP's sort comparator
+ * became a megamorphic property access: it was the single hottest line in the
+ * profile, above the arithmetic it was comparing.
  */
+class Cost implements CostBreakdown {
+  private cached: Term[] | null = null;
+
+  constructor(
+    readonly startup: number,
+    readonly total: number,
+    private readonly build: () => Term[],
+    /** Present on the operators that can spill; null on the rest. */
+    readonly spill: SpillResult | null = null,
+  ) {}
+
+  get terms(): Term[] { return (this.cached ??= this.build()); }
+}
+
 function lazy(startup: number, total: number, build: () => Term[]): CostBreakdown {
-  let cached: Term[] | null = null;
-  return {
-    startup,
-    total,
-    get terms(): Term[] { return (cached ??= build()); },
-  };
+  return new Cost(startup, total, build);
+}
+
+function lazySpilling(
+  startup: number, total: number, build: () => Term[], spill: SpillResult,
+): CostBreakdown & { spill: SpillResult } {
+  return new Cost(startup, total, build, spill) as CostBreakdown & { spill: SpillResult };
 }
 
 // ── Scans ────────────────────────────────────────────────────────────────────
@@ -190,20 +213,30 @@ export function hashJoinCost(
   params: CostParams,
 ): CostBreakdown & { spill: SpillResult } {
   const spill = spillCost(buildBytes, params);
-  // A build row is hashed once. A probe row is hashed and then compared against
-  // what it lands on, so it costs two operators, not one. Charging both sides a
-  // flat single operator would make a hash join and a merge join cost exactly
-  // the same per row — and a merge join would then never win on its own merits,
-  // only by avoiding a spill. That is the outcome CLAUDE.md §4 warns about.
-  const cpu = (buildRows + 2 * probeRows) * params.cpu_operator_cost;
-  return Object.assign(
-    lazy(build.total + probe.startup + spill.cost, build.total + probe.total + cpu + spill.cost, () => terms(
+  // A build row is hashed and then inserted into the table. A probe row is
+  // hashed and compared against what it lands on. Building is the dearer of the
+  // two, which is why a planner hashes the smaller side — and a model that had
+  // it the other way round would recommend hashing the larger relation, which
+  // is wrong in a way a reader would notice.
+  //
+  // Charging both sides a flat single operator would also make a hash join and
+  // a merge join cost exactly the same per row, and a merge join would then
+  // never win on its own merits — the outcome CLAUDE.md §4 warns about. A merge
+  // join still compares once per row from each side, so it stays the cheaper of
+  // the two per row and buys that with its ordering requirement.
+  const buildCpu = buildRows * (params.cpu_operator_cost + params.cpu_tuple_cost);
+  const probeCpu = probeRows * 2 * params.cpu_operator_cost;
+  const cpu = buildCpu + probeCpu;
+  return lazySpilling(
+    build.total + probe.startup + spill.cost, build.total + probe.total + cpu + spill.cost,
+    () => terms(
       { label: 'build side (blocking)', value: build.total, kind: 'cpu' },
       { label: 'probe side', value: probe.total, kind: 'cpu' },
-      { label: `${fmt(buildRows)} hashed + ${fmt(probeRows)} probed x cpu_operator_cost`, value: cpu, kind: 'cpu' },
+      { label: `${fmt(buildRows)} rows hashed and inserted`, value: buildCpu, kind: 'cpu' },
+      { label: `${fmt(probeRows)} rows hashed and compared`, value: probeCpu, kind: 'cpu' },
       spill.spilled ? { label: `spill: ${spill.passes} extra pass${spill.passes === 1 ? '' : 'es'} over work_mem`, value: spill.cost, kind: 'io' } : null,
-    )),
-    { spill },
+    ),
+    spill,
   );
 }
 
@@ -248,14 +281,11 @@ export function sortCost(
   const cpu = comparisons * params.cpu_operator_cost;
   const spill = spillCost(bytes, params);
   const total = input.total + cpu + spill.cost;
-  return Object.assign(
-    lazy(total, total, () => terms(
-      { label: 'input subtree', value: input.total, kind: 'cpu' },
-      { label: `${fmt(comparisons)} comparisons x cpu_operator_cost`, value: cpu, kind: 'cpu' },
-      spill.spilled ? { label: `spill: ${spill.passes} merge pass${spill.passes === 1 ? '' : 'es'}`, value: spill.cost, kind: 'io' } : null,
-    )),
-    { spill },
-  );
+  return lazySpilling(total, total, () => terms(
+    { label: 'input subtree', value: input.total, kind: 'cpu' },
+    { label: `${fmt(comparisons)} comparisons x cpu_operator_cost`, value: cpu, kind: 'cpu' },
+    spill.spilled ? { label: `spill: ${spill.passes} merge pass${spill.passes === 1 ? '' : 'es'}`, value: spill.cost, kind: 'io' } : null,
+  ), spill);
 }
 
 /** Hash aggregate: blocking, and it spills when the group table exceeds work_mem. */
@@ -267,15 +297,12 @@ export function hashAggregateCost(
   const emit = groups * params.cpu_tuple_cost;
   const spill = spillCost(groupBytes, params);
   const total = input.total + cpu + emit + spill.cost;
-  return Object.assign(
-    lazy(total, total, () => terms(
-      { label: 'input subtree', value: input.total, kind: 'cpu' },
-      { label: `${fmt(rows)} rows x ${aggregates + 1} x cpu_operator_cost`, value: cpu, kind: 'cpu' },
-      { label: `${fmt(groups)} groups emitted x cpu_tuple_cost`, value: emit, kind: 'cpu' },
-      spill.spilled ? { label: 'spill: group table over work_mem', value: spill.cost, kind: 'io' } : null,
-    )),
-    { spill },
-  );
+  return lazySpilling(total, total, () => terms(
+    { label: 'input subtree', value: input.total, kind: 'cpu' },
+    { label: `${fmt(rows)} rows x ${aggregates + 1} x cpu_operator_cost`, value: cpu, kind: 'cpu' },
+    { label: `${fmt(groups)} groups emitted x cpu_tuple_cost`, value: emit, kind: 'cpu' },
+    spill.spilled ? { label: 'spill: group table over work_mem', value: spill.cost, kind: 'io' } : null,
+  ), spill);
 }
 
 /**

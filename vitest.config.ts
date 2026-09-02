@@ -1,11 +1,10 @@
 import { defineConfig } from 'vitest/config';
-import react from '@vitejs/plugin-react';
 
 // Separate from vite.config.ts: vitest bundles its own copy of vite, and the two
-// plugin types do not unify. The app build needs no test settings and the test
-// run needs no production base path.
+// plugin types do not unify. JSX is handled by esbuild rather than the React
+// plugin, which the interface tests do not need.
 export default defineConfig({
-  plugins: [react()],
+  esbuild: { jsx: 'automatic' },
   test: {
     // Engine tests run in node; the interface tests declare jsdom per file.
     environment: 'node',

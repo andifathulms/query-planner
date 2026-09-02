@@ -85,3 +85,21 @@
   }
   .app-header { flex-wrap: wrap; }
 }
+
+/* The winning plan descending into the tree (DESIGN.md §6.3), 500 ms.
+ * No caption, no arrow: the descent carries it. */
+.app-plan.is-waiting .plan-tree { opacity: 0; }
+.app-plan.is-descending .plan-tree {
+  animation: plan-descend var(--d-descend) var(--ease-out);
+}
+
+@keyframes plan-descend {
+  from { opacity: 0; transform: translateY(-22px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* §6.7: the descent becomes an instant state change. */
+@media (prefers-reduced-motion: reduce) {
+  .app-plan.is-waiting .plan-tree { opacity: 1; }
+  .app-plan.is-descending .plan-tree { animation: none; }
+}

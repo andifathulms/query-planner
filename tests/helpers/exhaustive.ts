@@ -94,18 +94,19 @@ function allJoins(
   });
 
   const equis = clauses.filter((c) => c.equi);
-  for (const buildInner of [true, false]) {
-    if (equis.length === 0) break;
-    const build = buildInner ? inner : outer;
-    const probe = buildInner ? outer : inner;
+  if (equis.length > 0) {
+    // The inner side is hashed, as the DP does. Both (build, probe)
+    // assignments are still reached, because this search enumerates each
+    // partition in both orderings; hashing the outer side would only add a
+    // duplicate at the same cost with its ordering lost.
     const hash = hashJoinCost(
-      build.cost, build.estimatedRows, build.estimatedRows * build.rowWidth,
-      probe.cost, probe.estimatedRows, params,
+      inner.cost, inner.estimatedRows, inner.estimatedRows * inner.rowWidth,
+      outer.cost, outer.estimatedRows, params,
     );
     out.push({
-      ...base, id: id(), operator: 'Hash Join', outer, inner,
-      cost: { startup: hash.startup, total: hash.total, terms: hash.terms },
-      order: probe === outer ? outer.order : null,
+      ...base, id: id(), operator: 'Hash Join', outer, inner, buildInner: true,
+      cost: hash,
+      order: outer.order,
     });
   }
 

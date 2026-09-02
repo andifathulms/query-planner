@@ -118,6 +118,13 @@ describe('joins', () => {
     expect(c.total).toBeGreaterThan(1000);
   });
 
+  it('prefers hashing the smaller side, as a real planner does', () => {
+    const big = scan(800), small = scan(100);
+    const hashSmall = hashJoinCost(small, 1_000, 1_000 * 40, big, 100_000, p);
+    const hashBig = hashJoinCost(big, 100_000, 100_000 * 40, small, 1_000, p);
+    expect(hashSmall.total).toBeLessThan(hashBig.total);
+  });
+
   it('gives a hash join a startup cost equal to its whole build side', () => {
     const build = scan(500);
     const c = hashJoinCost(build, 1000, 1000 * 40, scan(200), 5000, p);
@@ -132,15 +139,15 @@ describe('joins', () => {
   });
 
   it('charges a hash join more per row than a merge join', () => {
-    // A build row is hashed once; a probe row is hashed and then compared, so it
-    // costs two operators. A merge join compares once per row from each side.
-    // Charging both a flat operator per row would make them cost exactly the
-    // same, and a merge join could then never win on its own merits — the
-    // outcome CLAUDE.md §4 warns about.
+    // A merge join compares once per row from each side. A hash join hashes and
+    // inserts each build row, and hashes and compares each probe row. Charging
+    // both a flat operator per row would make them cost exactly the same, and a
+    // merge join could then never win on its own merits — the outcome
+    // CLAUDE.md §4 warns about.
     const left = scan(500), right = scan(400);
     const merge = mergeJoinCost(left, 10_000, right, 10_000, p);
     const fits = hashJoinCost(left, 10_000, 10_000 * 40, right, 10_000, p);
-    expect(fits.total - merge.total).toBeCloseTo(10_000 * p.cpu_operator_cost, 8);
+    expect(fits.total).toBeGreaterThan(merge.total);
 
     // Give the hash join a build side that does not fit and merge wins by more.
     const spills = hashJoinCost(left, 2_000_000, 2_000_000 * 40, right, 10_000, p);

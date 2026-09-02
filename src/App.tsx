@@ -5,12 +5,14 @@
  * candidates, chosen plan, evidence. The lattice sits above the plan tree
  * because it produces it.
  */
-import { useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useStore } from './state/store.js';
 import { SqlInput } from './ui/SqlInput.js';
 import { CostBar } from './ui/CostBar.js';
 import { SpanLegend } from './ui/Span.js';
 import { PlanTree } from './views/PlanTree/PlanTree.js';
+import { Lattice } from './views/Lattice/Lattice.js';
+import { useFill, usePrefersReducedMotion } from './ui/useFill.js';
 import { DEFAULT_COST_PARAMS } from './planner/types.js';
 import { DATASETS } from './storage/datasets/index.js';
 import { exact, ms, rows } from './ui/format.js';
@@ -24,6 +26,19 @@ export function App() {
     (node: string | null) => dispatch({ type: 'select', patch: { node } }),
     [dispatch],
   );
+  const selectCell = useCallback(
+    (cell: string | null) => dispatch({ type: 'select', patch: { cell } }),
+    [dispatch],
+  );
+
+  // The fill lives here rather than inside the lattice, because the second half
+  // of the orchestrated moment happens outside it: when the final cell resolves,
+  // its plan descends into the tree below (DESIGN.md §6.3). That descent is what
+  // makes the two views one thing — without it the lattice is a pretty chart
+  // beside a plan; with it, the lattice visibly produces the plan.
+  const reducedMotion = usePrefersReducedMotion();
+  const fill = useFill(planning?.order ?? [], reducedMotion);
+  const descending = useDescent(fill.complete, planning?.winner?.id ?? null, reducedMotion);
 
   const totalRows = [...bundle.schema.tables.values()]
     .reduce((sum, t) => sum + t.rowCount, 0);
@@ -62,21 +77,21 @@ export function App() {
         <section className="app-search panel" aria-label="The search">
           <div className="app-panel-head">
             <h2 className="t-h2">The search</h2>
-            {planning && (
-              <p className="t-small">
-                {exact(planning.stats.filledSubsets)} of {exact(planning.stats.subsets)} subsets
-                {' · '}{exact(planning.stats.candidates)} candidates
-                {' · '}{exact(planning.stats.ordersKept)} orders kept
-                {' · '}{ms(planning.stats.planningMs)}
-              </p>
-            )}
+            {planning && <p className="t-small">planned in {ms(planning.stats.planningMs)}</p>}
           </div>
-          <p className="t-small app-placeholder">
-            The lattice is built in the next step.
-          </p>
+          <Lattice
+            planning={planning}
+            selectedKey={state.selected.cell}
+            onSelect={selectCell}
+            fill={fill}
+          />
         </section>
 
-        <section className="app-plan panel" aria-label="The chosen plan">
+        <section
+          className={`app-plan panel${descending ? ' is-descending' : ''}${fill.complete ? '' : ' is-waiting'}`}
+          aria-label="The chosen plan"
+          aria-busy={!fill.complete}
+        >
           <div className="app-panel-head">
             <h2 className="t-h2">The plan</h2>
             <SpanLegend />
@@ -115,6 +130,23 @@ export function App() {
       </footer>
     </div>
   );
+}
+
+/**
+ * True for the length of the descent, once the search has resolved.
+ *
+ * No caption and no arrow: the descent carries it. Under reduced motion it is an
+ * instant state change (§6.7).
+ */
+function useDescent(complete: boolean, planId: string | null, reducedMotion: boolean): boolean {
+  const [descending, setDescending] = useState(false);
+  useEffect(() => {
+    if (!complete || reducedMotion || planId === null) { setDescending(false); return; }
+    setDescending(true);
+    const timer = setTimeout(() => setDescending(false), 500);
+    return () => clearTimeout(timer);
+  }, [complete, planId, reducedMotion]);
+  return descending;
 }
 
 function ResultGrid({ execution }: { execution: NonNullable<ReturnType<typeof useStore>['result']['execution']> }) {

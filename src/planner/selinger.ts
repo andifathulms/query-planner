@@ -95,32 +95,63 @@ export function enumerate(
   const orders = interestingOrders(spec);
   const ctx = { spec, statistics, estimation, params: options.params, orders };
 
-  const cells = new Map<string, DpCell>();
+  // Subsets are bitmasks over the relation list, not arrays of aliases.
+  //
+  // The DP visits every subset and every way of splitting it: at eight
+  // relations that is about 6,000 splits, and building two alias arrays and a
+  // sorted string key for each was allocating more than the plans themselves.
+  // A mask is an integer, the split of a mask is an integer, and the cell
+  // lookup is a Map keyed by one. The readable string key is computed once per
+  // cell, for the lattice, rather than 12,000 times for the search.
+  const aliases = spec.relations.map((r) => r.alias);
+  const bitOf = new Map<TableId, number>(aliases.map((a, i) => [a, 1 << i]));
+  const clauseMasks = spec.joins.map((clause) => ({
+    clause,
+    left: bitOf.get(clause.left) ?? 0,
+    right: bitOf.get(clause.right) ?? 0,
+  }));
+
+  const cellsByMask = new Map<number, DpCell>();
   const fillOrder: DpCell[] = [];
   let cartesianConsidered = 0;
 
+  const relationsOf = (mask: number): TableId[] =>
+    aliases.filter((_, i) => mask & (1 << i));
+
+  const connecting = (left: number, right: number): JoinClause[] => {
+    const out: JoinClause[] = [];
+    for (const c of clauseMasks) {
+      if (((left & c.left) && (right & c.right)) || ((left & c.right) && (right & c.left))) {
+        out.push(c.clause);
+      }
+    }
+    return out;
+  };
+
   // ── Level 1: access paths ──────────────────────────────────────────────────
-  for (const relation of spec.relations) {
-    const candidates = accessPaths(relation, ctx);
-    const cell = makeCell(new Set([relation.alias]), 1, candidates, orders, retain);
-    cells.set(cell.key, cell);
+  for (let i = 0; i < spec.relations.length; i++) {
+    const candidates = accessPaths(spec.relations[i], ctx);
+    const cell = makeCell(new Set([aliases[i]]), 1, candidates, orders, retain);
+    cellsByMask.set(1 << i, cell);
     fillOrder.push(cell);
   }
 
   // ── Levels 2..n: joins ─────────────────────────────────────────────────────
-  const aliases = spec.relations.map((r) => r.alias);
-  for (let level = 2; level <= aliases.length; level++) {
-    for (const subset of subsetsOfSize(aliases, level)) {
-      const relations = new Set(subset);
+  const full = (1 << spec.relations.length) - 1;
+  for (let level = 2; level <= spec.relations.length; level++) {
+    for (let mask = 1; mask <= full; mask++) {
+      if (popcount(mask) !== level) continue;
       const candidates: Plan[] = [];
 
-      // Every way of splitting this subset into an already-solved pair.
-      for (const [left, right] of splits(subset)) {
-        const leftCell = cells.get(setKey(left));
-        const rightCell = cells.get(setKey(right));
+      // Every proper non-empty submask, which yields each split in both
+      // orderings — and both are needed, since a join is not symmetric here.
+      for (let left = (mask - 1) & mask; left > 0; left = (left - 1) & mask) {
+        const right = mask ^ left;
+        const leftCell = cellsByMask.get(left);
+        const rightCell = cellsByMask.get(right);
         if (!leftCell || !rightCell) continue;
 
-        const clauses = connectingClauses(spec, left, right);
+        const clauses = connecting(left, right);
         if (clauses.length === 0) {
           cartesianConsidered++;
           if (!options.allowCartesian) continue;
@@ -138,24 +169,37 @@ export function enumerate(
           clauses, outerPlans[0].relations, spec, estimation,
         );
 
+        // A parameterized inner scan depends on the inner plan and on which
+        // relations the outer side covers — not on which outer plan was chosen.
+        // Every plan in a cell covers the same relations, so this is built once
+        // per split rather than once per plan pair.
+        const parameterized = new Map<string, ScanPlan | null>();
+        for (const inner of innerPlans) {
+          parameterized.set(
+            inner.id,
+            parameterizedInner(outerPlans[0].relations, inner, clauses, statistics, options.params),
+          );
+        }
+
         for (const outer of outerPlans) {
           for (const inner of innerPlans) {
             candidates.push(...joinPlans(
-              outer, inner, clauses, cardinality, options.params, spec, statistics,
+              outer, inner, clauses, cardinality, options.params, spec,
+              parameterized.get(inner.id) ?? null,
             ));
           }
         }
       }
 
-      const cell = makeCell(relations, level, candidates, orders, retain);
-      cells.set(cell.key, cell);
+      const cell = makeCell(new Set(relationsOf(mask)), level, candidates, orders, retain);
+      cellsByMask.set(mask, cell);
       // An empty cell is still part of the lattice, but there is nothing to
       // animate resolving, so it is not part of the fill order.
       if (cell.best) fillOrder.push(cell);
     }
   }
 
-  const root = cells.get(setKey(aliases));
+  const root = cellsByMask.get(full);
   if (!root || !root.best) {
     throw new Error(
       'No plan connects every table in the query. Add a join condition, or allow cartesian products.',
@@ -171,21 +215,21 @@ export function enumerate(
   let candidateCount = 0;
   let ordersKept = 0;
   let filled = 0;
-  for (const cell of cells.values()) {
+  for (const cell of cellsByMask.values()) {
     candidateCount += cell.considered.length;
     ordersKept += cell.bestByOrder.size;
     if (cell.best) filled++;
   }
 
   return {
-    cells: [...cells.values()],
+    cells: [...cellsByMask.values()],
     winner,
     joinWinner: root.best,
     order: fillOrder,
     spec,
     estimation,
     stats: {
-      subsets: cells.size,
+      subsets: cellsByMask.size,
       filledSubsets: filled,
       candidates: candidateCount,
       ordersKept,
@@ -263,7 +307,7 @@ function validJoinOrder(
 function joinPlans(
   outer: Plan, inner: Plan, clauses: JoinClause[],
   cardinality: CardinalityEstimate, params: CostParams, spec: QuerySpec,
-  statistics: Statistics,
+  parameterized: ScanPlan | null,
 ): Plan[] {
   if (!validJoinOrder(clauses, inner, spec)) return [];
   const relations = [...outer.relations, ...inner.relations];
@@ -293,7 +337,6 @@ function joinPlans(
   // outer row rather than a full rescan. This is the plan a real optimiser
   // reaches for on a foreign key, and it is the one that becomes a catastrophe
   // when the outer cardinality is underestimated.
-  const parameterized = parameterizedInner(outer, inner, clauses, statistics, params);
   if (parameterized) {
     out.push({
       ...base,
@@ -310,31 +353,34 @@ function joinPlans(
 
   const equis = clauses.filter((c) => c.equi);
   if (equis.length > 0) {
-    // Both hash orientations. Building the smaller side is the usual heuristic,
-    // but a probe row costs more than a build row here, so the larger-build
-    // orientation sometimes wins — and a heuristic that skipped it would make
-    // the DP disagree with exhaustive search, which is exactly what
-    // enumeration.test.ts checks.
-    for (const buildInner of [true, false]) {
-      const build = buildInner ? inner : outer;
-      const probe = buildInner ? outer : inner;
-      const hash = hashJoinCost(
-        build.cost, build.estimatedRows, build.estimatedRows * build.rowWidth,
-        probe.cost, probe.estimatedRows, params,
-      );
-      out.push({
-        ...base,
-        id: nextPlanId('join'),
-        operator: 'Hash Join',
-        outer, inner, buildInner,
-          // Pass the cost object through rather than rebuilding it: spreading it
-        // would force the lazy `terms` getter for every candidate.
-        cost: hash,
-        // A hash join destroys any ordering: rows come out in probe order, which
-        // is the probe side's order only if the probe side is the outer one.
-        order: probe === outer ? outer.order : null,
-      });
-    }
+    // Only the inner side is hashed here, and that loses nothing. Building the
+    // smaller side is the usual heuristic, but a probe row costs more than a
+    // build row in this model, so the other orientation genuinely wins
+    // sometimes — and it is still enumerated, by the mirrored split. Splitting
+    // {A, B} yields both (A, B) and (B, A), so hashing the inner side of each
+    // covers both (build, probe) assignments.
+    //
+    // What hashing the outer side would add is a duplicate at the same cost
+    // with its ordering lost, since a hash join emits in probe order and the
+    // probe would then be the inner side. Those are strictly dominated, and
+    // dropping them halves the candidates at every join without changing a
+    // winner — which is what keeps an 8-relation search inside the 200 ms
+    // budget.
+    const hash = hashJoinCost(
+      inner.cost, inner.estimatedRows, inner.estimatedRows * inner.rowWidth,
+      outer.cost, outer.estimatedRows, params,
+    );
+    out.push({
+      ...base,
+      id: nextPlanId('join'),
+      operator: 'Hash Join',
+      outer, inner, buildInner: true,
+      // Pass the cost object through rather than rebuilding it: spreading it
+      // would force the lazy `terms` getter for every candidate.
+      cost: hash,
+      // A hash join emits in probe order, which here is the outer side's.
+      order: outer.order,
+    });
 
     // Merge join. Both sides must be ordered on the join columns; a sort is
     // added where they are not. This is where retained orders pay off — with
@@ -389,7 +435,7 @@ function mergeJoinPlan(
  * the binding. The returned node's cost and row count describe ONE loop.
  */
 function parameterizedInner(
-  outer: Plan, inner: Plan, clauses: JoinClause[],
+  outerRelations: TableId[], inner: Plan, clauses: JoinClause[],
   statistics: Statistics, params: CostParams,
 ): ScanPlan | null {
   if (inner.operator !== 'Seq Scan' && inner.operator !== 'Index Scan') return null;
@@ -402,7 +448,7 @@ function parameterizedInner(
     const innerColumn = innerIsLeft ? clause.equi.leftColumn : clause.equi.rightColumn;
     const outerRelation = innerIsLeft ? clause.right : clause.left;
     const outerColumn = innerIsLeft ? clause.equi.rightColumn : clause.equi.leftColumn;
-    if (!outer.relations.includes(outerRelation)) continue;
+    if (!outerRelations.includes(outerRelation)) continue;
 
     const index = statistics.indexes.get(`${relation.table}.${innerColumn}`);
     const stat = statistics.tables.get(relation.table)?.columns.get(innerColumn);
@@ -584,43 +630,6 @@ function orderByOrder(spec: QuerySpec): SortOrder | null {
 
 export function setKey(relations: TableId[]): string {
   return [...relations].sort().join('|');
-}
-
-function* subsetsOfSize(items: TableId[], size: number): Generator<TableId[]> {
-  const n = items.length;
-  for (let mask = 1; mask < 1 << n; mask++) {
-    if (popcount(mask) !== size) continue;
-    const subset: TableId[] = [];
-    for (let i = 0; i < n; i++) if (mask & (1 << i)) subset.push(items[i]);
-    yield subset;
-  }
-}
-
-/**
- * Every way to split a subset into two non-empty halves.
- *
- * Both orderings are produced, because a join is not symmetric here: which side
- * builds the hash and which side drives the nested loop changes the cost.
- */
-function* splits(subset: TableId[]): Generator<[TableId[], TableId[]]> {
-  const n = subset.length;
-  for (let mask = 1; mask < (1 << n) - 1; mask++) {
-    const left: TableId[] = [];
-    const right: TableId[] = [];
-    for (let i = 0; i < n; i++) {
-      if (mask & (1 << i)) left.push(subset[i]);
-      else right.push(subset[i]);
-    }
-    yield [left, right];
-  }
-}
-
-function connectingClauses(spec: QuerySpec, left: TableId[], right: TableId[]): JoinClause[] {
-  const l = new Set(left);
-  const r = new Set(right);
-  return spec.joins.filter(
-    (c) => (l.has(c.left) && r.has(c.right)) || (l.has(c.right) && r.has(c.left)),
-  );
 }
 
 function popcount(n: number): number {
