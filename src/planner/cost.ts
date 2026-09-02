@@ -134,8 +134,13 @@ export function indexScanCost(input: IndexScanInput, params: CostParams): CostBr
   const cpu = rows * params.cpu_tuple_cost;
   const qual = rows * quals * params.cpu_operator_cost;
 
-  // The descent must complete before the first row appears.
-  return lazy(indexHeight * params.random_page_cost, indexIo + indexCpu + heapIo + cpu + qual, () => terms(
+  // The descent must complete before the first row appears. It is charged with
+  // the same cache discount as the rest of the index, and never above the node's
+  // own total — a startup cost exceeding the total would make the run cost
+  // negative, and a nested loop above would then be paid to do work.
+  const total = indexIo + indexCpu + heapIo + cpu + qual;
+  const descent = indexHeight * params.random_page_cost * (1 - 0.5 * indexCached);
+  return lazy(Math.min(descent, total), total, () => terms(
       { label: `${fmt(indexHeight + indexPages)} index pages x random_page_cost`, value: indexIo, kind: 'io' },
       { label: `${fmt(indexTuples)} index tuples x cpu_index_tuple_cost`, value: indexCpu, kind: 'cpu' },
       { label: `${fmt(heapPages)} heap pages, correlation ${correlation.toFixed(2)}`, value: heapIo, kind: 'io' },

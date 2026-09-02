@@ -14,7 +14,7 @@ import {
 } from './row.js';
 import { Instrument, type NodeStats } from './trace.js';
 import type { Operator } from './nodes/operator.js';
-import { IndexScan, SeqScan, type IndexAccess } from './nodes/scan.js';
+import { IndexScan, ParameterSlot, SeqScan, type IndexAccess } from './nodes/scan.js';
 import { HashJoin, MergeJoin, NestedLoop } from './nodes/join.js';
 import { Sort, type SortKeyEval } from './nodes/sort.js';
 import { aggregateLayout, GroupAggregate, HashAggregate, type AggregateEval } from './nodes/aggregate.js';
@@ -118,13 +118,15 @@ class Builder {
     );
   }
 
-  private indexScan(plan: ScanPlan): Operator {
+  private indexScan(plan: ScanPlan, slot?: ParameterSlot): Operator {
     const table = this.table(plan.relation.table);
     const index = this.schema.indexes.get(`${plan.relation.table}.${plan.index!.column}`);
     if (!index) throw new Error(`Index on ${plan.relation.table}.${plan.index!.column} is not loaded`);
     const layout = new Layout(table.columns.map((c) => ({ relation: plan.relation.alias, column: c.name })));
 
-    const access = indexAccess(plan.indexQuals?.map((q) => q.expr) ?? [], plan.index!.column);
+    const access = plan.parameterizedBy && slot
+      ? { access: { kind: 'parameter' as const, slot }, driven: [] }
+      : indexAccess(plan.indexQuals?.map((q) => q.expr) ?? [], plan.index!.column);
     // Any qual the index could not drive with becomes a filter, so the scan
     // still returns exactly the rows the plan promised.
     const undriven = (plan.indexQuals ?? []).filter((_, i) => !access.driven.includes(i));
@@ -137,7 +139,16 @@ class Builder {
 
   private join(plan: Plan & { operator: 'Nested Loop' | 'Hash Join' | 'Merge Join' }): Operator {
     const outer = this.build(plan.outer);
-    const inner = this.build(plan.inner);
+
+    // A parameterized inner index scan needs the slot the loop will write, so
+    // it is built here rather than by the generic dispatch.
+    const binding = plan.inner.operator === 'Index Scan' && plan.inner.parameterizedBy
+      ? plan.inner.parameterizedBy
+      : null;
+    const slot = binding ? new ParameterSlot() : undefined;
+    const inner = binding
+      ? this.indexScan(plan.inner as ScanPlan, slot)
+      : this.build(plan.inner);
     const joined = outer.layout.concat(inner.layout);
 
     // Every clause connecting the two subtrees is applied here. The planner
@@ -149,10 +160,26 @@ class Builder {
     const kind = clauses.some((c) => c.type === 'left') ? 'left' as const : 'inner' as const;
 
     if (plan.operator === 'Nested Loop') {
-      const condition = clauses.length === 0
+      // The clause the parameter already enforces need not be re-checked per
+      // row; the index returned only matching rows.
+      const residualClauses = binding
+        ? clauses.filter((c) => !enforcedByParameter(c, binding, plan.inner.relations))
+        : clauses;
+      const condition = residualClauses.length === 0
         ? null
-        : compile(conjoin(clauses.map((c) => c.expr)), joined);
-      return new NestedLoop(plan.id, this.instrument(plan.id), outer, inner, condition, kind);
+        : compile(conjoin(residualClauses.map((c) => c.expr)), joined);
+      const parameter = binding && slot
+        ? {
+            slot,
+            key: compile(
+              { kind: 'column', table: binding.relation, name: binding.column },
+              outer.layout,
+            ),
+          }
+        : null;
+      return new NestedLoop(
+        plan.id, this.instrument(plan.id), outer, inner, condition, kind, parameter,
+      );
     }
 
     const equi = clauses.find((c) => c.equi);
@@ -289,6 +316,19 @@ function bindingFor(expr: Expr, layout: Layout, fallbackIndex: number): { relati
     return layout.columns[i];
   }
   return { relation: '', column: `group${fallbackIndex + 1}` };
+}
+
+/** Did the parameter binding already enforce this clause? */
+function enforcedByParameter(
+  clause: JoinClause,
+  binding: { relation: TableId; column: string },
+  innerRelations: TableId[],
+): boolean {
+  if (!clause.equi) return false;
+  const innerIsLeft = innerRelations.includes(clause.left);
+  const outerRelation = innerIsLeft ? clause.right : clause.left;
+  const outerColumn = innerIsLeft ? clause.equi.rightColumn : clause.equi.leftColumn;
+  return outerRelation === binding.relation && outerColumn === binding.column;
 }
 
 function connects(clause: JoinClause, left: TableId[], right: TableId[]): boolean {

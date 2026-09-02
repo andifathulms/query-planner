@@ -9,5 +9,10 @@ export default defineConfig({
   test: {
     environment: 'node',
     include: ['tests/**/*.test.ts'],
+    // The oracle loads a schema into PGlite; leaving it in the default pool
+    // alongside the equivalence suite makes both compete for the same core, and
+    // the 200 ms planning budget in enumeration.test.ts is a wall-clock
+    // assertion. `npm run oracle` runs it, and CI runs both.
+    exclude: ['node_modules/**'],
   },
 });

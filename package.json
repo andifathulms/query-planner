@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "typecheck": "tsc -b --noEmit",
     "lint": "eslint .",
-    "test": "vitest run",
+    "test": "vitest run --exclude tests/oracle.test.ts",
     "test:watch": "vitest",
     "oracle": "vitest run tests/oracle.test.ts"
   },

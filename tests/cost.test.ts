@@ -40,9 +40,19 @@ describe('index scan', () => {
     rows: 100, tableRows: 10_000, tablePages: 100, quals: 0,
   };
 
-  it('pays the descent as startup cost', () => {
-    // 2 levels x random_page_cost 4.0
-    expect(indexScanCost({ ...base, correlation: 1 }, p).startup).toBeCloseTo(8, 10);
+  it('pays the descent as startup cost, discounted like the rest of the index', () => {
+    // 2 levels x random_page_cost 4.0, halved because a two-page index is
+    // entirely inside effective_cache_size.
+    expect(indexScanCost({ ...base, correlation: 1 }, p).startup).toBeCloseTo(4, 10);
+  });
+
+  it('never charges more startup than total, which would make run cost negative', () => {
+    for (const rows of [1, 10, 1000]) {
+      for (const correlation of [0, 0.5, 1]) {
+        const c = indexScanCost({ ...base, rows, indexTuples: rows, correlation }, p);
+        expect(c.startup).toBeLessThanOrEqual(c.total);
+      }
+    }
   });
 
   it('is much cheaper on a well-correlated column', () => {

@@ -11,6 +11,7 @@
  */
 import { compareValues, isTrue, Layout, type Compiled, type Row, type Value } from '../row.js';
 import { BaseOperator, type Operator } from './operator.js';
+import type { ParameterSlot } from './scan.js';
 import type { Instrument } from '../trace.js';
 
 export type JoinKind = 'inner' | 'left';
@@ -33,6 +34,12 @@ export class NestedLoop extends BaseOperator {
     private readonly inner: Operator,
     private readonly condition: Compiled | null,
     private readonly joinKind: JoinKind,
+    /**
+     * Set when the inner side is a parameterized index scan. The key is written
+     * here before the inner side is opened, so each loop is one index lookup
+     * rather than a full rescan.
+     */
+    private readonly parameter: { slot: ParameterSlot; key: Compiled } | null = null,
   ) {
     super(planId, instrument);
     this.layout = outer.layout.concat(inner.layout);
@@ -53,9 +60,11 @@ export class NestedLoop extends BaseOperator {
       if (this.outerRow === null) {
         this.outerRow = this.outer.next();
         if (this.outerRow === null) { this.done = true; break; }
-        // The inner side is re-scanned for every outer row. This is the cost the
-        // model charges per loop, and it is why an underestimated outer side
-        // turns a 200 ms query into forty minutes.
+        // The inner side is restarted for every outer row. With a parameter it
+        // is a single index lookup; without one it is a full rescan. Either way
+        // the work is linear in the outer cardinality, which is why an
+        // underestimated outer side turns a 200 ms query into forty minutes.
+        if (this.parameter) this.parameter.slot.value = this.parameter.key(this.outerRow);
         this.inner.open();
         this.innerOpen = true;
         this.instrument.countLoop();

@@ -168,6 +168,20 @@ export interface ScanPlan extends PlanBase {
   /** For an index scan: the index used, and the quals it drove with. */
   index?: { column: string; entries: number; height: number; pages: number };
   indexQuals?: Restriction[];
+  /**
+   * A parameterized index scan: the key comes from the current outer row of the
+   * nested loop above, not from a constant.
+   *
+   * This is the plan shape behind the app's central catastrophe. A nested loop
+   * whose inner side is one index lookup per outer row is cheap when the outer
+   * side really does produce twelve rows and ruinous when it produces four
+   * hundred thousand — and without it a nested loop would have to rescan the
+   * whole inner relation, which is a different and much less realistic disaster.
+   *
+   * `estimatedRows` and `cost` on such a node describe ONE loop, which is what
+   * `nestedLoopCost` multiplies.
+   */
+  parameterizedBy?: { relation: TableId; column: string };
 }
 
 export interface JoinPlan extends PlanBase {

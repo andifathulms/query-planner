@@ -7,7 +7,19 @@
  */
 import { compareValues, type RowId, type Value } from './table.js';
 
+/** Children per node. An in-memory choice, and not what a page holds. */
 const FANOUT = 64;
+
+/**
+ * Bytes of overhead per index entry: the heap pointer and the item header.
+ *
+ * `pages` must describe what an 8 KB Postgres leaf page would actually hold, not
+ * how this in-memory tree is arranged — the cost model reads it, and deriving it
+ * from FANOUT would make every index look about six times larger than the real
+ * one and price index scans out of every plan.
+ */
+const ENTRY_OVERHEAD = 12;
+const PAGE_BYTES = 8192;
 
 interface Leaf {
   kind: 'leaf';
@@ -39,6 +51,8 @@ export class BTreeIndex {
   private firstLeaf: Leaf;
   readonly entries: number;
   readonly height: number;
+  /** Average key width in bytes, measured from the keys held. */
+  readonly keyWidth: number;
 
   constructor(readonly table: string, readonly column: string, values: Value[]) {
     // Build bottom-up from sorted key groups. Bulk loading, not repeated insert:
@@ -60,6 +74,7 @@ export class BTreeIndex {
       }
     }
     this.entries = keys.length;
+    this.keyWidth = averageWidth(keys);
 
     const leaves: Leaf[] = [];
     for (let i = 0; i < keys.length; i += FANOUT) {
@@ -93,7 +108,11 @@ export class BTreeIndex {
     this.height = height;
   }
 
-  get pages(): number { return Math.max(1, Math.ceil(this.entries / FANOUT)); }
+  /** Leaf pages, as an 8 KB Postgres page would pack them. */
+  get pages(): number {
+    const perPage = Math.max(1, Math.floor(PAGE_BYTES / (this.keyWidth + ENTRY_OVERHEAD)));
+    return Math.max(1, Math.ceil(this.entries / perPage));
+  }
 
   get stats(): IndexStats {
     return { entries: this.entries, height: this.height, pages: this.pages };
@@ -152,6 +171,19 @@ export class BTreeIndex {
     }
     return node;
   }
+}
+
+function averageWidth(keys: Value[]): number {
+  if (keys.length === 0) return 8;
+  // Sample rather than measure every key; widths within a column barely vary.
+  const step = Math.max(1, Math.floor(keys.length / 256));
+  let total = 0, n = 0;
+  for (let i = 0; i < keys.length; i += step) {
+    const v = keys[i];
+    total += typeof v === 'string' ? v.length + 1 : typeof v === 'boolean' ? 1 : 8;
+    n++;
+  }
+  return total / n;
 }
 
 function firstKey(n: Node): Value {

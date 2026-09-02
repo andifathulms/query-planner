@@ -57,6 +57,11 @@ export class SeqScan extends BaseOperator {
 /** How the index scan should be driven. */
 export type IndexAccess =
   | { kind: 'all' }
+  /**
+   * The key comes from the nested loop above, rebound before each open.
+   * The slot is shared with the join, which writes it per outer row.
+   */
+  | { kind: 'parameter'; slot: ParameterSlot }
   | { kind: 'equality'; value: import('../row.js').Value }
   | { kind: 'in'; values: import('../row.js').Value[] }
   | {
@@ -64,6 +69,11 @@ export type IndexAccess =
       low: import('../row.js').Value | null; lowInclusive: boolean;
       high: import('../row.js').Value | null; highInclusive: boolean;
     };
+
+/** A one-value binding a nested loop writes and its inner index scan reads. */
+export class ParameterSlot {
+  value: import('../row.js').Value = null;
+}
 
 export class IndexScan extends BaseOperator {
   readonly layout: Layout;
@@ -90,6 +100,7 @@ export class IndexScan extends BaseOperator {
     const a = this.access;
     switch (a.kind) {
       case 'all': return this.index.ordered();
+      case 'parameter': return this.index.lookup(a.slot.value)[Symbol.iterator]();
       case 'equality': return this.index.lookup(a.value)[Symbol.iterator]();
       case 'in': {
         // Each value's ids in key order, concatenated in value order, so the

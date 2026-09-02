@@ -21,13 +21,15 @@ import {
 } from './cost.js';
 import { groupCardinality, joinCardinality, makeContext, type CardinalityEstimate } from './cardinality.js';
 import { accessPaths, nextPlanId, resetPathIds } from './paths.js';
+import { indexScanCost } from './cost.js';
+import { distinctCount } from '../stats/types.js';
 import { interestingOrders, ordersFor, type InterestingOrder } from './orders.js';
 import type { EstimationContext } from './selectivity.js';
 import type { Statistics } from '../stats/types.js';
 import {
   orderKey, satisfies,
   type CostParams, type JoinClause, type Plan, type QuerySpec,
-  type SortOrder, type TableId,
+  type ScanPlan, type SortOrder, type TableId,
 } from './types.js';
 
 export interface DpCell {
@@ -138,7 +140,9 @@ export function enumerate(
 
         for (const outer of outerPlans) {
           for (const inner of innerPlans) {
-            candidates.push(...joinPlans(outer, inner, clauses, cardinality, options.params, spec));
+            candidates.push(...joinPlans(
+              outer, inner, clauses, cardinality, options.params, spec, statistics,
+            ));
           }
         }
       }
@@ -259,6 +263,7 @@ function validJoinOrder(
 function joinPlans(
   outer: Plan, inner: Plan, clauses: JoinClause[],
   cardinality: CardinalityEstimate, params: CostParams, spec: QuerySpec,
+  statistics: Statistics,
 ): Plan[] {
   if (!validJoinOrder(clauses, inner, spec)) return [];
   const relations = [...outer.relations, ...inner.relations];
@@ -283,6 +288,25 @@ function joinPlans(
     cost: nestedLoopCost(outer.cost, outer.estimatedRows, inner.cost, inner.estimatedRows, params),
     order: outer.order,
   });
+
+  // Nested loop with a parameterized inner index scan: one index lookup per
+  // outer row rather than a full rescan. This is the plan a real optimiser
+  // reaches for on a foreign key, and it is the one that becomes a catastrophe
+  // when the outer cardinality is underestimated.
+  const parameterized = parameterizedInner(outer, inner, clauses, statistics, params);
+  if (parameterized) {
+    out.push({
+      ...base,
+      id: nextPlanId('join'),
+      operator: 'Nested Loop',
+      outer, inner: parameterized,
+      cost: nestedLoopCost(
+        outer.cost, outer.estimatedRows,
+        parameterized.cost, parameterized.estimatedRows, params,
+      ),
+      order: outer.order,
+    });
+  }
 
   const equis = clauses.filter((c) => c.equi);
   if (equis.length > 0) {
@@ -352,6 +376,68 @@ function mergeJoinPlan(
       cost,
       // A merge join preserves the merge key's order.
       order: outerOrder,
+    };
+  }
+  return null;
+}
+
+/**
+ * An inner index scan bound to the outer row's join key, if one is available.
+ *
+ * Only a bare single-relation scan qualifies: the parameter has to reach an
+ * index directly, and a subtree with a join or a sort in it has nowhere to put
+ * the binding. The returned node's cost and row count describe ONE loop.
+ */
+function parameterizedInner(
+  outer: Plan, inner: Plan, clauses: JoinClause[],
+  statistics: Statistics, params: CostParams,
+): ScanPlan | null {
+  if (inner.operator !== 'Seq Scan' && inner.operator !== 'Index Scan') return null;
+  if (inner.parameterizedBy) return null;
+  const relation = inner.relation;
+
+  for (const clause of clauses) {
+    if (!clause.equi) continue;
+    const innerIsLeft = clause.left === relation.alias;
+    const innerColumn = innerIsLeft ? clause.equi.leftColumn : clause.equi.rightColumn;
+    const outerRelation = innerIsLeft ? clause.right : clause.left;
+    const outerColumn = innerIsLeft ? clause.equi.rightColumn : clause.equi.leftColumn;
+    if (!outer.relations.includes(outerRelation)) continue;
+
+    const index = statistics.indexes.get(`${relation.table}.${innerColumn}`);
+    const stat = statistics.tables.get(relation.table)?.columns.get(innerColumn);
+    if (!index || !stat) continue;
+
+    // Rows matching one outer value: the table divided by the key's distinct
+    // count. One for a primary key, more for a non-unique column.
+    const perLoop = Math.max(1, relation.rowCount / distinctCount(stat));
+
+    return {
+      id: nextPlanId('scan'),
+      operator: 'Index Scan',
+      relation,
+      filters: inner.filters,
+      index: { column: innerColumn, entries: index.entries, height: index.height, pages: index.pages },
+      indexQuals: [],
+      parameterizedBy: { relation: outerRelation, column: outerColumn },
+      cost: indexScanCost({
+        // One descent and one leaf page per lookup.
+        indexPages: 1,
+        indexHeight: index.height,
+        indexTuples: perLoop,
+        rows: perLoop,
+        tableRows: relation.rowCount,
+        tablePages: relation.pageCount,
+        correlation: stat.correlation,
+        quals: inner.filters.length,
+      }, params),
+      estimatedRows: perLoop,
+      rowWidth: relation.rowWidth,
+      // The output is ordered within one loop only, which is no ordering the
+      // plan above can rely on.
+      order: null,
+      relations: [relation.alias],
+      traces: inner.traces,
     };
   }
   return null;

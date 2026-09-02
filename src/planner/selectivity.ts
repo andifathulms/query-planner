@@ -172,6 +172,26 @@ export function estimateRange(
   clause: string,
 ): Estimate {
   if (stat.histogram.length < 2) {
+    // No histogram. When the MCV list covers every distinct value — which is
+    // what a column with few distinct values gets, and why no histogram was
+    // built — the answer is the sum of the listed frequencies in range, and it
+    // is exact rather than an assumption.
+    const listed = mcvTotal(stat);
+    if (stat.mcv.length > 0 && listed + stat.nullFraction > 0.99) {
+      let inRange = 0;
+      for (const e of stat.mcv) if (matches(e.value, op, value)) inRange += e.frequency;
+      return {
+        selectivity: clamp01(inRange),
+        trace: {
+          clause, method: 'mcv',
+          inputs: { mcvEntries: stat.mcv.length, mcvInRange: inRange, mcvTotal: listed },
+          result: clamp01(inRange),
+          assumptions: [
+            `the most-common-values list covers every value of this column, so the matching frequencies are summed directly`,
+          ],
+        },
+      };
+    }
     return {
       selectivity: DEFAULT_RANGE_SELECTIVITY,
       trace: {
@@ -540,7 +560,24 @@ function estimateBetween(expr: Expr & { kind: 'between' }, ctx: EstimationContex
   const atLeast = estimateRange(stat, '>=', expr.low.value, `${formatExpr(expr.operand)} >= ${formatValue(expr.low.value)}`);
   const atMost = estimateRange(stat, '<=', expr.high.value, `${formatExpr(expr.operand)} <= ${formatValue(expr.high.value)}`);
 
-  // Both fractions are measured from the same histogram, so the overlap is the
+  if (atLeast.trace.method === 'default' || atMost.trace.method === 'default') {
+    // Neither bound could be located, so the span between them is meaningless —
+    // subtracting two guesses would give zero rather than an estimate. Postgres
+    // uses a dedicated default for a bounded range, which is what applies here.
+    const selectivity = expr.negated ? 1 - DEFAULT_RANGE_SELECTIVITY : DEFAULT_RANGE_SELECTIVITY;
+    return {
+      selectivity,
+      trace: {
+        clause, method: 'default',
+        inputs: { default: DEFAULT_RANGE_SELECTIVITY },
+        result: selectivity,
+        assumptions: ['neither bound could be located in the statistics, so the default range selectivity applies'],
+        children: [atLeast.trace, atMost.trace],
+      },
+    };
+  }
+
+  // Both fractions are measured from the same statistics, so the overlap is the
   // span between them rather than a product.
   const span = clamp01(atLeast.selectivity + atMost.selectivity - (1 - stat.nullFraction));
   const selectivity = expr.negated ? clamp01(1 - span - stat.nullFraction) : span;
