@@ -1,0 +1,37 @@
+.correlation { display: flex; flex-direction: column; gap: var(--s2); }
+.correlation-empty { color: var(--ink-faint); max-width: 68ch; }
+
+.correlation-controls { display: flex; align-items: baseline; gap: var(--s3); flex-wrap: wrap; }
+.correlation-slider { display: flex; align-items: center; gap: var(--s1); color: var(--ink-mid); }
+.correlation-slider input { width: 180px; accent-color: var(--ink); }
+.correlation-slider output { color: var(--ink); }
+.correlation-hint { color: var(--ink-faint); }
+
+.correlation-plot svg { display: block; }
+.correlation-field { fill: var(--stock); stroke: var(--rule); }
+.correlation-axis { fill: var(--ink-mid); }
+
+/* Points at low opacity so density reads (DESIGN.md §5.3). */
+.correlation-point { fill: var(--ink-mid); }
+/* The rows actually matching both predicates are drawn solid: they are measured,
+ * not predicted. */
+.correlation-point.is-match { fill: var(--true); }
+
+.correlation-rect { pointer-events: none; }
+/* What the multivariate statistic predicts: solid, because it is derived from a
+ * measurement of the combination rather than from an assumption about it. */
+.correlation-corrected {
+  fill: none;
+  stroke: var(--order);
+  stroke-width: 1.5;
+}
+
+.correlation-readout { display: flex; flex-direction: column; gap: 2px; }
+.correlation-readout dl { display: flex; flex-wrap: wrap; gap: var(--s1) var(--s4); margin: 0; }
+.correlation-readout div { display: flex; gap: var(--s1); align-items: baseline; }
+.correlation-readout dt { color: var(--ink-mid); }
+.correlation-readout dd { margin: 0; font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.correlation-readout dd.is-believed { color: var(--believed); }
+.correlation-readout dd.is-true { color: var(--true); }
+.correlation-readout dd.is-corrected { color: var(--order); }
+.correlation-gap { color: var(--ink); }

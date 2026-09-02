@@ -1,0 +1,53 @@
+.trace {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--s1) 0;
+}
+.trace.is-nested {
+  margin-left: var(--s2);
+  padding-left: var(--s2);
+  border-left: 1px solid var(--rule);
+}
+
+.trace-head { display: flex; align-items: baseline; gap: var(--s1); flex-wrap: wrap; }
+.trace-clause { color: var(--ink); }
+.trace-result { color: var(--ink); font-weight: 500; margin-left: auto; }
+
+.trace-method {
+  padding: 1px 5px;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  color: var(--ink-mid);
+}
+/* A method that rests on an assumption the app is arguing about is marked, not
+ * coloured: hue means believed or true here and nothing else. */
+.trace-method.is-assumed { border-style: dashed; border-color: var(--believed); color: var(--believed); }
+
+.trace-inputs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px var(--s2);
+  margin: 0;
+  color: var(--ink-mid);
+}
+.trace-inputs > div { display: flex; gap: 4px; }
+.trace-inputs dt { color: var(--ink-faint); }
+.trace-inputs dd { margin: 0; }
+
+.trace-assumptions {
+  margin: 0;
+  padding-left: var(--s2);
+  color: var(--ink-mid);
+  list-style: none;
+}
+.trace-assumptions li { position: relative; }
+.trace-assumptions li::before {
+  content: '';
+  position: absolute;
+  left: calc(var(--s2) * -1 + 3px);
+  top: 0.62em;
+  width: 4px;
+  height: 1px;
+  background: var(--ink-faint);
+}

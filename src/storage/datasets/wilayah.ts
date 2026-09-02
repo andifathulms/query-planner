@@ -30,15 +30,75 @@ const PROVINSI = [
   ['Papua Tengah', 'Papua'], ['Papua Pegunungan', 'Papua'], ['Papua Barat Daya', 'Papua'],
 ] as const;
 
-const KOTA_STEM = [
-  'Balikpapan', 'Samarinda', 'Bontang', 'Bandung', 'Bekasi', 'Depok', 'Bogor',
-  'Surabaya', 'Malang', 'Kediri', 'Semarang', 'Solo', 'Yogyakarta', 'Denpasar',
-  'Medan', 'Binjai', 'Padang', 'Pekanbaru', 'Palembang', 'Bandar Lampung',
-  'Pontianak', 'Banjarmasin', 'Makassar', 'Manado', 'Palu', 'Kendari', 'Ambon',
-  'Jayapura', 'Sorong', 'Mataram', 'Kupang', 'Ternate', 'Gorontalo', 'Serang',
-  'Tangerang', 'Cilegon', 'Jakarta Pusat', 'Jakarta Selatan', 'Jakarta Timur',
-  'Jakarta Barat', 'Jakarta Utara',
+/**
+ * Cities, each paired with the province it is actually in.
+ *
+ * The pairing is real rather than arbitrary. This dataset exists for
+ * credibility (PRD §4.7), and a reader who knows that Balikpapan is in
+ * Kalimantan Timur will stop trusting every other number on the screen the
+ * moment they see it filed under Jawa Barat. It is also what makes the
+ * functional dependency genuine: kota really does determine provinsi.
+ */
+const KOTA: ReadonlyArray<readonly [string, string]> = [
+  ['Balikpapan', 'Kalimantan Timur'],
+  ['Samarinda', 'Kalimantan Timur'],
+  ['Bontang', 'Kalimantan Timur'],
+  ['Bandung', 'Jawa Barat'],
+  ['Bekasi', 'Jawa Barat'],
+  ['Depok', 'Jawa Barat'],
+  ['Bogor', 'Jawa Barat'],
+  ['Surabaya', 'Jawa Timur'],
+  ['Malang', 'Jawa Timur'],
+  ['Kediri', 'Jawa Timur'],
+  ['Semarang', 'Jawa Tengah'],
+  ['Surakarta', 'Jawa Tengah'],
+  ['Yogyakarta', 'DI Yogyakarta'],
+  ['Denpasar', 'Bali'],
+  ['Medan', 'Sumatera Utara'],
+  ['Binjai', 'Sumatera Utara'],
+  ['Padang', 'Sumatera Barat'],
+  ['Pekanbaru', 'Riau'],
+  ['Palembang', 'Sumatera Selatan'],
+  ['Bandar Lampung', 'Lampung'],
+  ['Pontianak', 'Kalimantan Barat'],
+  ['Banjarmasin', 'Kalimantan Selatan'],
+  ['Palangka Raya', 'Kalimantan Tengah'],
+  ['Tarakan', 'Kalimantan Utara'],
+  ['Makassar', 'Sulawesi Selatan'],
+  ['Manado', 'Sulawesi Utara'],
+  ['Palu', 'Sulawesi Tengah'],
+  ['Kendari', 'Sulawesi Tenggara'],
+  ['Gorontalo', 'Gorontalo'],
+  ['Mamuju', 'Sulawesi Barat'],
+  ['Ambon', 'Maluku'],
+  ['Ternate', 'Maluku Utara'],
+  ['Jayapura', 'Papua'],
+  ['Manokwari', 'Papua Barat'],
+  ['Sorong', 'Papua Barat Daya'],
+  ['Mataram', 'Nusa Tenggara Barat'],
+  ['Kupang', 'Nusa Tenggara Timur'],
+  ['Serang', 'Banten'],
+  ['Tangerang', 'Banten'],
+  ['Cilegon', 'Banten'],
+  ['Jakarta Pusat', 'DKI Jakarta'],
+  ['Jakarta Selatan', 'DKI Jakarta'],
+  ['Jakarta Timur', 'DKI Jakarta'],
+  ['Jakarta Barat', 'DKI Jakarta'],
+  ['Jakarta Utara', 'DKI Jakarta'],
+  ['Banda Aceh', 'Aceh'],
+  ['Jambi', 'Jambi'],
+  ['Bengkulu', 'Bengkulu'],
+  ['Tanjung Pinang', 'Kepulauan Riau'],
 ] as const;
+
+const PROVINSI_INDEX = new Map<string, number>(PROVINSI.map(([name], i) => [name, i]));
+
+/** The province each city is in, as an index into PROVINSI. */
+const KOTA_PROVINSI: number[] = KOTA.map(([, provinsi]) => {
+  const index = PROVINSI_INDEX.get(provinsi);
+  if (index === undefined) throw new Error(`${provinsi} is not in the provinsi list`);
+  return index;
+});
 
 const PEKERJAAN = [
   'petani', 'pedagang', 'karyawan swasta', 'pegawai negeri', 'nelayan', 'guru',
@@ -73,7 +133,7 @@ export function buildWilayah(params: GeneratorParams): BuiltDataset {
   for (let i = 0; i < nKabupaten; i++) kabProvinsi.push(i % nProvinsi);
   const kabupatenRows = kabProvinsi.map((p, i) => [
     i, p,
-    `${i % 4 === 0 ? 'Kota' : 'Kabupaten'} ${KOTA_STEM[i % KOTA_STEM.length]}`,
+    `${i % 4 === 0 ? 'Kota' : 'Kabupaten'} ${KOTA[i % KOTA.length][0]}`,
     i % 4 === 0 ? 'kota' : 'kabupaten',
     Math.round(200 + rngKab.next() * 4800),
   ] as Value[]);
@@ -95,14 +155,20 @@ export function buildWilayah(params: GeneratorParams): BuiltDataset {
   // kelurahan — the demonstration table. `kota` and `provinsi` are denormalised
   // onto it and correlated at the requested strength.
   const rngKel = generatorRng(params, 'kelurahan');
-  const kotaPick = zipfSampler(KOTA_STEM.length, params.zipf, rngKel);
+  const kotaPick = zipfSampler(KOTA.length, params.zipf, rngKel);
   const kotaIdx = Array.from({ length: nKelurahan }, () => kotaPick());
-  const provIdx = correlatedCategory(kotaIdx, nProvinsi, params.correlation, rngKel);
+  // At correlation 1 every kelurahan's provinsi is the one its kota is really
+  // in, so the dependency the app repairs is a true one rather than an imposed
+  // one. Below 1 a share of rows are given a province at random, which is what
+  // makes the degree the statistic measures adjustable.
+  const provIdx = correlatedCategory(
+    kotaIdx, nProvinsi, params.correlation, rngKel, (a) => KOTA_PROVINSI[a],
+  );
 
   interface Kel { kecamatanId: number; kota: string; prov: string; penduduk: number; luas: number }
   let kelurahanEntries: Kel[] = kotaIdx.map((k, i) => ({
     kecamatanId: i % nKecamatan,
-    kota: KOTA_STEM[k],
+    kota: KOTA[k][0],
     prov: PROVINSI[provIdx[i]][0],
     penduduk: Math.max(80, Math.round(3000 + rngKel.normal() * 2200)),
     luas: Math.max(1, Math.round(rngKel.next() * 40 * 100) / 100),

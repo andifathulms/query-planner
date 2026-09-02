@@ -1,0 +1,24 @@
+.timeline { display: flex; flex-direction: column; gap: var(--s1); }
+.timeline-empty { color: var(--ink-faint); }
+
+.timeline-tracks svg { display: block; }
+.timeline-label { fill: var(--ink-mid); }
+.timeline-rows { fill: var(--ink-mid); text-anchor: end; }
+.timeline-axis { fill: var(--ink-faint); }
+
+/* Startup is hollow, output is solid: the same encoding as everywhere else, so
+ * a blocking operator reads as a long empty bar before anything is measured. */
+.timeline-startup {
+  fill: none;
+  stroke: var(--believed);
+  stroke-width: 1.2;
+  stroke-dasharray: 3 2;
+}
+.timeline-output { fill: var(--true); }
+.timeline-spill { fill: var(--warn); }
+
+.timeline-legend { display: flex; gap: var(--s2); color: var(--ink-mid); }
+.timeline-legend span { display: inline-flex; align-items: center; gap: 4px; }
+.timeline-legend svg { overflow: visible; }
+
+.timeline-note { color: var(--ink-mid); max-width: 68ch; }

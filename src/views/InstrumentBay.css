@@ -1,0 +1,40 @@
+.bay { display: flex; flex-direction: column; }
+
+.bay-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--rule);
+  overflow-x: auto;
+}
+
+.bay-tab {
+  padding: var(--s1) var(--s2);
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  color: var(--ink-mid);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.bay-tab:hover { color: var(--ink); }
+.bay-tab.is-active { color: var(--ink); border-bottom-color: var(--ink); font-weight: 500; }
+
+/* Recovery is the only tab that changes the state above it, so it is marked
+ * (DESIGN.md §4.3). */
+.bay-tab.is-acting::after {
+  content: '';
+  display: inline-block;
+  width: 4px; height: 4px;
+  margin-left: 5px;
+  border-radius: 50%;
+  background: var(--order);
+  vertical-align: 0.15em;
+}
+
+.bay-panel { padding: var(--s3); animation: bay-in var(--d-tab) var(--ease-inout); }
+.bay-panel:focus-visible { outline: 2px solid var(--believed); outline-offset: -2px; }
+
+@keyframes bay-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}

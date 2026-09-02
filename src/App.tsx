@@ -13,6 +13,7 @@ import { SpanLegend } from './ui/Span.js';
 import { PlanTree } from './views/PlanTree/PlanTree.js';
 import { Lattice } from './views/Lattice/Lattice.js';
 import { CostBreakdown } from './views/CostBreakdown/CostBreakdown.js';
+import { InstrumentBay } from './views/InstrumentBay.js';
 import { useFill, usePrefersReducedMotion } from './ui/useFill.js';
 import { DEFAULT_COST_PARAMS } from './planner/types.js';
 import { DATASETS } from './storage/datasets/index.js';
@@ -133,6 +134,7 @@ export function App() {
             <p className="t-small app-placeholder">Nothing executed.</p>
           )}
         </section>
+        <InstrumentBay />
       </main>
 
       <footer className="app-footer">

@@ -1,0 +1,24 @@
+.sample { display: flex; flex-direction: column; gap: var(--s2); }
+.sample-empty { color: var(--ink-faint); max-width: 68ch; }
+
+.sample-controls { display: flex; align-items: center; gap: var(--s3); flex-wrap: wrap; }
+.sample-controls select {
+  font: inherit; font-family: var(--mono); font-size: var(--t-small-size);
+  color: var(--ink); background: transparent;
+  border: 1px solid var(--rule); border-radius: var(--radius); padding: 1px var(--s1);
+}
+.sample-slider { display: flex; align-items: center; gap: var(--s1); color: var(--ink-mid); }
+.sample-slider input { width: 160px; accent-color: var(--ink); }
+.sample-slider output { color: var(--ink); }
+.sample-fraction { color: var(--ink-mid); }
+
+.sample-grid svg { display: block; }
+/* Unsampled rows are faint, sampled rows are ink. At a million rows the result
+ * is a texture, which is exactly what it should be. */
+.sample-cell { fill: var(--stock-deep); }
+.sample-cell.is-seen { fill: var(--ink); }
+
+.sample-comparison { display: flex; flex-direction: column; gap: 2px; }
+.sample-pair { display: flex; align-items: center; gap: var(--s2); flex-wrap: wrap; }
+.sample-pair .t-small { color: var(--ink-mid); }
+.sample-error { color: var(--ink-mid); max-width: 68ch; }

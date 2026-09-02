@@ -35,7 +35,8 @@
   grid-template-areas:
     'query search'
     'cost  plan'
-    'cost  result';
+    'cost  result'
+    'bay   bay';
 }
 
 .app-query { grid-area: query; }
@@ -43,6 +44,7 @@
 .app-plan { grid-area: plan; }
 .app-result { grid-area: result; }
 .app-cost { grid-area: cost; }
+.bay { grid-area: bay; }
 
 .app-main > .panel { padding: var(--s2) var(--s3) var(--s3); min-width: 0; }
 
@@ -83,7 +85,7 @@
 @media (max-width: 900px) {
   .app-main {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: 'query' 'search' 'plan' 'cost' 'result';
+    grid-template-areas: 'query' 'search' 'plan' 'cost' 'bay' 'result';
   }
   .app-header { flex-wrap: wrap; }
 }

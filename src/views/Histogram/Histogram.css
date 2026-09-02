@@ -1,0 +1,36 @@
+.histogram { display: flex; flex-direction: column; gap: var(--s2); }
+.histogram-empty { color: var(--ink-faint); }
+
+.histogram-head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s2);
+  flex-wrap: wrap;
+}
+.histogram-head select {
+  font: inherit;
+  font-family: var(--mono);
+  font-size: var(--t-small-size);
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 1px var(--s1);
+}
+.histogram-summary { color: var(--ink-mid); }
+
+.histogram-chart svg { display: block; }
+.histogram-axis { fill: var(--ink-faint); }
+
+/* Everything is drawn in ink and greys; the predicate's coverage is the one
+ * thing that changes value, so it is what the eye goes to. */
+.histogram-mcv { fill: var(--stock-deep); stroke: var(--rule); stroke-width: 0.5; }
+.histogram-bucket { fill: var(--stock-deep); stroke: var(--rule); stroke-width: 0.4; }
+.histogram-mcv.is-covered,
+.histogram-bucket.is-covered { fill: var(--ink-mid); stroke: none; }
+.histogram-null { fill: var(--stock); stroke: var(--ink-faint); stroke-width: 0.5; stroke-dasharray: 2 2; }
+
+.histogram-comparison { display: flex; flex-direction: column; gap: var(--s1); }
+.histogram-pair { display: flex; align-items: center; gap: var(--s2); flex-wrap: wrap; }
+.histogram-pair .t-small { color: var(--ink-mid); }
+.histogram-note { color: var(--ink-faint); }

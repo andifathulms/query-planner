@@ -9,7 +9,7 @@
  * obscurely.
  */
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { render, screen, cleanup, within } from '@testing-library/react';
+import { render, screen, cleanup, within, fireEvent } from '@testing-library/react';
 import { StoreProvider } from '../src/state/store.js';
 import { App } from '../src/App.js';
 
@@ -143,4 +143,108 @@ describe('the cost breakdown', () => {
     const panel = screen.getByRole('region', { name: 'Cost breakdown' });
     expect(panel.querySelector('.cost-breakdown-note')?.textContent?.length).toBeGreaterThan(30);
   });
+});
+
+describe('the instrument bay', () => {
+  it('offers all five instruments, with recovery marked as the one that acts', () => {
+    renderApp('n=6000&s=2000');
+    const tabs = screen.getAllByRole('tab');
+    expect(tabs.map((t) => t.textContent)).toEqual([
+      'correlation', 'histogram', 'sample', 'timeline', 'recovery',
+    ]);
+    expect(screen.getByRole('tab', { name: 'recovery' }).className).toMatch(/is-acting/);
+  });
+
+  it('draws the independence rectangle and the truth beside it', () => {
+    renderApp('n=6000&s=2000');
+    const plot = screen.getByRole('img', { name: /Scatter of/ });
+    // The wrong belief is hollow and dashed; the matching rows are solid.
+    expect(plot.querySelectorAll('.mark-believed').length).toBe(1);
+    expect(plot.querySelectorAll('.correlation-point.is-match').length).toBeGreaterThan(0);
+    expect(plot.getAttribute('aria-label')).toMatch(/Independence predicts .* the truth is/);
+  });
+
+  it('shows the histogram with its predicate and its trace', () => {
+    renderApp('n=6000&s=2000');
+    fireEvent.click(screen.getByRole('tab', { name: 'histogram' }));
+    expect(screen.getByRole('img', { name: /Statistics for/ })).toBeTruthy();
+    // Every estimate states its method and its assumptions.
+    expect(screen.getByRole('tabpanel').textContent).toMatch(/independence|most-common values|histogram/);
+  });
+
+  it('shows which rows the statistics saw', () => {
+    renderApp('n=6000&s=2000');
+    fireEvent.click(screen.getByRole('tab', { name: 'sample' }));
+    expect(screen.getByRole('img', { name: /rows were sampled/ })).toBeTruthy();
+  });
+
+  it('shows a track per plan node on the timeline', () => {
+    renderApp('n=6000&s=2000');
+    fireEvent.click(screen.getByRole('tab', { name: 'timeline' }));
+    const chart = screen.getByRole('img', { name: /Execution timeline/ });
+    expect(chart.querySelectorAll('.timeline-track').length).toBeGreaterThan(0);
+    expect(chart.querySelectorAll('.timeline-startup').length).toBeGreaterThan(0);
+  });
+
+  it('moves between tabs with the arrow keys', () => {
+    renderApp('n=6000&s=2000');
+    const first = screen.getByRole('tab', { name: 'correlation' });
+    first.focus();
+    fireEvent.keyDown(first, { key: 'ArrowRight' });
+    expect(screen.getByRole('tab', { name: 'histogram' }).getAttribute('aria-selected')).toBe('true');
+  });
+});
+
+describe('the recovery', () => {
+  it('offers all three statistic kinds with what each repairs and costs', () => {
+    renderApp('n=6000&s=2000');
+    fireEvent.click(screen.getByRole('tab', { name: 'recovery' }));
+    const panel = screen.getByRole('tabpanel');
+    for (const kind of ['dependencies', 'ndistinct', 'mcv']) {
+      expect(within(panel).getByText(kind)).toBeTruthy();
+    }
+    expect(within(panel).getAllByRole('button', { name: 'create' }).length).toBe(3);
+  });
+
+  it('moves the estimate towards the truth when a statistic is created', () => {
+    renderApp('n=6000&s=2000');
+    fireEvent.click(screen.getByRole('tab', { name: 'recovery' }));
+
+    const { estimated: before, actual } = rootNumbers();
+    fireEvent.click(within(screen.getByRole('tabpanel')).getAllByRole('button', { name: 'create' })[0]);
+    const { estimated: after } = rootNumbers();
+
+    // The claim is not a fixed multiple — that depends on the table size and the
+    // distinct counts. The claim is that independence understates, and that the
+    // dependency corrects towards the measured truth.
+    expect(before).toBeLessThan(actual);
+    expect(after).toBeGreaterThan(before);
+    expect(Math.abs(after - actual)).toBeLessThan(Math.abs(before - actual));
+
+    expect(screen.getByRole('heading', { name: 'Before and after' })).toBeTruthy();
+    expect(screen.getByRole('tabpanel').textContent).toMatch(/the estimate/);
+  });
+
+  it('turns the statistic off again when dropped', () => {
+    renderApp('n=6000&s=2000');
+    fireEvent.click(screen.getByRole('tab', { name: 'recovery' }));
+    const panel = () => screen.getByRole('tabpanel');
+
+    const before = rootNumbers().estimated;
+    fireEvent.click(within(panel()).getAllByRole('button', { name: 'create' })[0]);
+    expect(rootNumbers().estimated).not.toBe(before);
+    fireEvent.click(within(panel()).getByRole('button', { name: 'drop' }));
+    expect(rootNumbers().estimated).toBe(before);
+  });
+
+  function rootNumbers(): { estimated: number; actual: number } {
+    const root = screen.getAllByRole('treeitem')[0];
+    const label = root.getAttribute('aria-label') ?? '';
+    const estimated = /estimated ([\d,]+) rows/.exec(label)?.[1] ?? '0';
+    const actual = /actual ([\d,]+) rows/.exec(label)?.[1] ?? '0';
+    return {
+      estimated: Number(estimated.replace(/,/g, '')),
+      actual: Number(actual.replace(/,/g, '')),
+    };
+  }
 });

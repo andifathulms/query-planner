@@ -47,8 +47,13 @@ export function zipfSampler(n: number, s: number, rng: Rng): () => number {
  */
 export function correlatedCategory(
   driver: number[], distinct: number, rho: number, rng: Rng,
+  /**
+   * What the driver determines. Defaults to an arbitrary but stable mapping;
+   * the realistic dataset passes the true one, because a city assigned to the
+   * wrong province is a dataset a knowledgeable reader stops trusting.
+   */
+  determined: (a: number) => number = (a) => (a * 2654435761) % distinct,
 ): number[] {
-  const determined = (a: number): number => (a * 2654435761) % distinct;
   return driver.map((a) => (rng.next() < rho ? determined(a) : rng.int(distinct)));
 }
 

@@ -1,0 +1,66 @@
+.recovery { display: flex; flex-direction: column; gap: var(--s4); }
+.recovery-empty { color: var(--ink-faint); max-width: 68ch; }
+.recovery-note { color: var(--ink-mid); max-width: 68ch; }
+
+.recovery-groups { display: flex; flex-direction: column; gap: var(--s3); }
+.recovery-group { display: flex; flex-direction: column; gap: 4px; }
+.recovery-group-name { color: var(--ink); }
+.recovery-group-why { color: var(--ink-mid); max-width: 68ch; }
+
+.recovery-kinds { list-style: none; margin: var(--s1) 0 0; padding: 0; display: grid; gap: var(--s2); }
+@media (min-width: 720px) {
+  .recovery-kinds { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+.recovery-kind {
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: var(--s1) var(--s2) var(--s2);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.recovery-kind-head { display: flex; align-items: baseline; gap: var(--s1); }
+.recovery-kind-cost { color: var(--ink-faint); margin-left: auto; }
+.recovery-kind-repairs { color: var(--ink-mid); }
+
+.recovery-action {
+  padding: 1px var(--s1);
+  background: transparent;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  color: var(--ink-mid);
+  cursor: pointer;
+}
+.recovery-action:hover { color: var(--ink); border-color: var(--ink-faint); }
+
+.recovery-compare { display: flex; flex-direction: column; gap: var(--s2); }
+
+/* Staged in the order of the causal chain, because the chain is the lesson
+ * (DESIGN.md §6.4). Not simultaneously. */
+.recovery-stage {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  flex-wrap: wrap;
+  animation: recovery-stage var(--d-recovery) var(--ease-out) both;
+  animation-delay: calc((var(--stage) - 1) * 140ms);
+}
+
+@keyframes recovery-stage {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.recovery-stage-label { flex: 0 0 78px; color: var(--ink-mid); }
+.recovery-stage-value { color: var(--ink); }
+.recovery-stage-note { color: var(--ink-faint); }
+.recovery-arrow { color: var(--ink-faint); }
+.recovery-stage .t-figure.is-under { color: var(--warn); }
+
+/* §6.7: the recovery becomes a before/after toggle with no staging. */
+.recovery.is-static .recovery-stage { animation: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .recovery-stage { animation: none; }
+}
