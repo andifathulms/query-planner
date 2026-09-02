@@ -337,3 +337,46 @@ describe('the generator controls', () => {
     expect(toggle.checked).toBe(false);
   });
 });
+
+describe('prefers-reduced-motion', () => {
+  function withReducedMotion(reduce: boolean): void {
+    Object.defineProperty(window, 'matchMedia', {
+      writable: true,
+      value: (query: string) => ({
+        matches: reduce && query.includes('prefers-reduced-motion'),
+        media: query,
+        addEventListener: () => {},
+        removeEventListener: () => {},
+      }),
+    });
+  }
+
+  it('fills the lattice completely and at once, with the stepper still there', () => {
+    withReducedMotion(true);
+    renderApp('n=6000&s=2000');
+
+    // Every cell has already resolved: nothing is waiting to animate.
+    const cells = screen.getAllByRole('button', { name: /candidate/ });
+    expect(cells.length).toBeGreaterThan(0);
+    // SVG elements expose className as an SVGAnimatedString, not a string.
+    for (const cell of cells) expect(cell.getAttribute('class')).toMatch(/is-resolved/);
+
+    // The controls remain, so the search is still steppable by hand (§6.7).
+    expect(screen.getByRole('button', { name: 'step level' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'replay' })).toBeTruthy();
+  });
+
+  it('shows the plan tree immediately rather than waiting for the descent', () => {
+    withReducedMotion(true);
+    renderApp('n=6000&s=2000');
+    const panel = screen.getByRole('region', { name: 'The chosen plan' });
+    expect(panel.className).not.toMatch(/is-waiting/);
+    expect(panel.getAttribute('aria-busy')).toBe('false');
+  });
+
+  it('plays the fill when motion is not reduced', () => {
+    withReducedMotion(false);
+    renderApp('n=6000&s=2000');
+    expect(screen.getByRole('button', { name: 'pause' })).toBeTruthy();
+  });
+});
