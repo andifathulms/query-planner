@@ -35,7 +35,7 @@ describe('the accepted subset', () => {
   it('gives AND lower precedence than comparison, and OR lower still', () => {
     const q = parse("SELECT * FROM t WHERE a = 1 AND b = 2 OR c = 3");
     expect(formatExpr(q.where!)).toBe('a = 1 AND b = 2 OR c = 3');
-    expect(q.where!.kind === 'binary' && q.where.op).toBe('OR');
+    expect(q.where).toMatchObject({ kind: 'binary', op: 'OR' });
   });
 
   it('flattens conjuncts', () => {
