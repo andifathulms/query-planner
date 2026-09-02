@@ -138,6 +138,31 @@ export function runQuery(state: AppState, options: { execute?: boolean } = {}): 
     return { bundle, spec, planning, execution: null, error: null };
   }
 
+  // Executing is the expensive half — a four-table join over 120,000 rows takes
+  // around 20 ms, which is most of a frame on its own. Dragging a cost parameter
+  // re-plans continuously but usually chooses the same plan, and the same plan
+  // over the same data produces the same actuals, so the execution is cached.
+  //
+  // Plan node ids are assigned in enumeration order, which is deterministic for
+  // a given query and dataset. A given id therefore always names the same
+  // candidate, and the winner's id changes exactly when the winner does — which
+  // is the moment, and the only moment, the actuals need recomputing.
+  const key = [
+    planning.winner.id,
+    bundle.statistics.sampleSize,
+    // work_mem changes what spills, so it changes what the timeline shows.
+    state.costParams.work_mem,
+    state.sql,
+    state.dataset,
+    state.seed,
+    state.generator.rows,
+    state.generator.correlation,
+    state.generator.zipf,
+  ].join('|');
+
+  const cached = executionCache.get(key);
+  if (cached) return { bundle, spec, planning, execution: cached, error: null };
+
   try {
     const execution = execute(planning.winner, spec, bundle.schema, {
       params: state.costParams,
@@ -145,9 +170,27 @@ export function runQuery(state: AppState, options: { execute?: boolean } = {}): 
       // to completion above this — only the materialised output is capped.
       maxRows: 500,
     });
+    remember(key, execution);
     return { bundle, spec, planning, execution, error: null };
   } catch (e) {
     return { bundle, spec, planning, execution: null, error: toEngineError(e) };
+  }
+}
+
+/**
+ * A few entries rather than one: the recovery view runs the query twice, with
+ * and without the multivariate statistics, and a single slot would thrash
+ * between them and execute on every render.
+ */
+const EXECUTION_CACHE_SIZE = 6;
+const executionCache = new Map<string, ExecutionResult>();
+
+function remember(key: string, execution: ExecutionResult): void {
+  executionCache.set(key, execution);
+  while (executionCache.size > EXECUTION_CACHE_SIZE) {
+    const oldest = executionCache.keys().next().value;
+    if (oldest === undefined) break;
+    executionCache.delete(oldest);
   }
 }
 
