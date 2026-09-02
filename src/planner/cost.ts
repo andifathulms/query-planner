@@ -40,8 +40,28 @@ export function spillCost(bytes: number, params: CostParams): SpillResult {
   };
 }
 
-function terms(...entries: Array<{ label: string; value: number; kind: 'io' | 'cpu' } | null>) {
-  return entries.filter((e): e is { label: string; value: number; kind: 'io' | 'cpu' } => e !== null && e.value !== 0);
+type Term = { label: string; value: number; kind: 'io' | 'cpu' };
+
+function terms(...entries: Array<Term | null>): Term[] {
+  return entries.filter((e): e is Term => e !== null && e.value !== 0);
+}
+
+/**
+ * Build a cost whose `terms` are computed on first access.
+ *
+ * Enumerating eight relations produces around 25,000 candidates, and each one's
+ * decomposition carries formatted labels. Only the winner and the candidates of
+ * whichever lattice cell is selected are ever rendered, so building every label
+ * eagerly spends most of the planning budget on strings nobody reads. The
+ * property is still a plain array to every reader.
+ */
+function lazy(startup: number, total: number, build: () => Term[]): CostBreakdown {
+  let cached: Term[] | null = null;
+  return {
+    startup,
+    total,
+    get terms(): Term[] { return (cached ??= build()); },
+  };
 }
 
 // ── Scans ────────────────────────────────────────────────────────────────────
@@ -52,18 +72,14 @@ export function seqScanCost(
   const io = pages * params.seq_page_cost;
   const cpu = rows * params.cpu_tuple_cost;
   const qual = rows * quals * params.cpu_operator_cost;
-  return {
-    // A sequential scan can return its first row as soon as the first page is
-    // read, so its startup cost is effectively zero. This is what makes it
-    // competitive under a small LIMIT even when its total cost is high.
-    startup: 0,
-    total: io + cpu + qual,
-    terms: terms(
+  // A sequential scan can return its first row as soon as the first page is
+  // read, so its startup cost is effectively zero. This is what makes it
+  // competitive under a small LIMIT even when its total cost is high.
+  return lazy(0, io + cpu + qual, () => terms(
       { label: `${fmt(pages)} pages x seq_page_cost`, value: io, kind: 'io' },
       { label: `${fmt(rows)} rows x cpu_tuple_cost`, value: cpu, kind: 'cpu' },
-      quals > 0 ? { label: `${fmt(rows)} rows x ${quals} quals x cpu_operator_cost`, value: qual, kind: 'cpu' } : null,
-    ),
-  };
+    quals > 0 ? { label: `${fmt(rows)} rows x ${quals} quals x cpu_operator_cost`, value: qual, kind: 'cpu' } : null,
+  ));
 }
 
 export interface IndexScanInput {
@@ -98,38 +114,34 @@ export function indexScanCost(input: IndexScanInput, params: CostParams): CostBr
     indexPages, indexHeight, indexTuples, rows, tableRows, tablePages, correlation, quals,
   } = input;
 
-  const indexIo = (indexHeight + indexPages) * params.random_page_cost;
+  // effective_cache_size discounts the index's own pages, which a repeated scan
+  // finds resident. It deliberately does NOT discount the heap fetches: doing so
+  // halves random_page_cost's effect on the term it dominates, and that term is
+  // the whole reason dragging the parameter flips a plan.
+  const indexCached = Math.min(1, params.effective_cache_size / Math.max(1, indexPages * PAGE_SIZE));
+  const indexIo = (indexHeight + indexPages) * params.random_page_cost * (1 - 0.5 * indexCached);
   const indexCpu = indexTuples * params.cpu_index_tuple_cost;
 
   // How many distinct pages do `rows` heap fetches touch? At worst one each; at
-  // best the pages the rows are clustered into.
+  // best the pages the rows are clustered into. Never more pages than exist.
   const clusteredPages = tableRows === 0 ? 0 : Math.ceil((rows / tableRows) * tablePages);
   const randomPages = Math.min(rows, tablePages);
   const c = Math.abs(correlation);
   const heapPages = c * c * clusteredPages + (1 - c * c) * randomPages;
-
-  // Pages already in cache are not read again. effective_cache_size sets how
-  // much of the table is assumed resident.
-  const cachedFraction = Math.min(1, params.effective_cache_size / Math.max(1, tablePages * PAGE_SIZE));
-  const effectivePageCost = c * c * params.seq_page_cost
-    + (1 - c * c) * params.random_page_cost * (1 - 0.5 * cachedFraction);
+  const effectivePageCost = c * c * params.seq_page_cost + (1 - c * c) * params.random_page_cost;
   const heapIo = heapPages * effectivePageCost;
 
   const cpu = rows * params.cpu_tuple_cost;
   const qual = rows * quals * params.cpu_operator_cost;
 
-  return {
-    // The descent must complete before the first row appears.
-    startup: indexHeight * params.random_page_cost,
-    total: indexIo + indexCpu + heapIo + cpu + qual,
-    terms: terms(
+  // The descent must complete before the first row appears.
+  return lazy(indexHeight * params.random_page_cost, indexIo + indexCpu + heapIo + cpu + qual, () => terms(
       { label: `${fmt(indexHeight + indexPages)} index pages x random_page_cost`, value: indexIo, kind: 'io' },
       { label: `${fmt(indexTuples)} index tuples x cpu_index_tuple_cost`, value: indexCpu, kind: 'cpu' },
       { label: `${fmt(heapPages)} heap pages, correlation ${correlation.toFixed(2)}`, value: heapIo, kind: 'io' },
       { label: `${fmt(rows)} rows x cpu_tuple_cost`, value: cpu, kind: 'cpu' },
-      quals > 0 ? { label: `${fmt(rows)} rows x ${quals} quals x cpu_operator_cost`, value: qual, kind: 'cpu' } : null,
-    ),
-  };
+    quals > 0 ? { label: `${fmt(rows)} rows x ${quals} quals x cpu_operator_cost`, value: qual, kind: 'cpu' } : null,
+  ));
 }
 
 // ── Joins ────────────────────────────────────────────────────────────────────
@@ -152,15 +164,11 @@ export function nestedLoopCost(
   const loops = Math.max(1, outerRows);
   const innerCost = inner.startup + loops * perLoop;
   const cpu = loops * innerRows * params.cpu_operator_cost;
-  return {
-    startup: outer.startup + inner.startup,
-    total: outer.total + innerCost + cpu,
-    terms: terms(
-      { label: 'outer subtree', value: outer.total, kind: 'cpu' },
-      { label: `inner subtree x ${fmt(loops)} loops`, value: innerCost, kind: 'io' },
-      { label: `${fmt(loops * innerRows)} comparisons x cpu_operator_cost`, value: cpu, kind: 'cpu' },
-    ),
-  };
+  return lazy(outer.startup + inner.startup, outer.total + innerCost + cpu, () => terms(
+    { label: 'outer subtree', value: outer.total, kind: 'cpu' },
+    { label: `inner subtree x ${fmt(loops)} loops`, value: innerCost, kind: 'io' },
+    { label: `${fmt(loops * innerRows)} comparisons x cpu_operator_cost`, value: cpu, kind: 'cpu' },
+  ));
 }
 
 /**
@@ -177,18 +185,21 @@ export function hashJoinCost(
   params: CostParams,
 ): CostBreakdown & { spill: SpillResult } {
   const spill = spillCost(buildBytes, params);
-  const cpu = (buildRows + probeRows) * params.cpu_operator_cost;
-  return {
-    startup: build.total + probe.startup + spill.cost,
-    total: build.total + probe.total + cpu + spill.cost,
-    terms: terms(
+  // A build row is hashed once. A probe row is hashed and then compared against
+  // what it lands on, so it costs two operators, not one. Charging both sides a
+  // flat single operator would make a hash join and a merge join cost exactly
+  // the same per row — and a merge join would then never win on its own merits,
+  // only by avoiding a spill. That is the outcome CLAUDE.md §4 warns about.
+  const cpu = (buildRows + 2 * probeRows) * params.cpu_operator_cost;
+  return Object.assign(
+    lazy(build.total + probe.startup + spill.cost, build.total + probe.total + cpu + spill.cost, () => terms(
       { label: 'build side (blocking)', value: build.total, kind: 'cpu' },
       { label: 'probe side', value: probe.total, kind: 'cpu' },
-      { label: `${fmt(buildRows + probeRows)} rows hashed x cpu_operator_cost`, value: cpu, kind: 'cpu' },
+      { label: `${fmt(buildRows)} hashed + ${fmt(probeRows)} probed x cpu_operator_cost`, value: cpu, kind: 'cpu' },
       spill.spilled ? { label: `spill: ${spill.passes} extra pass${spill.passes === 1 ? '' : 'es'} over work_mem`, value: spill.cost, kind: 'io' } : null,
-    ),
-    spill,
-  };
+    )),
+    { spill },
+  );
 }
 
 /**
@@ -204,18 +215,16 @@ export function mergeJoinCost(
   right: CostBreakdown, rightRows: number,
   params: CostParams,
 ): CostBreakdown {
+  // One comparison per row from each side. Cheaper per row than a hash join,
+  // which is what a merge join buys with its ordering requirement.
   const cpu = (leftRows + rightRows) * params.cpu_operator_cost;
-  return {
-    // Both sides must produce their first row, and a sort beneath either side
-    // carries its own startup, which is where the sort cost shows up.
-    startup: left.startup + right.startup,
-    total: left.total + right.total + cpu,
-    terms: terms(
-      { label: 'left subtree', value: left.total, kind: 'cpu' },
-      { label: 'right subtree', value: right.total, kind: 'cpu' },
-      { label: `${fmt(leftRows + rightRows)} rows merged x cpu_operator_cost`, value: cpu, kind: 'cpu' },
-    ),
-  };
+  // Both sides must produce their first row, and a sort beneath either side
+  // carries its own startup, which is where the sort cost shows up.
+  return lazy(left.startup + right.startup, left.total + right.total + cpu, () => terms(
+    { label: 'left subtree', value: left.total, kind: 'cpu' },
+    { label: 'right subtree', value: right.total, kind: 'cpu' },
+    { label: `${fmt(leftRows + rightRows)} rows merged x cpu_operator_cost`, value: cpu, kind: 'cpu' },
+  ));
 }
 
 // ── Sort and aggregate ───────────────────────────────────────────────────────
@@ -234,16 +243,14 @@ export function sortCost(
   const cpu = comparisons * params.cpu_operator_cost;
   const spill = spillCost(bytes, params);
   const total = input.total + cpu + spill.cost;
-  return {
-    startup: total,
-    total,
-    terms: terms(
+  return Object.assign(
+    lazy(total, total, () => terms(
       { label: 'input subtree', value: input.total, kind: 'cpu' },
       { label: `${fmt(comparisons)} comparisons x cpu_operator_cost`, value: cpu, kind: 'cpu' },
       spill.spilled ? { label: `spill: ${spill.passes} merge pass${spill.passes === 1 ? '' : 'es'}`, value: spill.cost, kind: 'io' } : null,
-    ),
-    spill,
-  };
+    )),
+    { spill },
+  );
 }
 
 /** Hash aggregate: blocking, and it spills when the group table exceeds work_mem. */
@@ -255,17 +262,15 @@ export function hashAggregateCost(
   const emit = groups * params.cpu_tuple_cost;
   const spill = spillCost(groupBytes, params);
   const total = input.total + cpu + emit + spill.cost;
-  return {
-    startup: total,
-    total,
-    terms: terms(
+  return Object.assign(
+    lazy(total, total, () => terms(
       { label: 'input subtree', value: input.total, kind: 'cpu' },
       { label: `${fmt(rows)} rows x ${aggregates + 1} x cpu_operator_cost`, value: cpu, kind: 'cpu' },
       { label: `${fmt(groups)} groups emitted x cpu_tuple_cost`, value: emit, kind: 'cpu' },
-      spill.spilled ? { label: `spill: group table over work_mem`, value: spill.cost, kind: 'io' } : null,
-    ),
-    spill,
-  };
+      spill.spilled ? { label: 'spill: group table over work_mem', value: spill.cost, kind: 'io' } : null,
+    )),
+    { spill },
+  );
 }
 
 /**
@@ -277,15 +282,11 @@ export function groupAggregateCost(
 ): CostBreakdown {
   const cpu = rows * (aggregates + 1) * params.cpu_operator_cost;
   const emit = groups * params.cpu_tuple_cost;
-  return {
-    startup: input.startup,
-    total: input.total + cpu + emit,
-    terms: terms(
-      { label: 'input subtree', value: input.total, kind: 'cpu' },
-      { label: `${fmt(rows)} rows x ${aggregates + 1} x cpu_operator_cost`, value: cpu, kind: 'cpu' },
-      { label: `${fmt(groups)} groups emitted x cpu_tuple_cost`, value: emit, kind: 'cpu' },
-    ),
-  };
+  return lazy(input.startup, input.total + cpu + emit, () => terms(
+    { label: 'input subtree', value: input.total, kind: 'cpu' },
+    { label: `${fmt(rows)} rows x ${aggregates + 1} x cpu_operator_cost`, value: cpu, kind: 'cpu' },
+    { label: `${fmt(groups)} groups emitted x cpu_tuple_cost`, value: emit, kind: 'cpu' },
+  ));
 }
 
 /**
@@ -301,14 +302,10 @@ export function limitCost(
 ): CostBreakdown {
   const fraction = inputRows <= 0 ? 1 : Math.min(1, count / inputRows);
   const run = (input.total - input.startup) * fraction;
-  return {
-    startup: input.startup,
-    total: input.startup + run,
-    terms: terms(
-      { label: 'input startup, paid in full', value: input.startup, kind: 'cpu' },
-      { label: `${(fraction * 100).toFixed(1)}% of the input's run cost`, value: run, kind: 'cpu' },
-    ),
-  };
+  return lazy(input.startup, input.startup + run, () => terms(
+    { label: 'input startup, paid in full', value: input.startup, kind: 'cpu' },
+    { label: `${(fraction * 100).toFixed(1)}% of the input's run cost`, value: run, kind: 'cpu' },
+  ));
 }
 
 // ── The honesty note ─────────────────────────────────────────────────────────
@@ -326,14 +323,18 @@ export const SIMPLIFICATIONS: Record<string, string> = {
     + 'the correlation. Postgres uses a more elaborate function and also consults '
     + 'the index’s own correlation statistics.',
   cache:
-    'effective_cache_size discounts random reads by up to half here. Postgres '
-    + 'models cache residency per index with the Mackert-Lohman formula.',
+    'effective_cache_size discounts index pages by up to half here and does not '
+    + 'touch heap fetches. Postgres estimates cache residency per index scan with '
+    + 'the Mackert-Lohman formula, which also accounts for repeated scans on the '
+    + 'inner side of a nested loop.',
   nestedLoop:
     'A real planner can materialise the inner side and rescan it cheaply. This '
     + 'model charges the full inner cost on every loop.',
   hashJoin:
     'One hash table, one batch until work_mem is exceeded. Postgres chooses a '
-    + 'batch count up front and can rebalance during the build.',
+    + 'batch count up front and can rebalance during the build. Probe rows are '
+    + 'charged two operators — a hash and a bucket comparison — against a merge '
+    + 'join\'s one; Postgres counts the bucket occupancy rather than assuming one.',
   mergeJoin:
     'Merge cost is linear in the input sizes. Postgres also estimates how far '
     + 'into each input the merge will actually run, which matters when one side '

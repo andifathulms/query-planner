@@ -121,17 +121,18 @@ describe('joins', () => {
     expect(c.terms.some((t) => t.label.includes('spill'))).toBe(true);
   });
 
-  it('charges merge and hash the same per row, so the difference is elsewhere', () => {
-    // Both are linear in the input sizes at the same rate. What separates them
-    // is that a hash join can spill and a merge join needs ordered inputs —
-    // which is exactly why interesting orders decide this contest, not the
-    // per-row cost.
+  it('charges a hash join more per row than a merge join', () => {
+    // A build row is hashed once; a probe row is hashed and then compared, so it
+    // costs two operators. A merge join compares once per row from each side.
+    // Charging both a flat operator per row would make them cost exactly the
+    // same, and a merge join could then never win on its own merits — the
+    // outcome CLAUDE.md §4 warns about.
     const left = scan(500), right = scan(400);
     const merge = mergeJoinCost(left, 10_000, right, 10_000, p);
     const fits = hashJoinCost(left, 10_000, 10_000 * 40, right, 10_000, p);
-    expect(merge.total).toBeCloseTo(fits.total, 8);
+    expect(fits.total - merge.total).toBeCloseTo(10_000 * p.cpu_operator_cost, 8);
 
-    // Give the hash join a build side that does not fit and merge wins.
+    // Give the hash join a build side that does not fit and merge wins by more.
     const spills = hashJoinCost(left, 2_000_000, 2_000_000 * 40, right, 10_000, p);
     expect(merge.total).toBeLessThan(spills.total);
 
