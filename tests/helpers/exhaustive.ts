@@ -45,7 +45,14 @@ export function exhaustiveBest(
         if (clauses.length === 0) continue;
         for (const outer of plansFor(left)) {
           for (const inner of plansFor(right)) {
-            out.push(...allJoins(outer, inner, clauses, spec, estimation, params));
+            // A LEFT JOIN's preserved side must be the outer one, the same
+            // constraint the DP applies.
+            const legal = clauses.every((c) => {
+              if (c.type !== 'left') return true;
+              const nullable = spec.nullableSide.has(c.right) ? c.right : c.left;
+              return inner.relations.includes(nullable);
+            });
+            if (legal) out.push(...allJoins(outer, inner, clauses, spec, estimation, params));
           }
         }
       }

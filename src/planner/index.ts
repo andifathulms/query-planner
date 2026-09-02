@@ -18,6 +18,7 @@ export { PlanningError, resolveQuery, enumerate };
 export type { EnumerationResult, EnumerationOptions };
 export * from './types.js';
 export { SIMPLIFICATIONS } from './cost.js';
-export { cellLabel, setKey } from './selinger.js';
+export { cellLabel, setKey, finishPlan } from './selinger.js';
+export type { DpCell } from './selinger.js';
 export { interestingOrders } from './orders.js';
 export { describeScan } from './paths.js';

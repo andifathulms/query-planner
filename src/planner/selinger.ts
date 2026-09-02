@@ -138,7 +138,7 @@ export function enumerate(
 
         for (const outer of outerPlans) {
           for (const inner of innerPlans) {
-            candidates.push(...joinPlans(outer, inner, clauses, cardinality, options.params));
+            candidates.push(...joinPlans(outer, inner, clauses, cardinality, options.params, spec));
           }
         }
       }
@@ -160,7 +160,7 @@ export function enumerate(
 
   // The top of the plan chooses among the root cell's retained plans, because a
   // plan already in the right order may beat a cheaper one that needs sorting.
-  const finished = plansOf(root).map((p) => finish(p, spec, estimation, options.params));
+  const finished = plansOf(root).map((p) => finishPlan(p, spec, estimation, options.params));
   finished.sort((a, b) => a.cost.total - b.cost.total);
   const winner = finished[0];
 
@@ -238,10 +238,29 @@ function plansOf(cell: DpCell): Plan[] {
 
 // ── Join plan generation ─────────────────────────────────────────────────────
 
+/**
+ * Is this outer/inner assignment legal?
+ *
+ * A LEFT JOIN is not commutative: the preserved side must be the outer one. With
+ * the sides swapped the join would null-extend the wrong relation and return a
+ * different answer, which is what equivalence.test.ts caught.
+ */
+function validJoinOrder(
+  clauses: JoinClause[], inner: Plan, spec: QuerySpec,
+): boolean {
+  for (const clause of clauses) {
+    if (clause.type !== 'left') continue;
+    const nullable = spec.nullableSide.has(clause.right) ? clause.right : clause.left;
+    if (!inner.relations.includes(nullable)) return false;
+  }
+  return true;
+}
+
 function joinPlans(
   outer: Plan, inner: Plan, clauses: JoinClause[],
-  cardinality: CardinalityEstimate, params: CostParams,
+  cardinality: CardinalityEstimate, params: CostParams, spec: QuerySpec,
 ): Plan[] {
+  if (!validJoinOrder(clauses, inner, spec)) return [];
   const relations = [...outer.relations, ...inner.relations];
   const { rows, traces } = cardinality;
   const rowWidth = outer.rowWidth + inner.rowWidth;
@@ -283,7 +302,7 @@ function joinPlans(
         ...base,
         id: nextPlanId('join'),
         operator: 'Hash Join',
-        outer, inner,
+        outer, inner, buildInner,
           // Pass the cost object through rather than rebuilding it: spreading it
         // would force the lazy `terms` getter for every candidate.
         cost: hash,
@@ -376,8 +395,14 @@ export function ensureSorted(
 
 // ── The top of the plan ──────────────────────────────────────────────────────
 
-/** Apply GROUP BY, HAVING, ORDER BY and LIMIT above the join tree. */
-function finish(
+/**
+ * Apply GROUP BY, HAVING, ORDER BY and LIMIT above a join tree.
+ *
+ * Exported because it applies to any candidate, not only the winner: the cost
+ * breakdown compares complete plans, and equivalence.test.ts executes every
+ * candidate the search produced, top included.
+ */
+export function finishPlan(
   joined: Plan, spec: QuerySpec, estimation: EstimationContext, params: CostParams,
 ): Plan {
   let plan = joined;

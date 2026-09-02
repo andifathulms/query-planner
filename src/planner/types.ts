@@ -174,6 +174,15 @@ export interface JoinPlan extends PlanBase {
   operator: JoinKind;
   outer: Plan;
   inner: Plan;
+  /**
+   * Hash Join only: whether the inner side is the one hashed.
+   *
+   * The executor must honour this rather than re-deciding, because the node's
+   * `order` is derived from it — a hash join emits in probe order, so choosing
+   * the other orientation would silently break the ordering a merge join above
+   * it was planned to rely on.
+   */
+  buildInner?: boolean;
   clause: JoinClause | null;
   joinType: JoinType;
   /** Restrictions applied above the join. */
