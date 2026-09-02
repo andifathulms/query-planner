@@ -19,6 +19,8 @@ import type { useFill } from '../../ui/useFill.js';
 import { cost as formatCost, exact, plural } from '../../ui/format.js';
 import type { DpCell } from '../../planner/selinger.js';
 import type { EnumerationResult } from '../../planner/index.js';
+import { DataTable } from '../../ui/DataTable.js';
+import { cost as cellCost } from '../../ui/format.js';
 import './Lattice.css';
 
 const CELL_W = 64;
@@ -61,6 +63,19 @@ export function Lattice({ planning, selectedKey, onSelect, fill }: LatticeProps)
       </div>
 
       <Controls fill={fill} planning={planning} />
+
+      <DataTable
+        caption="The search"
+        columns={['subset', 'level', 'winner', 'cost', 'candidates', 'orders kept']}
+        rows={planning.cells.map((cell) => [
+          [...cell.relations].sort().join(''),
+          cell.level,
+          cell.best?.operator ?? 'not joined',
+          cell.best ? cellCost(cell.best.cost.total) : '—',
+          cell.considered.length,
+          cell.bestByOrder.size,
+        ])}
+      />
     </div>
   );
 }

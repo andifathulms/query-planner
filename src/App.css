@@ -36,7 +36,8 @@
     'query search'
     'cost  plan'
     'cost  result'
-    'bay   bay';
+    'bay   bay'
+    'notes notes';
 }
 
 .app-query { grid-area: query; }
@@ -45,6 +46,7 @@
 .app-result { grid-area: result; }
 .app-cost { grid-area: cost; }
 .bay { grid-area: bay; }
+.app-notes { grid-area: notes; }
 
 .app-main > .panel { padding: var(--s2) var(--s3) var(--s3); min-width: 0; }
 
@@ -85,9 +87,21 @@
 @media (max-width: 900px) {
   .app-main {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: 'query' 'search' 'plan' 'cost' 'bay' 'result';
+    grid-template-areas: 'query' 'search' 'plan' 'cost' 'bay' 'result' 'notes';
   }
   .app-header { flex-wrap: wrap; }
+}
+
+/* Usable at 380 px (PRD §8.12). The plan tree keeps its estimate/actual spans —
+ * they are the point, and they compress before anything else does. */
+@media (max-width: 560px) {
+  .app-main { padding: var(--s1); gap: var(--s1); }
+  .app-main > .panel { padding: var(--s1) var(--s2) var(--s2); }
+  .app-header { padding: var(--s1) var(--s2); gap: var(--s1); }
+  .app-tagline { flex: 1 0 100%; order: 3; }
+  .app-panel-head { flex-wrap: wrap; gap: 2px; }
+  .plan-tree-ratio { flex: none; }
+  .app-grid { max-height: 220px; }
 }
 
 /* The winning plan descending into the tree (DESIGN.md §6.3), 500 ms.
@@ -107,3 +121,14 @@
   .app-plan.is-waiting .plan-tree { opacity: 1; }
   .app-plan.is-descending .plan-tree { animation: none; }
 }
+
+.app-result-meta { display: flex; align-items: baseline; gap: var(--s2); }
+.app-export {
+  padding: 1px var(--s1);
+  background: transparent;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  color: var(--ink-mid);
+  cursor: pointer;
+}
+.app-export:hover { color: var(--ink); border-color: var(--ink-faint); }

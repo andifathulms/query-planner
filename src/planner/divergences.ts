@@ -1,14 +1,18 @@
 /**
- * The divergence list (PRD §7.1).
+ * The divergence list (PRD §7.1, DESIGN.md §7).
  *
- * Every query whose plan shape disagrees with Postgres, with the reason. This
- * list is a feature rather than a backlog: a documented record of which
- * simplifications actually change a decision is more credible than a claim that
- * none of them do, and DESIGN.md §7 puts it one click from the numbers it
- * affects.
+ * Every query in the oracle corpus whose plan shape disagrees with Postgres,
+ * with the reason. This list is a feature rather than a backlog: a documented
+ * record of which simplifications actually change a decision is more credible
+ * than a claim that none of them do.
  *
- * Each entry names a key in `SIMPLIFICATIONS` (src/planner/cost.ts), so the
- * interface can show the divergence beside the model note that explains it.
+ * It lives in `src/` rather than in the tests because the interface shows it —
+ * reachable from the same place as the simplification statements, since a reader
+ * weighing one wants the other. `tests/oracle.test.ts` asserts that every entry
+ * still diverges and that none names a query outside the corpus, so the list
+ * cannot quietly go stale.
+ *
+ * Each entry names a key in `SIMPLIFICATIONS` (src/planner/cost.ts).
  */
 export interface Divergence {
   /** A distinctive fragment of the query, whitespace-normalised. */
@@ -51,6 +55,15 @@ export const DIVERGENCES: Divergence[] = [
     simplification: 'bitmap',
   },
 ];
+
+/** Divergences grouped by the simplification that causes them. */
+export function divergencesBySimplification(): Map<string, Divergence[]> {
+  const out = new Map<string, Divergence[]>();
+  for (const d of DIVERGENCES) {
+    out.set(d.simplification, [...(out.get(d.simplification) ?? []), d]);
+  }
+  return out;
+}
 
 export function divergenceFor(sql: string): Divergence | undefined {
   const normalised = sql.replace(/\s+/g, ' ');

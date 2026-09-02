@@ -18,7 +18,7 @@ import { analyze } from '../src/stats/column.js';
 import { buildDataset } from '../src/storage/datasets/index.js';
 import { DEFAULT_COST_PARAMS, planChildren, walkPlan, type Plan } from '../src/planner/types.js';
 import { explain, loadSchema, pgLeaves, pgShape, type PgNode } from './helpers/oracle-load.js';
-import { DIVERGENCES, divergenceFor } from './helpers/divergences.js';
+import { DIVERGENCES, divergenceFor } from '../src/planner/divergences.js';
 
 // Small enough to load into PGlite in reasonable time, large enough that the
 // planner has a real choice to make.

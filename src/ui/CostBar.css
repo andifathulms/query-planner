@@ -71,6 +71,20 @@
   background: var(--ink-mid);
 }
 
+.cost-bar-more { display: none; }
+@media (max-width: 900px) {
+  .cost-bar-more {
+    display: block;
+    flex: 0 0 auto;
+    padding: 4px var(--s2);
+    background: transparent;
+    border: 1px solid var(--rule);
+    border-radius: var(--radius);
+    color: var(--ink-mid);
+    cursor: pointer;
+  }
+}
+
 .cost-bar-reset {
   flex: 0 0 auto;
   padding: 4px var(--s2);
@@ -86,7 +100,10 @@
 /* §4.5: below 900 px the bar keeps random_page_cost and work_mem; the rest
  * moves behind a disclosure. */
 @media (max-width: 900px) {
-  .cost-bar { flex-wrap: wrap; }
+  .cost-bar { flex-wrap: wrap; padding: var(--s1) var(--s2); gap: var(--s2); }
+  /* The bar keeps random_page_cost and work_mem; the rest is reachable from the
+   * disclosure rather than crushed into a strip (DESIGN.md §4.5). */
   .cost-slider:not(.is-primary) { display: none; }
   .cost-bar.is-expanded .cost-slider { display: grid; }
+  .cost-slider.is-wide { flex: 1 1 100%; }
 }

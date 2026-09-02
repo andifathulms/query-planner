@@ -24,6 +24,7 @@ import { conjoin } from '../../planner/paths.js';
 import type { ColumnStatistics, Statistics, Value } from '../../stats/types.js';
 import type { QuerySpec, Restriction } from '../../planner/types.js';
 import type { Schema } from '../../storage/table.js';
+import { DataTable } from '../../ui/DataTable.js';
 import './Histogram.css';
 
 const WIDTH = 620;
@@ -62,6 +63,24 @@ export function Histogram({ schema, statistics, spec }: HistogramProps) {
       </div>
 
       <ColumnChart stat={active.stat} restrictions={active.restrictions} />
+
+      <DataTable
+        caption={`${active.key} statistics`}
+        columns={['entry', 'kind', 'frequency']}
+        rows={[
+          ...active.stat.mcv.map((e) => [String(e.value), 'most common value', percent(e.frequency, 3)]),
+          ...active.stat.histogram.slice(0, -1).map((low, i) => [
+            `${String(low)} … ${String(active.stat.histogram[i + 1])}`,
+            `bucket ${i + 1}`,
+            percent(
+              Math.max(0, 1 - active.stat.mcv.reduce((s, e) => s + e.frequency, 0) - active.stat.nullFraction)
+                / Math.max(1, active.stat.histogram.length - 1),
+              3,
+            ),
+          ]),
+          ['NULL', 'null fraction', percent(active.stat.nullFraction, 3)],
+        ]}
+      />
 
       <Comparison
         schema={schema}

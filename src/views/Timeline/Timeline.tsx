@@ -15,6 +15,7 @@ import { OperatorGlyph } from '../PlanTree/glyphs.js';
 import { exact, ms, plural } from '../../ui/format.js';
 import { planLabel, walkPlan, type Plan } from '../../planner/types.js';
 import type { ExecutionResult } from '../../executor/execute.js';
+import { DataTable } from '../../ui/DataTable.js';
 import './Timeline.css';
 
 const TRACK_H = 22;
@@ -107,6 +108,18 @@ export function Timeline({ plan, execution }: TimelineProps) {
         <span><svg width={14} height={9}><rect className="timeline-startup" width={14} height={9} /></svg> startup</span>
         <span><svg width={14} height={9}><rect className="timeline-output" width={14} height={9} /></svg> output</span>
       </div>
+
+      <DataTable
+        caption="The timeline"
+        columns={['node', 'startup', 'finished', 'rows', 'spills']}
+        rows={tracks.map((t) => [
+          `${'　'.repeat(t.depth)}${t.operator}`,
+          ms(t.startupMs),
+          ms(t.endMs),
+          exact(t.rows),
+          t.spills,
+        ])}
+      />
 
       <p className="t-small timeline-note">
         {blocking.length > 0

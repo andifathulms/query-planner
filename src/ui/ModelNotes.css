@@ -1,0 +1,22 @@
+.model-notes > summary { cursor: pointer; color: var(--ink-mid); }
+.model-notes > summary:hover { color: var(--ink); }
+
+.model-notes-body { padding-top: var(--s2); display: flex; flex-direction: column; gap: var(--s2); }
+.model-notes-lede { color: var(--ink); max-width: 68ch; }
+
+.model-notes-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--s2); }
+.model-note { display: flex; flex-direction: column; gap: 2px; }
+.model-note-key { color: var(--ink); }
+.model-note p { color: var(--ink-mid); max-width: 68ch; }
+
+/* A divergence is a case where a simplification actually changed the answer, so
+ * it is marked rather than merely listed beneath. */
+.model-note-divergence {
+  margin-top: 4px;
+  padding-left: var(--s2);
+  border-left: 2px solid var(--warn);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.model-note-divergence code { color: var(--ink-mid); }

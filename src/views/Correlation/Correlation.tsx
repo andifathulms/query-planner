@@ -23,6 +23,7 @@ import { TraceDetail } from '../../ui/TraceDetail.js';
 import type { Statistics, Value } from '../../stats/types.js';
 import type { QuerySpec, Restriction } from '../../planner/types.js';
 import type { Schema, Table } from '../../storage/table.js';
+import { DataTable } from '../../ui/DataTable.js';
 import './Correlation.css';
 
 const PLOT = 340;
@@ -110,6 +111,18 @@ export function Correlation({
           </div>
 
           <TraceDetail trace={model.trace} />
+
+          <DataTable
+            caption="The estimates"
+            columns={['source', 'selectivity', 'rows']}
+            rows={[
+              ['independence', formatSelectivity(model.independent), exact(model.independent * model.rowCount)],
+              ...(model.corrected !== null
+                ? [['multivariate statistic', formatSelectivity(model.corrected), exact(model.corrected * model.rowCount)]]
+                : []),
+              ['measured', formatSelectivity(model.measured), exact(model.measured * model.rowCount)],
+            ]}
+          />
         </>
       )}
     </div>

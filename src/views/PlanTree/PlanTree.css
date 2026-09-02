@@ -50,3 +50,13 @@
   .plan-tree { flex-direction: column; gap: var(--s2); }
   .plan-tree-ratio { flex: none; padding-top: 0; }
 }
+
+/* At 380 px the display figure would take a third of the screen. It drops to the
+ * figure size; the spans keep their width, because the gap between believed and
+ * true is the thing that must stay legible. */
+@media (max-width: 560px) {
+  .plan-tree-ratio .t-display {
+    font-size: var(--t-figure-size);
+    line-height: var(--t-figure-lh);
+  }
+}

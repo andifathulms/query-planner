@@ -1,0 +1,33 @@
+.dataset-controls > summary {
+  cursor: pointer;
+  color: var(--ink-mid);
+  list-style-position: outside;
+}
+.dataset-controls > summary:hover { color: var(--ink); }
+
+.dataset-controls-body {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2) var(--s3);
+  align-items: center;
+  padding-top: var(--s1);
+}
+
+.dataset-control { display: flex; align-items: center; gap: var(--s1); color: var(--ink-mid); }
+.dataset-control input[type='range'] { width: 130px; accent-color: var(--ink); }
+.dataset-control output { color: var(--ink); }
+
+.dataset-seed {
+  width: 74px;
+  padding: 1px var(--s1);
+  background: var(--stock-panel);
+  color: var(--ink);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  font-size: var(--t-small-size);
+}
+
+.dataset-toggle { display: flex; align-items: center; gap: 6px; color: var(--ink-mid); }
+.dataset-toggle input { accent-color: var(--ink); }
+
+.dataset-note { flex: 1 0 100%; color: var(--ink-faint); max-width: 68ch; }

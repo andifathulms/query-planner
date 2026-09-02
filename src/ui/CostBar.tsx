@@ -9,6 +9,7 @@
  * dragging from 4.0 to 1.1 and watching the plan flip is the single most useful
  * thing a DBA can learn here.
  */
+import { useState } from 'react';
 import { DEFAULT_COST_PARAMS, type CostParams } from '../planner/types.js';
 import { bytes } from './format.js';
 import './CostBar.css';
@@ -72,11 +73,16 @@ export interface CostBarProps {
 }
 
 export function CostBar({ params, onChange, onReset }: CostBarProps) {
+  const [expanded, setExpanded] = useState(false);
   const changed = (Object.keys(DEFAULT_COST_PARAMS) as Array<keyof CostParams>)
     .filter((k) => params[k] !== DEFAULT_COST_PARAMS[k]);
 
   return (
-    <div className="cost-bar" role="group" aria-label="Cost parameters">
+    <div
+      className={`cost-bar${expanded ? ' is-expanded' : ''}`}
+      role="group"
+      aria-label="Cost parameters"
+    >
       <div className="cost-bar-sliders">
         {SLIDERS.map((spec) => (
           <Slider
@@ -87,6 +93,16 @@ export function CostBar({ params, onChange, onReset }: CostBarProps) {
           />
         ))}
       </div>
+      {/* Only visible below 900 px, where the secondary sliders are hidden. */}
+      <button
+        type="button"
+        className="cost-bar-more t-small"
+        aria-expanded={expanded}
+        onClick={() => setExpanded((e) => !e)}
+      >
+        {expanded ? 'fewer' : 'all parameters'}
+      </button>
+
       <button
         type="button"
         className="cost-bar-reset t-small"

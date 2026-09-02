@@ -248,3 +248,92 @@ describe('the recovery', () => {
     };
   }
 });
+
+describe('every instrument has a keyboard-reachable table', () => {
+  for (const [tab, caption] of [
+    ['correlation', 'The estimates as a table'],
+    ['histogram', /statistics as a table/],
+    ['sample', 'The estimates as a table'],
+    ['timeline', 'The timeline as a table'],
+  ] as const) {
+    it(`${tab} carries its figures`, () => {
+      renderApp('n=6000&s=2000');
+      fireEvent.click(screen.getByRole('tab', { name: tab }));
+      const summary = screen.getByText(caption);
+      // Opening the disclosure exposes a real table with a header row.
+      fireEvent.click(summary);
+      const table = within(summary.closest('details')!).getByRole('table');
+      expect(within(table).getAllByRole('columnheader').length).toBeGreaterThan(1);
+      expect(within(table).getAllByRole('row').length).toBeGreaterThan(1);
+    });
+  }
+
+  it('the lattice and the plan tree carry theirs too', () => {
+    renderApp('n=6000&s=2000');
+    for (const caption of ['The search as a table', 'The plan as a table']) {
+      const summary = screen.getByText(caption);
+      fireEvent.click(summary);
+      expect(within(summary.closest('details')!).getByRole('table')).toBeTruthy();
+    }
+  });
+});
+
+describe('selecting a plan node opens its trace', () => {
+  it('names the method and the assumptions', () => {
+    renderApp('n=6000&s=2000');
+    const leaf = screen.getAllByRole('treeitem').at(-1)!;
+    fireEvent.click(leaf);
+
+    const detail = document.querySelector('.plan-detail')!;
+    expect(detail).toBeTruthy();
+    expect(detail.textContent).toMatch(/How the estimate was made/);
+    // Not a bare number: the assumption is named.
+    expect(detail.querySelector('.trace-assumptions')?.textContent?.length).toBeGreaterThan(10);
+    // And the model's own limitation sits beside it.
+    expect(detail.querySelector('.plan-detail-simplification')?.textContent?.length).toBeGreaterThan(30);
+  });
+
+  it('traverses the tree with the arrow keys', () => {
+    // A join, so the tree has something below its root to move to.
+    const sql = 'SELECT k.nama, c.nama FROM kelurahan k JOIN kecamatan c ON k.kecamatan_id = c.id';
+    renderApp(`n=6000&s=2000&q=${encodeURIComponent(sql)}`);
+    const tree = screen.getByRole('tree', { name: 'The chosen plan' });
+    const root = screen.getAllByRole('treeitem')[0];
+    fireEvent.click(root);
+    fireEvent.keyDown(tree, { key: 'ArrowDown' });
+    const selected = screen.getAllByRole('treeitem').filter((n) => n.getAttribute('aria-selected') === 'true');
+    expect(selected).toHaveLength(1);
+    expect(selected[0]).not.toBe(root);
+  });
+});
+
+describe('the model notes', () => {
+  it('list every simplification and the divergences the oracle found', () => {
+    renderApp('n=6000&s=2000');
+    const summary = screen.getByText(/Where this model differs from Postgres/);
+    fireEvent.click(summary);
+    const body = summary.closest('details')!;
+    expect(within(body).getByText('bitmap')).toBeTruthy();
+    expect(body.querySelectorAll('.model-note-divergence').length).toBeGreaterThan(0);
+    // Stated once, plainly (PRD §6.2).
+    expect(body.textContent).toMatch(/real Postgres would give different numbers/);
+  });
+});
+
+describe('the generator controls', () => {
+  it('put the seed, size and skew in the address bar', () => {
+    renderApp('n=6000&s=2000');
+    fireEvent.click(screen.getByText('Generator'));
+    const seed = screen.getByLabelText('seed') as HTMLInputElement;
+    expect(seed.value).toBe('1');
+    fireEvent.change(seed, { target: { value: '7' } });
+    expect((screen.getByLabelText('seed') as HTMLInputElement).value).toBe('7');
+  });
+
+  it('offers the cartesian toggle', () => {
+    renderApp('n=6000&s=2000');
+    fireEvent.click(screen.getByText('Generator'));
+    const toggle = screen.getByLabelText('allow cartesian products') as HTMLInputElement;
+    expect(toggle.checked).toBe(false);
+  });
+});

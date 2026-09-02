@@ -22,6 +22,7 @@ import type { Sample as SampleType } from '../../stats/sample.js';
 import type { Statistics } from '../../stats/types.js';
 import type { QuerySpec } from '../../planner/types.js';
 import type { Schema } from '../../storage/table.js';
+import { DataTable } from '../../ui/DataTable.js';
 import './Sample.css';
 
 /** The grid is a texture: one mark per row up to this many, then per block. */
@@ -120,6 +121,18 @@ export function Sample({
       </div>
 
       <SampleGrid sample={sample} />
+
+      {comparison && (
+        <DataTable
+          caption="The estimates"
+          columns={['source', 'selectivity', 'rows']}
+          rows={[
+            ['this sample', formatSelectivity(comparison.fromSample), exact(comparison.fromSample * comparison.rowCount)],
+            ['a full scan', formatSelectivity(comparison.fromFullScan), exact(comparison.fromFullScan * comparison.rowCount)],
+            ['measured', formatSelectivity(comparison.measured), exact(comparison.measured * comparison.rowCount)],
+          ]}
+        />
+      )}
 
       {comparison ? (
         <div className="sample-comparison">

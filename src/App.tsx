@@ -5,19 +5,25 @@
  * candidates, chosen plan, evidence. The lattice sits above the plan tree
  * because it produces it.
  */
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useStore } from './state/store.js';
 import { SqlInput } from './ui/SqlInput.js';
 import { CostBar } from './ui/CostBar.js';
 import { SpanLegend } from './ui/Span.js';
+import { PlanDetail } from './ui/PlanDetail.js';
+import { DatasetControls } from './ui/DatasetControls.js';
+import { DataTable } from './ui/DataTable.js';
+import { ModelNotes } from './ui/ModelNotes.js';
+import { exportPlan } from './ui/exportPlan.js';
 import { PlanTree } from './views/PlanTree/PlanTree.js';
 import { Lattice } from './views/Lattice/Lattice.js';
 import { CostBreakdown } from './views/CostBreakdown/CostBreakdown.js';
 import { InstrumentBay } from './views/InstrumentBay.js';
 import { useFill, usePrefersReducedMotion } from './ui/useFill.js';
-import { DEFAULT_COST_PARAMS } from './planner/types.js';
+import { DEFAULT_COST_PARAMS, type Plan } from './planner/types.js';
 import { DATASETS } from './storage/datasets/index.js';
-import { exact, ms, rows } from './ui/format.js';
+import { cost as formatCost, exact, ms, rows } from './ui/format.js';
+import { walkPlan, planLabel } from './planner/types.js';
 import './App.css';
 
 export function App() {
@@ -45,6 +51,15 @@ export function App() {
   const totalRows = [...bundle.schema.tables.values()]
     .reduce((sum, t) => sum + t.rowCount, 0);
 
+  const selectedNode = useMemo(() => {
+    if (!planning || !state.selected.node) return null;
+    let found: Plan | null = null;
+    walkPlan(planning.winner, (node) => {
+      if (node.id === state.selected.node) found = node;
+    });
+    return found as Plan | null;
+  }, [planning, state.selected.node]);
+
   return (
     <div className="app">
       <header className="app-header">
@@ -65,6 +80,16 @@ export function App() {
           <span aria-hidden="true">·</span>
           <span>{rows(totalRows)} rows</span>
         </div>
+        <DatasetControls
+          rows={state.generator.rows}
+          zipf={state.generator.zipf}
+          seed={state.seed}
+          allowCartesian={state.allowCartesian}
+          onRows={(value) => dispatch({ type: 'generator', patch: { rows: value } })}
+          onZipf={(zipf) => dispatch({ type: 'generator', patch: { zipf } })}
+          onSeed={(value) => dispatch({ type: 'seed', value })}
+          onCartesian={(value) => dispatch({ type: 'cartesian', value })}
+        />
       </header>
 
       <main className="app-main">
@@ -104,6 +129,22 @@ export function App() {
             selectedId={state.selected.node}
             onSelect={selectNode}
           />
+
+          {planning && (
+            <DataTable
+              caption="The plan"
+              columns={['node', 'estimated', 'actual', 'cost', 'width']}
+              rows={planRows(planning.winner, execution)}
+            />
+          )}
+
+          {selectedNode && (
+            <PlanDetail
+              plan={selectedNode}
+              stats={execution?.stats.get(selectedNode.id) ?? null}
+              onClose={() => selectNode(null)}
+            />
+          )}
         </section>
 
         <section className="app-cost panel" aria-label="Cost breakdown">
@@ -122,19 +163,34 @@ export function App() {
         <section className="app-result panel" aria-label="Result">
           <div className="app-panel-head">
             <h2 className="t-h2">Result</h2>
-            {execution && (
-              <p className="t-small">
-                {exact(execution.producedRows)} rows · {ms(execution.totalMs)}
-                {execution.rows.length < execution.producedRows
-                  && ` · showing the first ${execution.rows.length}`}
-              </p>
-            )}
+            <div className="app-result-meta">
+              {execution && (
+                <p className="t-small">
+                  {exact(execution.producedRows)} rows · {ms(execution.totalMs)}
+                  {execution.rows.length < execution.producedRows
+                    && ` · showing the first ${execution.rows.length}`}
+                </p>
+              )}
+              {planning && (
+                <button
+                  type="button"
+                  className="t-small app-export"
+                  onClick={() => downloadPlan(state.sql, planning, execution)}
+                >
+                  export JSON
+                </button>
+              )}
+            </div>
           </div>
           {execution ? <ResultGrid execution={execution} /> : (
             <p className="t-small app-placeholder">Nothing executed.</p>
           )}
         </section>
         <InstrumentBay />
+
+        <section className="app-notes panel" aria-label="Model notes">
+          <ModelNotes />
+        </section>
       </main>
 
       <footer className="app-footer">
@@ -163,6 +219,45 @@ function useDescent(complete: boolean, planId: string | null, reducedMotion: boo
     return () => clearTimeout(timer);
   }, [complete, planId, reducedMotion]);
   return descending;
+}
+
+/** The plan as rows, for the keyboard-reachable equivalent of the tree. */
+function planRows(
+  plan: Plan, execution: ReturnType<typeof useStore>['result']['execution'],
+): Array<Array<string | number>> {
+  const out: Array<Array<string | number>> = [];
+  walkPlan(plan, (node, depth) => {
+    const stats = execution?.stats.get(node.id);
+    out.push([
+      `${'　'.repeat(depth)}${planLabel(node)}`,
+      exact(node.estimatedRows),
+      stats ? exact(stats.actualRows) : '—',
+      formatCost(node.cost.total),
+      node.rowWidth,
+    ]);
+  });
+  return out;
+}
+
+/**
+ * Write the plan out as a file.
+ *
+ * A blob URL rather than a server round trip: nothing leaves the device
+ * (PRD §6.5).
+ */
+function downloadPlan(
+  sql: string,
+  planning: NonNullable<ReturnType<typeof useStore>['result']['planning']>,
+  execution: ReturnType<typeof useStore>['result']['execution'],
+): void {
+  const json = JSON.stringify(exportPlan(sql, planning, execution), null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'query-plan.json';
+  link.click();
+  URL.revokeObjectURL(url);
 }
 
 function ResultGrid({ execution }: { execution: NonNullable<ReturnType<typeof useStore>['result']['execution']> }) {

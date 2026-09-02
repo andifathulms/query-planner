@@ -1,0 +1,38 @@
+.plan-detail { display: flex; flex-direction: column; gap: var(--s1); }
+.plan-detail-empty { color: var(--ink-faint); }
+
+.plan-detail-head { display: flex; align-items: center; gap: var(--s1); }
+.plan-detail-title { flex: 1 1 auto; min-width: 0; }
+.plan-detail-close {
+  padding: 1px var(--s1);
+  background: transparent;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  color: var(--ink-mid);
+  cursor: pointer;
+}
+.plan-detail-note { color: var(--ink-mid); max-width: 68ch; }
+
+.plan-detail-figures { display: flex; flex-wrap: wrap; gap: var(--s1) var(--s3); margin: var(--s1) 0 0; }
+.plan-detail-figures > div { display: flex; flex-direction: column; }
+.plan-detail-figures dt { color: var(--ink-mid); }
+.plan-detail-figures dd { margin: 0; color: var(--ink); }
+.plan-detail-figures dd.is-under { color: var(--warn); }
+
+.plan-detail-section { color: var(--ink-mid); margin-top: var(--s2); }
+
+.plan-detail-terms { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.plan-detail-terms li { display: flex; align-items: baseline; gap: var(--s1); }
+.plan-detail-term-label { flex: 1 1 auto; min-width: 0; color: var(--ink-mid); }
+.plan-detail-term-value { color: var(--ink); }
+
+.plan-detail-kind {
+  flex: 0 0 auto;
+  padding: 0 4px;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  color: var(--ink-faint);
+}
+.plan-detail-kind.io { border-style: dashed; }
+
+.plan-detail-simplification { color: var(--ink-faint); max-width: 68ch; margin-top: var(--s1); }
