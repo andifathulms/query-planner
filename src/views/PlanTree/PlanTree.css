@@ -1,0 +1,52 @@
+.plan-tree {
+  display: flex;
+  gap: var(--s4);
+  align-items: flex-start;
+}
+
+.plan-tree-canvas {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding-bottom: var(--s1);
+}
+
+.plan-tree-svg { display: block; }
+.plan-tree-svg:focus-visible { outline: 2px solid var(--believed); outline-offset: 2px; }
+
+.plan-tree-empty { color: var(--ink-mid); padding: var(--s3) 0; }
+
+/* Nodes are drawn in line on panel ground, with no inner card (DESIGN.md §4.4). */
+.plan-node-box {
+  fill: var(--stock-panel);
+  stroke: var(--ink);
+  stroke-width: 1;
+}
+
+.plan-node { cursor: pointer; }
+/* §6.6: no hover transitions. The budget is the lattice fill and the recovery. */
+.plan-node:hover .plan-node-box { fill: var(--stock); }
+.plan-node.is-selected .plan-node-box { stroke-width: 2; }
+
+.plan-node-title { fill: var(--ink); font-weight: 500; }
+.plan-node-sub { fill: var(--ink-mid); }
+.plan-node-ratio { fill: var(--ink-mid); text-anchor: end; }
+
+.plan-tree-ratio {
+  flex: 0 0 208px;
+  padding-top: var(--s2);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+}
+
+/* The winner is drawn in ink; the ratio is not a colour, it is a number. An
+ * under-estimate carries a warn marker because those are the ones that produce
+ * the nested loop disaster (DESIGN.md §5.2). */
+.plan-tree-ratio .t-display { color: var(--ink); }
+.plan-tree-ratio .t-display.is-under { color: var(--warn); }
+.plan-tree-warn { color: var(--warn); }
+
+@media (max-width: 900px) {
+  .plan-tree { flex-direction: column; gap: var(--s2); }
+  .plan-tree-ratio { flex: none; padding-top: 0; }
+}

@@ -1,0 +1,87 @@
+/* The derivation, as a grid (DESIGN.md §4.1). */
+.app {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+
+.app-header {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s2);
+  padding: var(--s2) var(--s3);
+  border-bottom: 1px solid var(--rule);
+}
+
+.app-tagline { flex: 1 1 auto; min-width: 0; }
+.app-dataset { display: flex; align-items: baseline; gap: var(--s1); color: var(--ink-mid); }
+.app-dataset select {
+  font: inherit;
+  font-size: var(--t-small-size);
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 1px var(--s1);
+}
+
+.app-main {
+  display: grid;
+  gap: var(--s2);
+  padding: var(--s2) var(--s3);
+  align-content: start;
+  grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
+  grid-template-areas:
+    'query  search'
+    'result plan';
+}
+
+.app-query { grid-area: query; }
+.app-search { grid-area: search; }
+.app-plan { grid-area: plan; }
+.app-result { grid-area: result; }
+
+.app-main > .panel { padding: var(--s2) var(--s3) var(--s3); min-width: 0; }
+
+.app-panel-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s2);
+  margin-bottom: var(--s2);
+}
+.app-panel-head .t-small { color: var(--ink-mid); }
+
+.app-placeholder { color: var(--ink-faint); }
+
+.span-legend { display: flex; align-items: center; gap: var(--s1); color: var(--ink-mid); }
+
+.app-grid { max-height: 300px; overflow-y: auto; }
+.app-grid table { border-collapse: collapse; width: 100%; }
+.app-grid th,
+.app-grid td {
+  text-align: left;
+  padding: 2px var(--s1);
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+.app-grid th {
+  position: sticky;
+  top: 0;
+  background: var(--stock-panel);
+  color: var(--ink-mid);
+  font-weight: 500;
+}
+.app-grid td.is-null { color: var(--ink-faint); }
+
+.app-footer { position: sticky; bottom: 0; z-index: 2; }
+
+/* §4.5: below 900 px the columns stack in derivation order. */
+@media (max-width: 900px) {
+  .app-main {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'query' 'search' 'plan' 'result';
+  }
+  .app-header { flex-wrap: wrap; }
+}

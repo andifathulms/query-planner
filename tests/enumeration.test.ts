@@ -93,19 +93,16 @@ describe('the lattice is complete', () => {
     // The budget exists so cost sliders can drive the lattice live (CLAUDE.md
     // §8), and a drag re-plans continuously — so the figure that matters is a
     // sustained one, not the first call, which also pays for JIT compilation.
-    //
-    // The best of several runs is the measure taken here. The test runner
-    // executes files in parallel, so any individual sample can be inflated by a
-    // neighbour competing for the same core; the fastest sample is the one least
-    // affected by that, and it is the algorithm's cost rather than the
-    // scheduler's.
+    // The suite runs one file at a time (vitest.config.ts) so this is a real
+    // wall-clock measurement rather than a contended one.
     const times: number[] = [];
-    for (let i = 0; i < 9; i++) times.push(plan(eight, statistics, { params }).stats.planningMs);
-    const best = Math.min(...times.slice(2));
+    for (let i = 0; i < 7; i++) times.push(plan(eight, statistics, { params }).stats.planningMs);
+    const warm = times.slice(2).sort((a, b) => a - b);
+    const median = warm[Math.floor(warm.length / 2)];
 
     const r = plan(eight, statistics, { params });
     expect(r.stats.subsets).toBe(2 ** 8 - 1);
-    expect(best).toBeLessThan(200);
+    expect(median).toBeLessThan(200);
   });
 });
 

@@ -1,0 +1,92 @@
+.cost-bar {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--s3);
+  padding: var(--s2) var(--s3);
+  background: var(--stock-panel);
+  border-top: 1px solid var(--rule);
+}
+
+.cost-bar-sliders {
+  flex: 1 1 auto;
+  display: flex;
+  gap: var(--s3);
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.cost-slider {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas: 'label value' 'track track';
+  gap: 2px var(--s1);
+  flex: 1 1 148px;
+  min-width: 132px;
+}
+
+/* random_page_cost gets the most width: it is the lever worth finding by feel. */
+.cost-slider.is-wide { flex: 2 1 240px; }
+
+.cost-slider-label { grid-area: label; color: var(--ink-mid); }
+.cost-slider-value { grid-area: value; font-size: var(--t-small-size); color: var(--ink-mid); }
+.cost-slider-value.is-changed { color: var(--ink); font-weight: 500; }
+
+.cost-slider-track { grid-area: track; position: relative; display: block; padding-bottom: 10px; }
+
+.cost-slider input[type='range'] {
+  width: 100%;
+  margin: 0;
+  height: 16px;
+  accent-color: var(--ink);
+  background: transparent;
+  position: relative;
+  z-index: 1;
+}
+
+/* The default position, as a hairline tick behind the track. */
+.cost-slider-default {
+  position: absolute;
+  top: 3px;
+  width: 1px;
+  height: 10px;
+  background: var(--ink-faint);
+  transform: translateX(-0.5px);
+}
+
+.cost-slider-marker {
+  position: absolute;
+  top: 2px;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: var(--ink-mid);
+  pointer-events: none;
+}
+
+.cost-slider-marker::before {
+  content: '';
+  width: 1px;
+  height: 12px;
+  background: var(--ink-mid);
+}
+
+.cost-bar-reset {
+  flex: 0 0 auto;
+  padding: 4px var(--s2);
+  background: transparent;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  color: var(--ink-mid);
+  cursor: pointer;
+}
+.cost-bar-reset:disabled { opacity: 0.45; cursor: default; }
+.cost-bar-reset:not(:disabled):hover { color: var(--ink); border-color: var(--ink-faint); }
+
+/* §4.5: below 900 px the bar keeps random_page_cost and work_mem; the rest
+ * moves behind a disclosure. */
+@media (max-width: 900px) {
+  .cost-bar { flex-wrap: wrap; }
+  .cost-slider:not(.is-primary) { display: none; }
+  .cost-bar.is-expanded .cost-slider { display: grid; }
+}

@@ -1,0 +1,37 @@
+.sql-input { display: flex; flex-direction: column; gap: var(--s1); }
+
+.sql-input-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s2);
+}
+
+.sql-input-examples select {
+  font: inherit;
+  font-size: var(--t-small-size);
+  color: var(--ink-mid);
+  background: transparent;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: 2px var(--s1);
+}
+
+.sql-input-area {
+  width: 100%;
+  min-height: 148px;
+  resize: vertical;
+  padding: var(--s2);
+  background: var(--stock-panel);
+  color: var(--ink);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  font-size: var(--t-sql-size);
+  line-height: var(--t-sql-lh);
+  tab-size: 2;
+}
+
+.sql-input-area[aria-invalid='true'] { border-color: var(--warn); }
+
+.sql-input-error { color: var(--warn); }
+.sql-input-position { color: var(--ink-mid); }
