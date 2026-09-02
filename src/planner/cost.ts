@@ -1,0 +1,367 @@
+/**
+ * The cost model (CLAUDE.md §3).
+ *
+ * Real parameters, real formulas, and not Postgres. Every simplification is
+ * stated in `SIMPLIFICATIONS` and the interface prints each one next to the
+ * number it affects (PRD §6.1).
+ *
+ * Costs are (startup, total) pairs. LIMIT selects on startup cost, and that is
+ * precisely why `LIMIT 10` wants a different plan; a scalar cost model could not
+ * express it and would silently remove one of the app's better demonstrations.
+ */
+import type { CostBreakdown, CostParams } from './types.js';
+
+/** Bytes per page, the conventional Postgres block size. */
+export const PAGE_SIZE = 8192;
+
+export interface SpillResult {
+  cost: number;
+  /** Passes over the data beyond the first. Zero means it fitted in memory. */
+  passes: number;
+  spilled: boolean;
+}
+
+/**
+ * The cost of not fitting in `work_mem`.
+ *
+ * Zero below the limit. Above it, the data is written out and read back once per
+ * merge pass, and the number of passes grows logarithmically with how far over
+ * the limit it is. Spills are recorded so the timeline can show them as events.
+ */
+export function spillCost(bytes: number, params: CostParams): SpillResult {
+  if (bytes <= params.work_mem) return { cost: 0, passes: 0, spilled: false };
+  const pages = Math.ceil(bytes / PAGE_SIZE);
+  // Each pass writes every page and reads it back.
+  const passes = Math.max(1, Math.ceil(Math.log2(bytes / params.work_mem)));
+  return {
+    cost: 2 * pages * passes * params.seq_page_cost,
+    passes,
+    spilled: true,
+  };
+}
+
+function terms(...entries: Array<{ label: string; value: number; kind: 'io' | 'cpu' } | null>) {
+  return entries.filter((e): e is { label: string; value: number; kind: 'io' | 'cpu' } => e !== null && e.value !== 0);
+}
+
+// ── Scans ────────────────────────────────────────────────────────────────────
+
+export function seqScanCost(
+  pages: number, rows: number, quals: number, params: CostParams,
+): CostBreakdown {
+  const io = pages * params.seq_page_cost;
+  const cpu = rows * params.cpu_tuple_cost;
+  const qual = rows * quals * params.cpu_operator_cost;
+  return {
+    // A sequential scan can return its first row as soon as the first page is
+    // read, so its startup cost is effectively zero. This is what makes it
+    // competitive under a small LIMIT even when its total cost is high.
+    startup: 0,
+    total: io + cpu + qual,
+    terms: terms(
+      { label: `${fmt(pages)} pages x seq_page_cost`, value: io, kind: 'io' },
+      { label: `${fmt(rows)} rows x cpu_tuple_cost`, value: cpu, kind: 'cpu' },
+      quals > 0 ? { label: `${fmt(rows)} rows x ${quals} quals x cpu_operator_cost`, value: qual, kind: 'cpu' } : null,
+    ),
+  };
+}
+
+export interface IndexScanInput {
+  /** Index pages touched: the descent plus the leaves the range covers. */
+  indexPages: number;
+  indexHeight: number;
+  /** Index entries examined. */
+  indexTuples: number;
+  /** Rows the scan returns after the index quals. */
+  rows: number;
+  /** Rows in the table, for the cache-fraction calculation. */
+  tableRows: number;
+  tablePages: number;
+  /** Physical correlation of the indexed column, -1..1. */
+  correlation: number;
+  /** Filters applied after the heap fetch. */
+  quals: number;
+}
+
+/**
+ * Index scan.
+ *
+ * The heap fetches are the interesting term. With correlation near 1 the rows
+ * come out in physical order and the fetches are effectively sequential; near 0
+ * each is a separate random read. Interpolating between the two on the square of
+ * the correlation is what Postgres does, and it is why `random_page_cost` has
+ * such leverage over this plan — dragging it from 4.0 to 1.1 is the standard SSD
+ * adjustment, and it must visibly flip a plan (PRD §4.4).
+ */
+export function indexScanCost(input: IndexScanInput, params: CostParams): CostBreakdown {
+  const {
+    indexPages, indexHeight, indexTuples, rows, tableRows, tablePages, correlation, quals,
+  } = input;
+
+  const indexIo = (indexHeight + indexPages) * params.random_page_cost;
+  const indexCpu = indexTuples * params.cpu_index_tuple_cost;
+
+  // How many distinct pages do `rows` heap fetches touch? At worst one each; at
+  // best the pages the rows are clustered into.
+  const clusteredPages = tableRows === 0 ? 0 : Math.ceil((rows / tableRows) * tablePages);
+  const randomPages = Math.min(rows, tablePages);
+  const c = Math.abs(correlation);
+  const heapPages = c * c * clusteredPages + (1 - c * c) * randomPages;
+
+  // Pages already in cache are not read again. effective_cache_size sets how
+  // much of the table is assumed resident.
+  const cachedFraction = Math.min(1, params.effective_cache_size / Math.max(1, tablePages * PAGE_SIZE));
+  const effectivePageCost = c * c * params.seq_page_cost
+    + (1 - c * c) * params.random_page_cost * (1 - 0.5 * cachedFraction);
+  const heapIo = heapPages * effectivePageCost;
+
+  const cpu = rows * params.cpu_tuple_cost;
+  const qual = rows * quals * params.cpu_operator_cost;
+
+  return {
+    // The descent must complete before the first row appears.
+    startup: indexHeight * params.random_page_cost,
+    total: indexIo + indexCpu + heapIo + cpu + qual,
+    terms: terms(
+      { label: `${fmt(indexHeight + indexPages)} index pages x random_page_cost`, value: indexIo, kind: 'io' },
+      { label: `${fmt(indexTuples)} index tuples x cpu_index_tuple_cost`, value: indexCpu, kind: 'cpu' },
+      { label: `${fmt(heapPages)} heap pages, correlation ${correlation.toFixed(2)}`, value: heapIo, kind: 'io' },
+      { label: `${fmt(rows)} rows x cpu_tuple_cost`, value: cpu, kind: 'cpu' },
+      quals > 0 ? { label: `${fmt(rows)} rows x ${quals} quals x cpu_operator_cost`, value: qual, kind: 'cpu' } : null,
+    ),
+  };
+}
+
+// ── Joins ────────────────────────────────────────────────────────────────────
+
+/**
+ * Nested loop.
+ *
+ * The inner side is re-scanned once per outer row, so the cost is linear in the
+ * outer cardinality — which is exactly why an underestimated outer side is
+ * catastrophic. Its startup cost is almost nothing, so it pipelines and wins
+ * under a small LIMIT.
+ */
+export function nestedLoopCost(
+  outer: CostBreakdown, outerRows: number,
+  inner: CostBreakdown, innerRows: number,
+  params: CostParams,
+): CostBreakdown {
+  // The inner side pays its startup once and its per-loop cost every time.
+  const perLoop = inner.total - inner.startup;
+  const loops = Math.max(1, outerRows);
+  const innerCost = inner.startup + loops * perLoop;
+  const cpu = loops * innerRows * params.cpu_operator_cost;
+  return {
+    startup: outer.startup + inner.startup,
+    total: outer.total + innerCost + cpu,
+    terms: terms(
+      { label: 'outer subtree', value: outer.total, kind: 'cpu' },
+      { label: `inner subtree x ${fmt(loops)} loops`, value: innerCost, kind: 'io' },
+      { label: `${fmt(loops * innerRows)} comparisons x cpu_operator_cost`, value: cpu, kind: 'cpu' },
+    ),
+  };
+}
+
+/**
+ * Hash join.
+ *
+ * The build side is blocking: not one output row appears until the whole hash
+ * table is built, which is the entire content of the timeline view's contrast
+ * with the nested loop. That blocking is expressed here as a startup cost equal
+ * to the build side's total.
+ */
+export function hashJoinCost(
+  build: CostBreakdown, buildRows: number, buildBytes: number,
+  probe: CostBreakdown, probeRows: number,
+  params: CostParams,
+): CostBreakdown & { spill: SpillResult } {
+  const spill = spillCost(buildBytes, params);
+  const cpu = (buildRows + probeRows) * params.cpu_operator_cost;
+  return {
+    startup: build.total + probe.startup + spill.cost,
+    total: build.total + probe.total + cpu + spill.cost,
+    terms: terms(
+      { label: 'build side (blocking)', value: build.total, kind: 'cpu' },
+      { label: 'probe side', value: probe.total, kind: 'cpu' },
+      { label: `${fmt(buildRows + probeRows)} rows hashed x cpu_operator_cost`, value: cpu, kind: 'cpu' },
+      spill.spilled ? { label: `spill: ${spill.passes} extra pass${spill.passes === 1 ? '' : 'es'} over work_mem`, value: spill.cost, kind: 'io' } : null,
+    ),
+    spill,
+  };
+}
+
+/**
+ * Merge join.
+ *
+ * Cheap per row, but it requires both inputs sorted — which is the whole reason
+ * interesting orders are retained. Where an input already carries the right
+ * order, the sort disappears and this wins; without order retention it never
+ * would, and the app would quietly teach something false.
+ */
+export function mergeJoinCost(
+  left: CostBreakdown, leftRows: number,
+  right: CostBreakdown, rightRows: number,
+  params: CostParams,
+): CostBreakdown {
+  const cpu = (leftRows + rightRows) * params.cpu_operator_cost;
+  return {
+    // Both sides must produce their first row, and a sort beneath either side
+    // carries its own startup, which is where the sort cost shows up.
+    startup: left.startup + right.startup,
+    total: left.total + right.total + cpu,
+    terms: terms(
+      { label: 'left subtree', value: left.total, kind: 'cpu' },
+      { label: 'right subtree', value: right.total, kind: 'cpu' },
+      { label: `${fmt(leftRows + rightRows)} rows merged x cpu_operator_cost`, value: cpu, kind: 'cpu' },
+    ),
+  };
+}
+
+// ── Sort and aggregate ───────────────────────────────────────────────────────
+
+/**
+ * Sort.
+ *
+ * n log n comparisons, and fully blocking: nothing comes out until everything
+ * has gone in, so the entire cost is startup cost. That is what makes a sort
+ * ruinous under a LIMIT and what the timeline draws as a long hollow bar.
+ */
+export function sortCost(
+  input: CostBreakdown, rows: number, bytes: number, params: CostParams,
+): CostBreakdown & { spill: SpillResult } {
+  const comparisons = rows <= 1 ? 0 : rows * Math.log2(rows);
+  const cpu = comparisons * params.cpu_operator_cost;
+  const spill = spillCost(bytes, params);
+  const total = input.total + cpu + spill.cost;
+  return {
+    startup: total,
+    total,
+    terms: terms(
+      { label: 'input subtree', value: input.total, kind: 'cpu' },
+      { label: `${fmt(comparisons)} comparisons x cpu_operator_cost`, value: cpu, kind: 'cpu' },
+      spill.spilled ? { label: `spill: ${spill.passes} merge pass${spill.passes === 1 ? '' : 'es'}`, value: spill.cost, kind: 'io' } : null,
+    ),
+    spill,
+  };
+}
+
+/** Hash aggregate: blocking, and it spills when the group table exceeds work_mem. */
+export function hashAggregateCost(
+  input: CostBreakdown, rows: number, groups: number, groupBytes: number,
+  aggregates: number, params: CostParams,
+): CostBreakdown & { spill: SpillResult } {
+  const cpu = rows * (aggregates + 1) * params.cpu_operator_cost;
+  const emit = groups * params.cpu_tuple_cost;
+  const spill = spillCost(groupBytes, params);
+  const total = input.total + cpu + emit + spill.cost;
+  return {
+    startup: total,
+    total,
+    terms: terms(
+      { label: 'input subtree', value: input.total, kind: 'cpu' },
+      { label: `${fmt(rows)} rows x ${aggregates + 1} x cpu_operator_cost`, value: cpu, kind: 'cpu' },
+      { label: `${fmt(groups)} groups emitted x cpu_tuple_cost`, value: emit, kind: 'cpu' },
+      spill.spilled ? { label: `spill: group table over work_mem`, value: spill.cost, kind: 'io' } : null,
+    ),
+    spill,
+  };
+}
+
+/**
+ * Group aggregate: needs sorted input, but it pipelines — a group can be emitted
+ * as soon as its last row arrives, so the startup cost is only the input's.
+ */
+export function groupAggregateCost(
+  input: CostBreakdown, rows: number, groups: number, aggregates: number, params: CostParams,
+): CostBreakdown {
+  const cpu = rows * (aggregates + 1) * params.cpu_operator_cost;
+  const emit = groups * params.cpu_tuple_cost;
+  return {
+    startup: input.startup,
+    total: input.total + cpu + emit,
+    terms: terms(
+      { label: 'input subtree', value: input.total, kind: 'cpu' },
+      { label: `${fmt(rows)} rows x ${aggregates + 1} x cpu_operator_cost`, value: cpu, kind: 'cpu' },
+      { label: `${fmt(groups)} groups emitted x cpu_tuple_cost`, value: emit, kind: 'cpu' },
+    ),
+  };
+}
+
+/**
+ * Limit.
+ *
+ * The node that makes startup cost matter. It pays the input's startup, then
+ * only the fraction of the input's run cost it actually consumes — so a
+ * pipelining plan beneath it is charged for a few rows and a blocking one is
+ * charged for all of them.
+ */
+export function limitCost(
+  input: CostBreakdown, inputRows: number, count: number,
+): CostBreakdown {
+  const fraction = inputRows <= 0 ? 1 : Math.min(1, count / inputRows);
+  const run = (input.total - input.startup) * fraction;
+  return {
+    startup: input.startup,
+    total: input.startup + run,
+    terms: terms(
+      { label: 'input startup, paid in full', value: input.startup, kind: 'cpu' },
+      { label: `${(fraction * 100).toFixed(1)}% of the input's run cost`, value: run, kind: 'cpu' },
+    ),
+  };
+}
+
+// ── The honesty note ─────────────────────────────────────────────────────────
+
+/**
+ * Where this model differs from Postgres. The interface prints each of these
+ * next to the number it affects, not on an about page (CLAUDE.md §10).
+ */
+export const SIMPLIFICATIONS: Record<string, string> = {
+  seqScan:
+    'Postgres also charges for parallel workers and for the visibility map. '
+    + 'Neither is modelled here.',
+  indexScan:
+    'Heap fetches are interpolated between clustered and random on the square of '
+    + 'the correlation. Postgres uses a more elaborate function and also consults '
+    + 'the index’s own correlation statistics.',
+  cache:
+    'effective_cache_size discounts random reads by up to half here. Postgres '
+    + 'models cache residency per index with the Mackert-Lohman formula.',
+  nestedLoop:
+    'A real planner can materialise the inner side and rescan it cheaply. This '
+    + 'model charges the full inner cost on every loop.',
+  hashJoin:
+    'One hash table, one batch until work_mem is exceeded. Postgres chooses a '
+    + 'batch count up front and can rebalance during the build.',
+  mergeJoin:
+    'Merge cost is linear in the input sizes. Postgres also estimates how far '
+    + 'into each input the merge will actually run, which matters when one side '
+    + 'ends early.',
+  sort:
+    'n log n comparisons and a simple multi-pass spill. Postgres distinguishes '
+    + 'quicksort, top-N heapsort and external merge sort, which differ by more '
+    + 'than a constant.',
+  bitmap:
+    'Bitmap heap scans are not implemented. They are the classic "why did it not '
+    + 'use my index" case, and their absence is the largest gap in this model.',
+  parallel:
+    'No parallel plans. Postgres would consider a parallel sequential scan on a '
+    + 'table this size.',
+};
+
+function fmt(n: number): string {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1000) return `${(n / 1000).toFixed(1)}k`;
+  return String(Math.round(n));
+}
+
+export function addCosts(a: CostBreakdown, b: CostBreakdown): CostBreakdown {
+  return {
+    startup: a.startup + b.startup,
+    total: a.total + b.total,
+    terms: [...a.terms, ...b.terms],
+  };
+}
+
+export const ZERO_COST: CostBreakdown = { startup: 0, total: 0, terms: [] };
