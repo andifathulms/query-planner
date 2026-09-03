@@ -23,6 +23,7 @@ import { bytes, directionWord, errorRatio, exact, list, ms } from '../../ui/form
 import { usePrefersReducedMotion } from '../../ui/useFill.js';
 import type { MultivariateKind } from '../../stats/types.js';
 import { walkPlan, type Plan, type QuerySpec } from '../../planner/types.js';
+import { SIMPLIFICATIONS } from '../../planner/index.js';
 import './Recovery.css';
 
 const KINDS: MultivariateKind[] = ['dependencies', 'ndistinct', 'mcv'];
@@ -222,10 +223,12 @@ function BeforeAfter({
             {ms(beforeMs)} → {ms(afterMs)}
           </span>
           <span className="t-small recovery-stage-note">
-            {/* Elapsed time on one machine, once. Stated as what it is rather
+            {/* Elapsed time on one machine, once, and measuring something the
+                cost model is not reasoning about. Stated as what it is rather
                 than presented as a benchmark. */}
             one run each, in this browser
           </span>
+          <p className="t-micro recovery-elapsed-note">{SIMPLIFICATIONS.elapsed}</p>
         </div>
       )}
     </div>

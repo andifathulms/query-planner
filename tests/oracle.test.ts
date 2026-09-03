@@ -54,6 +54,8 @@ const CORPUS = [
   // record of which simplifications actually change a decision.
   `SELECT p.id FROM penduduk p WHERE p.umur = 40`,
   `SELECT p.pekerjaan FROM penduduk p WHERE p.kelurahan_id = 12`,
+  `SELECT p.pekerjaan, k.nama FROM penduduk p JOIN kelurahan k ON p.kelurahan_id = k.id
+     WHERE k.kota = 'Kupang' AND k.provinsi = 'Nusa Tenggara Timur'`,
 ];
 
 

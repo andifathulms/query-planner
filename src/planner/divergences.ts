@@ -54,6 +54,17 @@ export const DIVERGENCES: Divergence[] = [
       + 'read per row and rejects it.',
     simplification: 'bitmap',
   },
+  {
+    match: "JOIN kelurahan k ON p.kelurahan_id = k.id WHERE k.kota = 'Kupang'",
+    reason:
+      'The join order and the join operator agree exactly — both planners read '
+      + 'kelurahan first and drive a nested loop from it. Only the scans differ: '
+      + 'Postgres reaches both relations through bitmap heap scans, combining the '
+      + 'two indexes on kelurahan with a BitmapAnd, where this engine uses one '
+      + 'plain index scan on each. It is the same missing bitmap layer, and here '
+      + 'it costs nothing in the decision that matters.',
+    simplification: 'bitmap',
+  },
 ];
 
 /** Divergences grouped by the simplification that causes them. */

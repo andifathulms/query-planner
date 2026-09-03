@@ -64,6 +64,15 @@ WHERE k.kota = 'Balikpapan'
     note: 'Kalimantan Timur holds three cities rather than one, so knowing the city still narrows the province but does not fix it. The same failure, an order of magnitude smaller.',
   },
   {
+    label: 'the nested loop disaster',
+    sql: `SELECT p.pekerjaan, k.nama
+FROM penduduk p
+JOIN kelurahan k ON p.kelurahan_id = k.id
+WHERE k.kota = 'Kupang'
+  AND k.provinsi = 'Nusa Tenggara Timur'`,
+    note: 'The planner expects 12 rows and chooses a nested loop. It receives 999. Create the dependency in the recovery tab and the plan becomes a hash join.',
+  },
+  {
     label: 'the lattice, six tables',
     sql: `SELECT p.pekerjaan, k.nama, c.nama, b.nama, v.nama
 FROM penduduk p

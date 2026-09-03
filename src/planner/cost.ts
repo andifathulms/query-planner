@@ -381,6 +381,14 @@ export const SIMPLIFICATIONS: Record<string, string> = {
   parallel:
     'No parallel plans. Postgres would consider a parallel sequential scan on a '
     + 'table this size.',
+  elapsed:
+    'The cost model prices disk: a random page read costs four times a '
+    + 'sequential one. This executor holds every table in memory, where both '
+    + 'cost the same. So elapsed time here measures rows touched, not the I/O '
+    + 'the model is reasoning about, and a plan that is right for a database on '
+    + 'a disk can be the slower one in this browser. The estimate against the '
+    + 'actual row count is the comparison this app is making; elapsed time is '
+    + 'reported beside it, not instead of it.',
 };
 
 function fmt(n: number): string {
