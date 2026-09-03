@@ -2,6 +2,13 @@
 
 Visual and motion specification. PRD.md defines substance; this defines form.
 
+**Revision 2.** The first revision established the idea that carries this app — belief drawn
+against truth — and then dressed it in a single flat light theme where every panel had the
+same weight as every other. The idea survives revision 2 intact. What changes is everything
+around it: a ground that actually has depth, two themes rather than one, a type scale with
+fewer and more distinct steps, one control vocabulary instead of six ad-hoc ones, and a
+layout that puts the hero where the eye lands instead of in a 340 px column beside it.
+
 ---
 
 ## 0. The design problem, and the idea that solves it
@@ -35,25 +42,53 @@ from the letterforms. A face with personality would compete with several hundred
 and lose the argument. Choosing a neutral superfamily here is a decision, not a default, and
 §3 says why.
 
-**What this app is not:** a terminal. The dark-background monospace treatment is the
-predictable choice for anything SQL-shaped, and it is wrong here. The work this app asks of a
-reader is careful comparison of paired figures across a large tree. That is reading work, and
-reading work wants a light ground.
+### 0.1 What revision 1 got wrong
+
+Worth stating plainly, because each fault has a fix in the sections below and the faults are
+the reason for the revision.
+
+1. **The ground had no depth.** Page `#EDEFF1` under panel `#F6F7F8` is a 2% step. Panels
+   were declared raised and did not read raised, so the screen was one undifferentiated
+   field of hairline boxes. §2.1 replaces the two-value ground with a four-step ramp and a
+   real, if very quiet, elevation.
+2. **Every panel had the same weight.** The lattice is the hero and it sat in the same box
+   as the result grid, at the same heading size, with the same border. §4 gives the
+   derivation a spine and lets the hero be a hero.
+3. **One theme.** A tool a DBA keeps open beside a terminal needs a dark theme, and "this app
+   is not a terminal" (an argument about *treatment*) was allowed to become an argument
+   against *ever being dark*. It is not the same claim. §2.4 settles it: two themes, both
+   light-ground in their reading behaviour, the dark one a dim instrument panel rather than a
+   black terminal.
+4. **Four small type sizes doing one job.** 14 / 12.5 / 11.5 / 10 is a scale with no steps
+   in it. §3.1 cuts to a scale where each step is visibly a step.
+5. **Six copies of the same button.** `padding: 1px var(--s1); border: 1px solid var(--rule)`
+   appears, slightly differently, in six stylesheets. §4.6 makes one control vocabulary.
+6. **No horizon.** `align-content: start` with no max width meant the interface hugged the
+   top-left of a wide display and stretched illegibly on an ultrawide. §4.2 gives it a
+   measure.
 
 ---
 
 ## 1. Design plan
 
-**Concept: the schematic.**
+**Concept: the instrument panel.**
 
-A technical drawing on cool drafting stock. Lattice and tree are diagrams with real
-structure, drawn in line rather than filled in blocks. Believed values are drawn the way a
-proposal is drawn on a plan — outlined, dashed, provisional. Measured values are drawn the
-way an as-built is marked up — solid, filled, final.
+Revision 1 called it a schematic — a technical drawing on drafting stock. That was right
+about the *marks* and wrong about the *housing*. A schematic is a static document; this is a
+live instrument that re-derives itself on every frame of a slider drag. So: schematic marks,
+instrument housing.
 
-That distinction is not decorative. It maps exactly onto the app's subject and it means a
-reader can tell belief from measurement without a legend, at any zoom, anywhere in the
-interface.
+What that means concretely:
+
+- **Marks stay drawn, not filled.** Lattice, tree, histogram, timeline and correlation are
+  line drawings with real structure. Believed values are drawn the way a proposal is drawn on
+  a plan — outlined, dashed, provisional. Measured values are drawn the way an as-built is
+  marked up — solid, filled, final. This is unchanged and it is the part worth keeping.
+- **The housing has depth and hierarchy.** Panels sit on a ground, at three levels: the page,
+  the panel, and the sunken canvas a diagram is drawn into. A reader should be able to see
+  the structure of the screen with their eyes out of focus.
+- **Readouts look like readouts.** Numbers that change on every frame sit in mono, tabular,
+  on a sunken field, with their unit and their label attached. They are not prose.
 
 **Alignment:** the app is a left-to-right derivation — SQL, then search, then chosen plan,
 then execution, then truth. The layout follows that direction and does not fight it.
@@ -62,27 +97,48 @@ then execution, then truth. The layout follows that direction and does not fight
 
 ## 2. Colour
 
+The palette is defined **semantically** and instantiated twice, once per theme. No component
+stylesheet names a hex value or a theme; every rule reads a semantic token, so the dark
+theme is a token file and not a second set of components.
+
 ### 2.1 Ground
 
-| Token | Value | Use |
-|---|---|---|
-| `--stock` | `#EDEFF1` | Page. Cool light grey, drafting stock. |
-| `--stock-panel` | `#F6F7F8` | Panels, raised from the page rather than recessed. |
-| `--stock-deep` | `#E0E3E6` | Recessed areas: unfilled lattice cells, empty buckets. |
-| `--ink` | `#15181B` | Primary text and structural line. |
-| `--ink-mid` | `#565D64` | Labels, axis text, secondary. |
-| `--ink-faint` | `#98A0A7` | Ticks, pruned candidates, disabled. |
-| `--rule` | `#CBD0D5` | Hairlines and grid. |
+A four-step ramp, plus text and line. The step between page and panel is now visible — around
+5–7% of luminance rather than 2% — and the direction is deliberate: **panels are lighter than
+the page in the light theme and lighter than the page in the dark theme too.** Raised is
+always lighter. Sunken is always darker. That rule holds in both themes so the reader learns
+depth once.
 
-Cool rather than warm, which distinguishes it from Compression Lab's paper at a glance and
-suits a schematic rather than a manuscript.
+| Token | Light | Dark | Use |
+|---|---|---|---|
+| `--bg` | `#E7EAEE` | `#101317` | The page. Everything sits on it. |
+| `--surface` | `#F7F8FA` | `#191D22` | Panels. Raised from the page. |
+| `--surface-raised` | `#FFFFFF` | `#20252B` | Popovers, the selected row, the active tab. |
+| `--surface-sunken` | `#DDE1E6` | `#0B0E11` | Canvases a diagram is drawn into; input fields; unfilled lattice cells. |
+| `--ink` | `#12161A` | `#EDF0F3` | Primary text and structural line. |
+| `--ink-mid` | `#5A626B` | `#9AA4AE` | Labels, axis text, secondary. |
+| `--ink-faint` | `#8B949D` | `#69737D` | Ticks, pruned candidates, disabled. |
+| `--line` | `#C9CFD6` | `#2C333A` | Hairlines and grid. |
+| `--line-strong` | `#A8B1BA` | `#3D454E` | Panel borders, the edge of a focused control. |
+
+Cool rather than warm in both themes. The light theme reads as coated stock under even light;
+the dark theme reads as a dimmed instrument panel, not as a terminal — it is a desaturated
+blue-grey at `#101317`, never pure black, and its text is `#EDF0F3`, never pure white. Pure
+black on pure white is the halation that makes dark interfaces tiring, and this one is meant
+to be read for an hour.
 
 ### 2.2 The two colours
 
-| Token | Value | Meaning |
-|---|---|---|
-| `--believed` | `#4A6FA5` | Estimated, predicted, assumed. Cool blue. |
-| `--true` | `#B5622F` | Actual, measured, executed. Warm ochre. |
+| Token | Light | Dark | Meaning |
+|---|---|---|---|
+| `--believed` | `#3B6FB6` | `#7AA5E8` | Estimated, predicted, assumed. Cool blue. |
+| `--true` | `#B45C22` | `#E8974A` | Actual, measured, executed. Warm amber. |
+
+Re-tuned from revision 1, where `#4A6FA5` and `#B5622F` were muddy enough that at 1.5 px
+stroke weight on a light-grey field they read as two greys. Both are lifted in chroma and
+separated further in hue; both clear 4.5:1 against their own theme's `--surface` for text and
+3:1 for graphical objects, in both themes. The dark-theme values are lighter rather than the
+same colours on a dark ground, because a mid-tone stroke on `#191D22` disappears.
 
 Reinforced by treatment, not carried by hue alone:
 
@@ -90,31 +146,65 @@ Reinforced by treatment, not carried by hue alone:
 - **True** is drawn solid — filled, no stroke.
 
 A reader with no colour vision still reads dashed-hollow as proposed and solid-filled as
-measured. The pairing works in print, at 3 px, and in a screenshot.
+measured. The pairing works in print, at 3 px, in either theme, and in a screenshot.
 
-**The gap between them** is filled at 12% opacity in `--believed` when the estimate is low
+**The gap between them** is filled at 14% opacity in `--believed` when the estimate is low
 and in `--true` when the estimate is high. Under-estimates and over-estimates therefore look
 different, which matters: an under-estimate is the dangerous one, because it is what makes a
 planner choose a nested loop it cannot afford.
 
 ### 2.3 Everything else
 
-| Token | Value | Use |
-|---|---|---|
-| `--winner` | `#15181B` | The chosen plan, in ink. Not a colour — the winner is simply drawn fully. |
-| `--pruned` | `#98A0A7` | Candidates that lost. Same shape, drained. |
-| `--order` | `#5C7F6B` | Plans retained for an interesting order. The one extra hue in the app. |
-| `--warn` | `#C04A2E` | Spills, estimation errors past a threshold, parser errors. |
+| Token | Light | Dark | Use |
+|---|---|---|---|
+| `--winner` | `#12161A` | `#EDF0F3` | The chosen plan, in ink. Not a colour — the winner is drawn fully. |
+| `--pruned` | `#8B949D` | `#69737D` | Candidates that lost. Same shape, drained. |
+| `--order` | `#3F7D63` | `#5FBE92` | Plans retained for an interesting order. The one extra hue. |
+| `--warn` | `#C0432A` | `#F0785A` | Spills, estimation errors past a threshold, parser errors. |
+| `--focus` | `#3B6FB6` | `#7AA5E8` | The focus ring. Tracks `--believed` deliberately: focus is a proposal too. |
 
 Operator types are **not** coloured. They are distinguished by their node glyph in the plan
 tree (§5.2). Spending hue on nine operators would leave nothing for the distinction the app
 is actually about.
 
+**Total hue budget: four.** Believed, true, order, warn. Anything else that needs to be
+distinguished is distinguished by value, by fill treatment, or by hatch.
+
+### 2.4 Themes
+
+Three states, as the platform actually models them:
+
+- No preference expressed → follow `prefers-color-scheme`.
+- `data-theme="light"` on the root → light, regardless of the system.
+- `data-theme="dark"` on the root → dark, regardless of the system.
+
+The toggle in the header cycles system → light → dark and persists to `localStorage`. It is
+not in the URL: a shared link carries a *plan*, and forcing a colleague into your theme to
+show them a plan would be rude. Theme is a property of the reader, not of the finding.
+
+Every token is defined on bare `:root` (light), redefined under
+`@media (prefers-color-scheme: dark)` guarded by `:root:not([data-theme='light'])`, and
+redefined again under `:root[data-theme='dark']` so the explicit choice wins in both
+directions. `color-scheme` is set alongside, so form controls, scrollbars and the range
+thumbs follow without being restyled by hand.
+
+### 2.5 Elevation
+
+Shadows are near-invisible and they are still doing work: they stop a hairline box from
+looking like a table cell. Two steps only.
+
+| Token | Light | Dark |
+|---|---|---|
+| `--shadow-panel` | `0 1px 2px rgb(18 22 26 / .04), 0 1px 1px rgb(18 22 26 / .03)` | `0 1px 2px rgb(0 0 0 / .4)` |
+| `--shadow-raised` | `0 4px 12px rgb(18 22 26 / .08), 0 1px 3px rgb(18 22 26 / .06)` | `0 6px 20px rgb(0 0 0 / .5)` |
+
+`--shadow-raised` is for popovers and the sticky cost bar only. Nothing on the page hovers.
+
 ---
 
 ## 3. Typography
 
-**Geist** and **Geist Mono**. One superfamily.
+**Geist** and **Geist Mono**. One superfamily, self-hosted, subset to Latin.
 
 The reasoning is stated in §0 and worth repeating because it will look like a default and is
 not: this interface carries more simultaneous numbers than any other in the family, and the
@@ -132,18 +222,24 @@ No third family.
 
 ### 3.1 Scale
 
-Base 14 px — smaller than the other apps, because density is the point here. Ratio 1.25.
+Base 14 px. Revision 1 had eight steps of which four were crowded into 10–14 px and were not
+distinguishable in use. Revision 2 has seven, and each is a step you can see.
 
-| Token | Size / line-height | Face | Use |
+| Token | Size / line-height / weight | Face | Use |
 |---|---|---|---|
-| `--t-display` | 34 / 1.05, 600 | Geist Mono | The error ratio. One instance, and it should be large. |
-| `--t-figure` | 22 / 1.1, 600 | Geist Mono | Panel values, chosen plan cost |
-| `--t-h2` | 17 / 1.3, 600 | Geist | Panel headings |
-| `--t-sql` | 14 / 1.6, 400 | Geist Mono | The query input |
-| `--t-body` | 14 / 1.55, 400 | Geist | Explanatory copy. Max 68 characters. |
-| `--t-data` | 12.5 / 1.45, 400 | Geist Mono | Plan nodes, tables, axis numbers |
-| `--t-small` | 11.5 / 1.35, 400 | Geist | Labels, legend |
-| `--t-micro` | 10 / 1.2, 500 | Geist Mono | Lattice cell contents, tick labels |
+| `--t-display` | 40 / 1.0 / 600 | Geist Mono | The error ratio. One instance, and it should be large. |
+| `--t-figure` | 24 / 1.1 / 600 | Geist Mono | Panel values, chosen plan cost, verdict numbers. |
+| `--t-h2` | 15 / 1.3 / 600 | Geist | Panel headings. |
+| `--t-body` | 14 / 1.55 / 400 | Geist | SQL input and explanatory copy. Max 68 characters. |
+| `--t-data` | 12.5 / 1.45 / 400 | Geist Mono | Plan nodes, tables, axis numbers. |
+| `--t-label` | 11.5 / 1.35 / 500 | Geist | Control labels, legends, tab labels. |
+| `--t-micro` | 10 / 1.2 / 500 | Geist Mono | Lattice cell contents, tick labels. |
+
+Two changes worth naming. The panel heading drops from 17 px to 15 px and gains its weight
+from being the only 600-weight sans on the panel, not from size — seventeen panels at 17 px
+is a lot of shouting. The display figure rises from 34 px to 40 px, because it is the one
+number the app has earned the right to set large and it was competing with the panel headings
+rather than dominating them.
 
 `font-variant-numeric: tabular-nums` on all Geist Mono. Values update on every frame of a
 cost-slider drag and proportional figures would make the whole interface shimmer.
@@ -151,11 +247,22 @@ cost-slider drag and proportional figures would make the whole interface shimmer
 The error ratio at `--t-display` is the app's one piece of typographic drama. A `312×` set
 large, in ink, beside a plan tree, is the headline the app has earned.
 
-### 3.2 Prohibitions
+### 3.2 The eyebrow
 
-No all-caps labels. No tracked-out eyebrows. No coloured words in headings — hue means
-believed or true here and nothing else. Sentence case throughout, except SQL keywords and
-Postgres operator names, which keep their canonical casing.
+Revision 1 banned all-caps labels outright. Revision 2 keeps that ban for anything a reader
+*reads*, and makes one exception for a thing a reader *finds*: the panel eyebrow.
+
+Panels carry a small caps-and-tracked kicker above their heading — `SEARCH`, `PLAN`,
+`EVIDENCE` — at 10 px, 500 weight, `0.08em` tracking, in `--ink-faint`. It is a landmark, not
+a label: at a glance it tells you which stage of the derivation you are looking at, and it is
+short enough that all-caps costs no legibility. Nothing longer than one word ever gets this
+treatment.
+
+### 3.3 Prohibitions
+
+No tracked-out eyebrows longer than a word. No coloured words in headings — hue means
+believed or true here and nothing else. Sentence case throughout, except SQL keywords,
+Postgres operator names, and the §3.2 eyebrows.
 
 ---
 
@@ -164,73 +271,141 @@ Postgres operator names, which keep their canonical casing.
 ### 4.1 The derivation
 
 ```
-┌──────────────────────────────────────────────────────────────────────┐
-│ Query Planner                        dataset: wilayah · 1.2M rows    │
-├───────────────────────┬──────────────────────────────────────────────┤
-│ SELECT ...            │  THE LATTICE                                 │
-│ FROM kelurahan k      │  L4  ▢▢▢▢▢▢▢▢▢▢▢▢▢▢▢  ← filling              │
-│ JOIN kecamatan c ...  │  L3  ▣▣▣▣▣▣▣▣▣▣                              │
-│ WHERE k.kota = ...    │  L2  ▣▣▣▣▣▣                                  │
-│   AND k.provinsi = .. │  L1  ▣▣▣▣                                    │
-│                       │                                              │
-│ [ run ]               │  63 subsets · 218 candidates · 4 orders kept │
-├───────────────────────┼──────────────────────────────────────────────┤
-│ COST BREAKDOWN        │  THE PLAN                                    │
-│ ▬▬▬▬▬▬▬▬ hash 412     │   Nested Loop      est ┈┈┈┈┈╱▓▓▓▓▓▓ act      │
-│ ▬▬▬▬▬▬ merge 388      │   ├ Index Scan k   est ┈┈╱▓▓ act             │
-│ ▬▬▬▬ nestloop 240 ◀   │   └ Seq Scan c     est ┈╱▓ act               │
-│                       │                                              │
-│                       │                     312×  underestimated     │
-├───────────────────────┴──────────────────────────────────────────────┤
-│ INSTRUMENT BAY                                                       │
-│ [correlation | histogram | sample | timeline | recovery]             │
-├──────────────────────────────────────────────────────────────────────┤
-│ random_page_cost ●────  4.0   work_mem ●──  4MB   sample ●───  30k   │
-└──────────────────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────────────────────┐
+│ ▨ Query planner   ·  what the database believed      wilayah 1.2M   ☾  ⋯  │
+├──────────────────────────┬─────────────────────────────────────────────────┤
+│ QUERY                    │  SEARCH                       planned in 4.1 ms │
+│ ┌──────────────────────┐ │  ┌────────────────────────────────────────────┐ │
+│ │ SELECT ...           │ │  │ L4  ▢▢▢▢▢▢▢▢▢▢▢▢▢▢▢  ← filling             │ │
+│ │ FROM kelurahan k     │ │  │ L3  ▣▣▣▣▣▣▣▣▣▣                             │ │
+│ │ JOIN kecamatan c ... │ │  │ L2  ▣▣▣▣▣▣                                 │ │
+│ │ WHERE k.kota = ...   │ │  │ L1  ▣▣▣▣                                   │ │
+│ └──────────────────────┘ │  └────────────────────────────────────────────┘ │
+│ examples ▾   generator ▾ │  63 subsets · 218 candidates · 4 orders kept    │
+│                          ├─────────────────────────────────────────────────┤
+│ COST                     │  PLAN                                           │
+│ ▬▬▬▬▬▬▬▬ hash 412        │   Nested Loop      est ┈┈┈┈┈╱▓▓▓▓▓▓ act         │
+│ ▬▬▬▬▬▬ merge 388         │   ├ Index Scan k   est ┈┈╱▓▓ act                │
+│ ▬▬▬▬ nestloop 240 ◀      │   └ Seq Scan c     est ┈╱▓ act                  │
+│                          │                                                 │
+│                          │   ┌─ 312× ─────────────────────────────────┐    │
+│                          │   │ underestimated · independence assumed  │    │
+│                          │   └────────────────────────────────────────┘    │
+├──────────────────────────┴─────────────────────────────────────────────────┤
+│ EVIDENCE  [correlation | histogram | sample | timeline | recovery •]        │
+├────────────────────────────────────────────────────────────────────────────┤
+│ RESULT    1,204 rows · 82 ms                                    export ⤓   │
+├────────────────────────────────────────────────────────────────────────────┤
+│ random_page_cost ●────  4.0   work_mem ●──  4MB   …            reset (2)   │
+└────────────────────────────────────────────────────────────────────────────┘
 ```
 
 Left to right, top to bottom, the layout is the derivation: query, search, candidates,
-chosen plan, evidence.
+chosen plan, evidence, result.
+
+Two changes from revision 1. The lattice moves out of the narrow right column into the wide
+one and gets the top of the fold to itself — it is the hero and it was being treated as a
+sibling. And the root error ratio is promoted out of a margin note into a **verdict block**
+beneath the tree: the number at `--t-display`, the direction stated in words, and the
+assumption that produced it named. That is the app's finding, and a finding gets a frame.
 
 The lattice sits above the plan tree because it produces it. When the lattice's final cell
 resolves, its winning plan is what appears below — and the transition between the two is the
 first orchestrated moment (§6.3).
 
-### 4.2 The cost parameter bar
+### 4.2 Measure and container
 
-Pinned to the bottom, full width. Every cost parameter as a live slider with its default
-marked.
+The app is centred in a container with `max-width: 1680px` and a minimum side gutter of
+`--s3`. Beyond 1680 px the extra space becomes gutter rather than making the lattice
+1200 px wide and the plan tree 900 px tall — neither of which is more legible.
 
-These are the app's continuous controls and they drive everything above: re-plan, re-sort the
-cost breakdown, re-fill the lattice. The 200 ms planning budget exists for this bar.
+The shell is a `min-height: 100dvh` grid of `auto 1fr auto`: header, scrolling derivation,
+sticky cost bar. Content grows down from the top; the cost bar never leaves.
+
+Column split at ≥1100 px: `minmax(320px, 380px)` for the derivation's inputs (query, cost
+breakdown) and `minmax(0, 1fr)` for its results (search, plan). Below that, one column in
+derivation order.
+
+### 4.3 The cost parameter bar
+
+Pinned to the bottom, full width, `--shadow-raised` so it reads as floating above the page
+rather than as the last panel.
+
+Every cost parameter as a live slider with its default marked. These are the app's continuous
+controls and they drive everything above: re-plan, re-sort the cost breakdown, re-fill the
+lattice. The 200 ms planning budget exists for this bar.
 
 `random_page_cost` gets the most width and carries a marker at 1.1 labelled with what it
 means, because dragging from 4.0 to 1.1 and watching the plan flip is the single most useful
 thing a DBA can learn here.
 
-### 4.3 The instrument bay
+A parameter moved off its default has its readout in `--ink` at 500 weight against the
+default's `--ink-mid`, and the reset button counts how many have moved. Both are there so a
+reader who has been dragging for five minutes can see, without reading seven numbers, that
+they are no longer looking at stock Postgres.
+
+### 4.4 The instrument bay
 
 Tabbed: correlation, histogram, sample, timeline, recovery. One at a time, full width, on
-panel ground.
+panel ground, with the tab strip on `--surface-sunken` so the active tab reads as lifted out
+of it rather than underlined within it.
 
 Recovery is the only tab that changes the state above it, since creating a statistic
-re-plans. It is marked distinctly for that reason.
+re-plans. It carries an `--order` dot for that reason.
 
-### 4.4 Grid and rhythm
+### 4.5 Grid, rhythm and shape
 
-8 px base. Spacing scale: 8 · 12 · 16 · 24 · 40 · 64 — tighter than the other apps, because
-density is the design.
+8 px base. Spacing scale: 4 · 8 · 12 · 16 · 24 · 40 · 64. Tighter than the other apps,
+because density is the design; the 4 px step is new and exists for the inside of controls.
 
-Panels are raised from the page by value with a hairline, not by shadow. 2 px radius. The
-plan tree and lattice sit directly on panel ground with no inner card.
+Radii, three values and no more:
 
-### 4.5 Mobile
+| Token | Value | Use |
+|---|---|---|
+| `--r-control` | 4px | Buttons, selects, inputs, chips, tabs. |
+| `--r-panel` | 8px | Panels, the sunken canvas, popovers. |
+| `--r-full` | 999px | The theme toggle and nothing else. |
 
-Below 900 px the columns stack in derivation order: SQL, lattice, plan, cost breakdown,
-bay. The lattice keeps horizontal scroll per level with the level label pinned left. The plan
-tree keeps its estimate/actual spans — they are the point and they compress before anything
-else does. The cost bar keeps `random_page_cost` and `work_mem`; the rest moves behind a
-sheet.
+Revision 1's uniform 2 px made everything look like the same small hard thing. Panels are
+large and want a radius you can see; controls are small and want one you can barely see.
+
+Panels are `--surface` on `--bg`, with a `--line` hairline and `--shadow-panel`. Diagrams sit
+on a `--surface-sunken` canvas inside the panel, inset by `--s2`, with no border — the value
+step is the border. This is the one place revision 1's "no inner card" rule is relaxed, and
+it is relaxed because a lattice drawn directly on panel ground has no edge and no floor.
+
+### 4.6 The control vocabulary
+
+One set, defined once, used everywhere. Revision 1 had six near-identical copies of a chip
+button spread across six stylesheets, which is how three of them ended up with different
+padding.
+
+| Class | Shape |
+|---|---|
+| `.control` | The base: `--t-label`, `--r-control`, 1px `--line`, `--surface` ground, `--ink-mid` text, 26 px tall. |
+| `.control:hover` | `--ink` text, `--line-strong` border. No background change, no transition longer than 120 ms. |
+| `.control[aria-pressed='true']`, `.control.is-active` | `--surface-raised` ground, `--ink` text, `--line-strong` border. |
+| `.control:disabled` | 45% opacity, no hover. |
+| `.control-quiet` | The same, with no border until hover. For dense clusters. |
+| `.field` | Text and number inputs, and `select`. `--surface-sunken` ground, 1px `--line`, mono. |
+| `.range` | `input[type=range]`, `accent-color: var(--ink)`, 16 px track box. |
+| `.eyebrow` | §3.2. |
+| `.panel-head` | Eyebrow, `h2`, and a right-aligned meta slot on one baseline. |
+
+Focus is a 2 px `--focus` ring at 2 px offset, everywhere, including SVG lattice cells and
+plan nodes. It is never removed and never replaced by a colour change.
+
+### 4.7 Mobile
+
+Below 1100 px the columns stack in derivation order: query, search, plan, cost breakdown,
+bay, result. The lattice keeps horizontal scroll per level with the level label pinned left.
+The plan tree keeps its estimate/actual spans — they are the point and they compress before
+anything else does. The cost bar keeps `random_page_cost` and `work_mem`; the rest moves
+behind a disclosure.
+
+Below 560 px the verdict block's display figure drops to `--t-figure`, the panel padding
+drops a step, and the header wraps its status line beneath the title. Usable at 380 px with
+the plan tree legible is the floor, and it is a floor rather than an aspiration.
 
 ---
 
@@ -244,7 +419,8 @@ set, and that order never changes between renders — a cell must not move.
 Each cell shows its relation set as initials, its best plan's operator glyph, and its cost.
 Cells retained for an interesting order carry a second, smaller mark in `--order`.
 
-Unfilled cells are `--stock-deep`. Filled cells are ink. Candidates that lost are drawn
+Unfilled cells are the sunken canvas itself, which is to say they are absence rather than a
+drawn empty box. Filled cells are ink on `--surface`. Candidates that lost are drawn
 inside the cell as small drained marks, so the density of losers is visible — level 4 cells
 often considered a dozen plans and kept one.
 
@@ -264,9 +440,11 @@ node, with the believed mark hollow-dashed and the true mark solid, and the dist
 filled. Leaves are usually tight. The spans widen as you go up, and the widening is the
 error compounding.
 
-The root's ratio is printed at `--t-display` beside the tree, with the direction stated —
-over- or under-estimated. Under-estimates carry a `--warn` marker, because those are the ones
-that produce the nested loop disaster.
+The root's ratio is printed at `--t-display` in the **verdict block** beneath the tree
+(§4.1), with the direction stated in words and the assumption that produced it named. Under-
+estimates carry a `--warn` marker, because those are the ones that produce the nested loop
+disaster. The block is bordered on its leading edge only — in `--warn` for an under-estimate,
+`--line-strong` otherwise — so the verdict has a frame without becoming a card.
 
 Selecting a node opens its selectivity trace: the method used, the inputs, and the
 assumptions listed by name.
@@ -468,7 +646,12 @@ run.
 Assumed, not announced: usable at 380 px with the plan tree legible; visible keyboard focus
 everywhere including lattice cells and plan nodes; every instrument has a keyboard-reachable
 table equivalent; plans exportable as JSON; contrast 4.5:1 for text and 3:1 for graphical
-objects; reduced motion honoured; no network at runtime.
+objects **in both themes**; reduced motion honoured; no network at runtime.
+
+Added in revision 2: no component stylesheet names a hex value or a theme — every rule reads
+a semantic token, so a third theme would be a token file and nothing else. No stylesheet
+declares its own button. `color-scheme` is set per theme so native controls, scrollbars and
+range thumbs follow without hand-restyling.
 
 ## 9. Relationship to the house layer
 
@@ -484,6 +667,14 @@ better than the two-numbers-side-by-side treatment those apps usually get.
 **A derivation that visibly produces its result.** The lattice descending into the plan tree
 is the same instinct as the shared axis in Mixed Traffic Simulator — two views made into one
 object by motion rather than by a label.
+
+**A semantic token layer with two instantiations.** Components read `--surface`,
+`--ink-mid`, `--line`; the theme file decides what those are. This is the cheapest way the
+family has found to get a second theme, and it is worth adopting before an app has one rather
+than after.
+
+**The eyebrow as a landmark rather than a label** (§3.2). A one-word tracked kicker is found
+rather than read, which is why the general ban on all-caps does not apply to it.
 
 Departs in one place: this is the densest interface in the family and the only one using a
 deliberately neutral typeface. The reason is in §0. Document it, so quiet type does not
