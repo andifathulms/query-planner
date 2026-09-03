@@ -35,7 +35,7 @@ export function InstrumentBay() {
             aria-selected={active === instrument.id}
             aria-controls={`panel-${instrument.id}`}
             tabIndex={active === instrument.id ? 0 : -1}
-            className={`bay-tab t-small${active === instrument.id ? ' is-active' : ''}`
+            className={`bay-tab${active === instrument.id ? ' is-active' : ''}`
               + (instrument.id === 'recovery' ? ' is-acting' : '')}
             onClick={() => dispatch({ type: 'select', patch: { instrument: instrument.id } })}
             onKeyDown={(e) => moveTab(e, active, (id) => dispatch({ type: 'select', patch: { instrument: id } }))}

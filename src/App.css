@@ -56,6 +56,9 @@
   margin: 0 auto;
   padding: 0 var(--s3) var(--s4);
   align-content: start;
+  /* Panels take their natural height. Stretched to the row, a short cost
+     breakdown beside a tall plan tree is a panel that is mostly empty. */
+  align-items: start;
   grid-template-columns: minmax(320px, 380px) minmax(0, 1fr);
   grid-template-areas:
     'query  search'
@@ -101,11 +104,15 @@
 .app-grid thead th { background: var(--surface-sunken); }
 .app-grid td.is-null { color: var(--ink-faint); }
 
-/* The cost bar floats above the page rather than reading as the last panel. */
+/* The cost bar floats above the page rather than reading as the last panel. The
+ * ground and the edge belong to the footer, not to the bar inside it, so they
+ * still span the viewport past the 1680 px measure. */
 .app-footer {
   position: sticky;
   bottom: 0;
   z-index: 2;
+  background: var(--surface);
+  border-top: 1px solid var(--line);
   box-shadow: var(--shadow-raised);
 }
 
