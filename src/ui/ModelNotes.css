@@ -4,7 +4,20 @@
 .model-notes-body { padding-top: var(--s2); display: flex; flex-direction: column; gap: var(--s2); }
 .model-notes-lede { color: var(--ink); max-width: 68ch; }
 
-.model-notes-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--s2); }
+/* Ten notes in a single 68ch column left two thirds of a full-width panel empty.
+ * Two columns at reading width, which is what the measure was protecting in the
+ * first place. Masonry would be better and is not worth a polyfill. */
+.model-notes-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--s3) var(--s5);
+  align-content: start;
+}
+@media (min-width: 900px) {
+  .model-notes-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
 .model-note { display: flex; flex-direction: column; gap: 2px; }
 .model-note-key { color: var(--ink); }
 .model-note p { color: var(--ink-mid); max-width: 68ch; }
