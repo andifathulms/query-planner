@@ -7,7 +7,7 @@
  */
 
 export function rows(n: number): string {
-  if (!Number.isFinite(n)) return '—';
+  if (!Number.isFinite(n)) return '-';
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(n >= 10_000_000 ? 0 : 1)}M`;
   if (n >= 10_000) return `${(n / 1000).toFixed(0)}k`;
   if (n >= 1000) return `${(n / 1000).toFixed(1)}k`;
@@ -19,7 +19,7 @@ export function exact(n: number): string {
 }
 
 export function cost(n: number): string {
-  if (!Number.isFinite(n)) return '—';
+  if (!Number.isFinite(n)) return '-';
   if (n >= 100_000) return n.toExponential(2);
   if (n >= 1000) return n.toFixed(0);
   if (n >= 10) return n.toFixed(1);
@@ -27,7 +27,7 @@ export function cost(n: number): string {
 }
 
 export function ms(n: number): string {
-  if (!Number.isFinite(n)) return '—';
+  if (!Number.isFinite(n)) return '-';
   if (n >= 1000) return `${(n / 1000).toFixed(2)} s`;
   if (n >= 10) return `${n.toFixed(0)} ms`;
   if (n >= 1) return `${n.toFixed(1)} ms`;

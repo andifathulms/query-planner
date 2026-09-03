@@ -83,7 +83,7 @@ export function CostBar({ params, onChange, onReset }: CostBarProps) {
       role="group"
       aria-label="Cost parameters"
     >
-      <span className="eyebrow cost-bar-eyebrow">Cost</span>
+      <span className="eyebrow cost-bar-eyebrow">Parameters</span>
       <div className="cost-bar-sliders">
         {SLIDERS.map((spec) => (
           <Slider

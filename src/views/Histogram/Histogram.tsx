@@ -126,7 +126,7 @@ function ColumnChart({
             const covered = restrictions.length > 0 && coverage.mcvMatches.has(String(entry.value));
             return (
               <g key={String(entry.value)}>
-                <title>{`${String(entry.value)} — ${percent(entry.frequency, 2)}`}</title>
+                <title>{`${String(entry.value)}: ${percent(entry.frequency, 2)}`}</title>
                 <rect
                   className={`histogram-mcv${covered ? ' is-covered' : ''}`}
                   x={x} y={10} width={Math.max(w - 0.5, 0.5)} height={BAR_H - 20}
@@ -151,7 +151,7 @@ function ColumnChart({
               <g key={i} transform={`translate(${i * w}, 0)`}>
                 <title>
                   {`bucket ${i + 1}: ${String(stat.histogram[i])} to ${String(stat.histogram[i + 1])}`
-                    + (cover > 0 ? ` — ${percent(cover, 1)} covered` : '')}
+                    + (cover > 0 ? `, ${percent(cover, 1)} covered` : '')}
                 </title>
                 <rect className="histogram-bucket" x={0} y={10} width={Math.max(w - 0.4, 0.4)} height={BAR_H - 20} />
                 {cover > 0 && (
@@ -170,7 +170,7 @@ function ColumnChart({
         {/* The null fraction is part of the column and is drawn as part of it. */}
         {nullWidth > 0 && (
           <g transform={`translate(${mcvWidth + histogramWidth}, 0)`}>
-            <title>{`null — ${percent(stat.nullFraction, 2)}`}</title>
+            <title>{`null: ${percent(stat.nullFraction, 2)}`}</title>
             <rect className="histogram-null" x={0} y={10} width={Math.max(nullWidth, 1)} height={BAR_H - 20} />
           </g>
         )}

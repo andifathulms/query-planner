@@ -365,7 +365,7 @@ export const SIMPLIFICATIONS: Record<string, string> = {
   hashJoin:
     'One hash table, one batch until work_mem is exceeded. Postgres chooses a '
     + 'batch count up front and can rebalance during the build. Probe rows are '
-    + 'charged two operators — a hash and a bucket comparison — against a merge '
+    + 'charged two operators (a hash and a bucket comparison) against a merge '
     + 'join\'s one; Postgres counts the bucket occupancy rather than assuming one.',
   mergeJoin:
     'Merge cost is linear in the input sizes. Postgres also estimates how far '

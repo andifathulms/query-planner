@@ -252,11 +252,18 @@ large, in ink, beside a plan tree, is the headline the app has earned.
 Revision 1 banned all-caps labels outright. Revision 2 keeps that ban for anything a reader
 *reads*, and makes one exception for a thing a reader *finds*: the panel eyebrow.
 
-Panels carry a small caps-and-tracked kicker above their heading — `SEARCH`, `PLAN`,
-`EVIDENCE` — at 10 px, 500 weight, `0.08em` tracking, in `--ink-faint`. It is a landmark, not
+Panels carry a small caps-and-tracked kicker above their heading: `SEARCH`, `PLAN`,
+`EVIDENCE`, at 10 px, 500 weight, `0.08em` tracking, in `--ink-faint`. It is a landmark, not
 a label: at a glance it tells you which stage of the derivation you are looking at, and it is
 short enough that all-caps costs no legibility. Nothing longer than one word ever gets this
 treatment.
+
+**Every panel gets one, and that is the point.** On a marketing page an eyebrow above every
+section is decorative rhythm and should be rationed. Here the seven eyebrows are the seven
+stages of the derivation, in order: QUERY, SEARCH, PLAN, COST, EVIDENCE, RESULT, PARAMETERS.
+Removing five of them would not reduce clutter, it would delete the pipeline's table of
+contents from a screen carrying several hundred numbers. The rule that follows from this is
+about collision rather than count: no two eyebrows may name different things.
 
 ### 3.3 Prohibitions
 
@@ -642,6 +649,18 @@ Every number and every view stays reachable.
 ## 7. Copy
 
 English, sentence case, no exclamation marks.
+
+**No em-dashes, and no en-dashes.** The only dash the interface uses is the hyphen, including
+as the "no value" glyph in a numeric column. This is not a house-style preference so much as
+a defect class: an em-dash reads as ordinary punctuation while you are writing it and only
+becomes a tic when you count it across a whole codebase, at which point sixteen of them have
+accumulated in shipped strings. Prose that reaches for one gets a colon, a full stop or
+parentheses, and the sentence is clearer every time. `tests/copy.test.ts` counts, because a
+person cannot.
+
+The same test enforces two more things a person cannot hold in their head: that no marketing
+filler verb reaches a string, and that no eyebrow labels two different things. Two panels both
+reading `COST`, one the breakdown and one the parameters, is worse than no label at all.
 
 Postgres terminology exactly as Postgres writes it. This is not pedantry — the app's value
 depends on a reader mapping what they see here onto real `EXPLAIN` output.

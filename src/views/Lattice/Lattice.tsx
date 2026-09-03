@@ -75,7 +75,7 @@ export function Lattice({ planning, selectedKey, onSelect, fill }: LatticeProps)
           [...cell.relations].sort().join(''),
           cell.level,
           cell.best?.operator ?? 'not joined',
-          cell.best ? cellCost(cell.best.cost.total) : '—',
+          cell.best ? cellCost(cell.best.cost.total) : '-',
           cell.considered.length,
           cell.bestByOrder.size,
         ])}
@@ -155,7 +155,7 @@ function Cell({
   if (!winner) {
     return (
       <g className="lattice-cell is-empty" data-cell={cell.key} transform={`translate(${x}, 1)`}>
-        <title>{`${label} — no clause connects these relations`}</title>
+        <title>{`${label}: no clause connects these relations`}</title>
         <rect width={CELL_W} height={CELL_H} rx={2} className="lattice-cell-box" />
         <text className="t-micro lattice-cell-label" x={CELL_W / 2} y={CELL_H / 2 + 3}>{label}</text>
       </g>

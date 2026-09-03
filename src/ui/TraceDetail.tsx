@@ -70,7 +70,7 @@ export function TraceDetail({ trace, depth = 0 }: { trace: SelectivityTrace; dep
 }
 
 function formatInput(value: number): string {
-  if (!Number.isFinite(value)) return '—';
+  if (!Number.isFinite(value)) return '-';
   if (Number.isInteger(value) && Math.abs(value) < 1e6) return value.toLocaleString('en-GB');
   if (Math.abs(value) >= 1e6) return value.toExponential(2);
   if (Math.abs(value) < 0.001 && value !== 0) return value.toExponential(2);
@@ -84,6 +84,6 @@ function formatInput(value: number): string {
 export function traceSummary(trace: SelectivityTrace): string {
   const assumption = trace.assumptions[0];
   return assumption
-    ? `${METHOD_LABELS[trace.method]} — ${assumption}`
+    ? `${METHOD_LABELS[trace.method]}: ${assumption}`
     : METHOD_LABELS[trace.method];
 }

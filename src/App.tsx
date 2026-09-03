@@ -166,7 +166,7 @@ export function App() {
           <div className="panel-head">
             <span className="panel-head-title">
               <span className="eyebrow">Cost</span>
-              <h2 className="t-h2">Cost breakdown</h2>
+              <h2 className="t-h2">What each candidate costs</h2>
             </span>
           </div>
           <p className="t-small app-cost-hint">
@@ -254,7 +254,7 @@ function planRows(
     out.push([
       `${'　'.repeat(depth)}${planLabel(node)}`,
       exact(node.estimatedRows),
-      stats ? exact(stats.actualRows) : '—',
+      stats ? exact(stats.actualRows) : '-',
       formatCost(node.cost.total),
       node.rowWidth,
     ]);

@@ -152,7 +152,7 @@ function PlanNode({
       tabIndex={-1}
       onClick={() => onSelect(selected ? null : plan.id)}
     >
-      <title>{`${planLabel(plan)} — ${OPERATOR_NOTES[plan.operator]}`}</title>
+      <title>{`${planLabel(plan)}: ${OPERATOR_NOTES[plan.operator]}`}</title>
       <rect
         className="plan-node-box"
         width={nodeWidth}

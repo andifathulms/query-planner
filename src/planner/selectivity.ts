@@ -594,7 +594,7 @@ function estimateBetween(expr: Expr & { kind: 'between' }, ctx: EstimationContex
       result: selectivity,
       assumptions: [
         'both bounds are located in the same histogram, so the answer is the span between them',
-        'multiplying the two bounds would assume they are independent, which they are not — they constrain one column',
+        'multiplying the two bounds would assume they are independent, which they are not: they constrain one column',
       ],
       children: [atLeast.trace, atMost.trace],
     },
@@ -711,7 +711,7 @@ export function estimateJoin(
       result: selectivity,
       assumptions: [
         'join selectivity is one over the larger distinct count',
-        'every value on the smaller side is assumed to have a match on the larger — true for a foreign key, an assumption otherwise',
+        'every value on the smaller side is assumed to have a match on the larger: true for a foreign key, an assumption otherwise',
       ],
     },
   };

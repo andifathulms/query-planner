@@ -57,7 +57,7 @@ export const DIVERGENCES: Divergence[] = [
   {
     match: "JOIN kelurahan k ON p.kelurahan_id = k.id WHERE k.kota = 'Kupang'",
     reason:
-      'The join order and the join operator agree exactly — both planners read '
+      'The join order and the join operator agree exactly. Both planners read '
       + 'kelurahan first and drive a nested loop from it. Only the scans differ: '
       + 'Postgres reaches both relations through bitmap heap scans, combining the '
       + 'two indexes on kelurahan with a BitmapAnd, where this engine uses one '
