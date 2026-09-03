@@ -1,5 +1,6 @@
 .sql-input { display: flex; flex-direction: column; gap: var(--s1); }
 .sql-input .panel-head { margin-bottom: 0; }
+.sql-input-examples { display: flex; flex: 0 0 auto; }
 
 .sql-input-area {
   min-height: 168px;

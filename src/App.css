@@ -42,6 +42,7 @@
 .app-tagline { flex: 1 1 auto; min-width: 0; }
 
 .app-status { display: flex; align-items: center; gap: var(--s1); flex: 0 0 auto; }
+.app-dataset { display: flex; }
 .app-rowcount { color: var(--ink-mid); }
 
 /* ── The derivation ──────────────────────────────────────────────────────────

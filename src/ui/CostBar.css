@@ -103,3 +103,5 @@
 @media (max-width: 560px) {
   .cost-bar-eyebrow { display: none; }
 }
+
+.cost-bar-reset { flex: 0 0 auto; }
