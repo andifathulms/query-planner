@@ -9,7 +9,6 @@
  * error near OVER" (DESIGN.md §7).
  */
 import { useEffect, useRef, useState } from 'react';
-import { EXAMPLES } from '../state/types.js';
 import type { EngineError } from '../state/engine.js';
 import './SqlInput.css';
 
@@ -26,6 +25,17 @@ export function SqlInput({ sql, error, onChange }: SqlInputProps) {
   // The store owns the query; the textarea holds a draft so a mid-edit state
   // never fights an external change (an example chosen, a link opened).
   useEffect(() => { setDraft(sql); }, [sql]);
+
+  // Grow to fit. A fixed height has to guess how many lines the query wraps to
+  // in a 380 px column, and it guesses wrong the moment someone opens an example
+  // with a longer FROM clause: the last line ends up cut in half by the bottom
+  // edge. Capped, so a hundred-line paste does not push the panel off-screen.
+  useEffect(() => {
+    const el = textarea.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${Math.min(el.scrollHeight, 520)}px`;
+  }, [draft]);
 
   const commit = (value: string): void => {
     setDraft(value);
@@ -66,24 +76,6 @@ export function SqlInput({ sql, error, onChange }: SqlInputProps) {
           }
         }}
       />
-
-      {/* The examples menu sits below the field rather than in the head. In a
-          380 px column a select wide enough to show "grouping over correlated
-          columns" leaves the heading four words on three lines. */}
-      <label className="sql-input-examples">
-        <span className="visually-hidden">Example queries</span>
-        <select
-          className="field"
-          value=""
-          onChange={(e) => {
-            const example = EXAMPLES.find((x) => x.label === e.target.value);
-            if (example) commit(example.sql);
-          }}
-        >
-          <option value="">examples…</option>
-          {EXAMPLES.map((x) => <option key={x.label} value={x.label}>{x.label}</option>)}
-        </select>
-      </label>
 
       {error && (
         <p className="sql-input-error" id="sql-error" role="alert">

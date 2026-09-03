@@ -23,6 +23,7 @@ import type { Statistics } from '../../stats/types.js';
 import type { QuerySpec } from '../../planner/types.js';
 import type { Schema } from '../../storage/table.js';
 import { DataTable } from '../../ui/DataTable.js';
+import { Select } from '../../ui/Select.js';
 import './Sample.css';
 
 /** The grid is a texture: one mark per row up to this many, then per block. */
@@ -101,11 +102,11 @@ export function Sample({
       <div className="sample-controls">
         <label className="t-small">
           <span className="visually-hidden">Table</span>
-          <select className="field" value={relation.alias} onChange={(e) => setChosen(e.target.value)}>
+          <Select value={relation.alias} onChange={(e) => setChosen(e.target.value)}>
             {relations.map((r) => (
               <option key={r.alias} value={r.alias}>{r.table} {r.alias}</option>
             ))}
-          </select>
+          </Select>
         </label>
 
         <label className="sample-slider t-small">

@@ -1,10 +1,6 @@
 /* The generator sits inside the query panel, below the statement it feeds
  * (DESIGN.md §4.1). Closed it is one line; open it is a strip of controls. */
-.dataset-controls {
-  border-top: 1px solid var(--line);
-  padding-top: var(--s2);
-  margin-top: var(--s1);
-}
+.dataset-controls { flex: 1 1 auto; min-width: 0; }
 
 .dataset-controls-body {
   display: flex;

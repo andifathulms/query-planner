@@ -21,9 +21,11 @@ import { CostBreakdown } from './views/CostBreakdown/CostBreakdown.js';
 import { InstrumentBay } from './views/InstrumentBay.js';
 import { ThemeToggle } from './ui/ThemeToggle.js';
 import { Mark } from './ui/Mark.js';
+import { Select } from './ui/Select.js';
 import { useFill, usePrefersReducedMotion } from './ui/useFill.js';
 import { DEFAULT_COST_PARAMS, type Plan } from './planner/types.js';
 import { DATASETS } from './storage/datasets/index.js';
+import { EXAMPLES } from './state/types.js';
 import { cost as formatCost, exact, ms, rows } from './ui/format.js';
 import { walkPlan, planLabel } from './planner/types.js';
 import './App.css';
@@ -75,13 +77,12 @@ export function App() {
         <div className="app-status">
           <label className="app-dataset">
             <span className="visually-hidden">Dataset</span>
-            <select
-              className="field"
+            <Select
               value={state.dataset}
               onChange={(e) => dispatch({ type: 'dataset', dataset: e.target.value as 'wilayah' })}
             >
               {DATASETS.map((d) => <option key={d.id} value={d.id}>{d.label}</option>)}
-            </select>
+            </Select>
           </label>
           <span className="t-data app-rowcount">{rows(totalRows)} rows</span>
           <ThemeToggle />
@@ -95,9 +96,22 @@ export function App() {
             error={error}
             onChange={(sql) => dispatch({ type: 'sql', sql })}
           />
-          {/* The generator belongs with the data it shapes, not in the title bar
-              beside the product name, which is where revision 1 put it. */}
-          <DatasetControls
+          {/* One control row under the field: choose a query, or shape the data
+              it runs against. Both belong with the statement, not in the title
+              bar beside the product name where revision 1 put the generator. */}
+          <div className="app-query-controls">
+            <Select
+              aria-label="Example queries"
+              value=""
+              onChange={(e) => {
+                const example = EXAMPLES.find((x) => x.label === e.target.value);
+                if (example) dispatch({ type: 'sql', sql: example.sql });
+              }}
+            >
+              <option value="">examples…</option>
+              {EXAMPLES.map((x) => <option key={x.label} value={x.label}>{x.label}</option>)}
+            </Select>
+            <DatasetControls
             rows={state.generator.rows}
             zipf={state.generator.zipf}
             seed={state.seed}
@@ -106,7 +120,8 @@ export function App() {
             onZipf={(zipf) => dispatch({ type: 'generator', patch: { zipf } })}
             onSeed={(value) => dispatch({ type: 'seed', value })}
             onCartesian={(value) => dispatch({ type: 'cartesian', value })}
-          />
+            />
+          </div>
         </section>
 
         <section className="app-search panel" aria-label="The search">

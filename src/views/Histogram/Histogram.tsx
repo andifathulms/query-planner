@@ -25,6 +25,7 @@ import type { ColumnStatistics, Statistics, Value } from '../../stats/types.js';
 import type { QuerySpec, Restriction } from '../../planner/types.js';
 import type { Schema } from '../../storage/table.js';
 import { DataTable } from '../../ui/DataTable.js';
+import { Select } from '../../ui/Select.js';
 import './Histogram.css';
 
 const WIDTH = 620;
@@ -50,9 +51,9 @@ export function Histogram({ schema, statistics, spec }: HistogramProps) {
       <div className="histogram-head">
         <label className="t-small">
           <span className="visually-hidden">Column</span>
-          <select className="field" value={active.key} onChange={(e) => setChosen(e.target.value)}>
+          <Select value={active.key} onChange={(e) => setChosen(e.target.value)}>
             {columns.map((c) => <option key={c.key} value={c.key}>{c.key}</option>)}
-          </select>
+          </Select>
         </label>
         <p className="t-small histogram-summary">
           {exact(active.stat.sampleSize)} rows sampled ·{' '}

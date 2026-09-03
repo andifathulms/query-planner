@@ -1,12 +1,10 @@
 .sql-input { display: flex; flex-direction: column; gap: var(--s1); }
 .sql-input .panel-head { margin-bottom: 0; }
-.sql-input-examples { display: flex; }
-.sql-input-examples select { width: 100%; }
 
-/* Eight lines of the default query at 13.5/1.65 plus the field's own padding.
- * Anything less clips the last line of the query the app opens on. */
+/* A floor, not a height: the field grows to its content (SqlInput.tsx). */
 .sql-input-area {
-  min-height: 202px;
+  min-height: 148px;
+  overflow-y: hidden;
 }
 
 /* The parser names the limitation rather than the token (DESIGN.md §7), so the
