@@ -83,6 +83,7 @@ export function CostBar({ params, onChange, onReset }: CostBarProps) {
       role="group"
       aria-label="Cost parameters"
     >
+      <span className="eyebrow cost-bar-eyebrow">Cost</span>
       <div className="cost-bar-sliders">
         {SLIDERS.map((spec) => (
           <Slider
@@ -93,10 +94,10 @@ export function CostBar({ params, onChange, onReset }: CostBarProps) {
           />
         ))}
       </div>
-      {/* Only visible below 900 px, where the secondary sliders are hidden. */}
+      {/* Only visible below 1100 px, where the secondary sliders are hidden. */}
       <button
         type="button"
-        className="cost-bar-more t-small"
+        className="control cost-bar-more"
         aria-expanded={expanded}
         onClick={() => setExpanded((e) => !e)}
       >
@@ -105,7 +106,7 @@ export function CostBar({ params, onChange, onReset }: CostBarProps) {
 
       <button
         type="button"
-        className="cost-bar-reset t-small"
+        className="control cost-bar-reset"
         onClick={onReset}
         disabled={changed.length === 0}
       >
@@ -137,10 +138,11 @@ function Slider({
 
   return (
     <label className={`cost-slider${spec.wide ? ' is-wide' : ''}${spec.primary ? ' is-primary' : ''}`}>
-      <span className="cost-slider-label t-small">{spec.label}</span>
+      <span className="cost-slider-label t-data">{spec.label}</span>
       <span className="cost-slider-track">
         <input
           type="range"
+          className="range"
           min={sliderMin}
           max={sliderMax}
           step={sliderStep}

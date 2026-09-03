@@ -27,13 +27,14 @@ export function DatasetControls({
   rows, zipf, seed, allowCartesian, onRows, onZipf, onSeed, onCartesian,
 }: DatasetControlsProps) {
   return (
-    <details className="dataset-controls">
-      <summary className="t-small">Generator</summary>
+    <details className="dataset-controls disclosure">
+      <summary>Generator</summary>
       <div className="dataset-controls-body">
-        <label className="dataset-control t-small">
+        <label className="dataset-control t-label">
           <span>rows</span>
           <input
             type="range"
+            className="range"
             min={Math.log10(2000)}
             max={Math.log10(1_000_000)}
             step={0.01}
@@ -44,10 +45,11 @@ export function DatasetControls({
           <output className="t-data">{exact(rows)}</output>
         </label>
 
-        <label className="dataset-control t-small">
+        <label className="dataset-control t-label">
           <span>skew</span>
           <input
             type="range"
+            className="range"
             min={0}
             max={1.5}
             step={0.01}
@@ -58,11 +60,11 @@ export function DatasetControls({
           <output className="t-data">{zipf.toFixed(2)}</output>
         </label>
 
-        <label className="dataset-control t-small">
+        <label className="dataset-control t-label">
           <span>seed</span>
           <input
             type="number"
-            className="t-data dataset-seed"
+            className="field dataset-seed"
             min={0}
             max={999999}
             value={seed}
@@ -70,9 +72,10 @@ export function DatasetControls({
           />
         </label>
 
-        <label className="dataset-toggle t-small">
+        <label className="dataset-toggle t-label">
           <input
             type="checkbox"
+            className="checkbox"
             checked={allowCartesian}
             onChange={(e) => onCartesian(e.target.checked)}
           />

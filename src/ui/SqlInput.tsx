@@ -34,11 +34,15 @@ export function SqlInput({ sql, error, onChange }: SqlInputProps) {
 
   return (
     <div className="sql-input">
-      <div className="sql-input-head">
-        <h2 className="t-h2">Query</h2>
-        <label className="sql-input-examples t-small">
+      <div className="panel-head">
+        <span className="panel-head-title">
+          <span className="eyebrow">Query</span>
+          <h2 className="t-h2">The statement to plan</h2>
+        </span>
+        <label className="sql-input-examples">
           <span className="visually-hidden">Example queries</span>
           <select
+            className="field"
             value=""
             onChange={(e) => {
               const example = EXAMPLES.find((x) => x.label === e.target.value);
@@ -53,7 +57,7 @@ export function SqlInput({ sql, error, onChange }: SqlInputProps) {
 
       <textarea
         ref={textarea}
-        className="sql-input-area t-data"
+        className="field sql-input-area"
         value={draft}
         spellCheck={false}
         autoCapitalize="off"
@@ -78,7 +82,7 @@ export function SqlInput({ sql, error, onChange }: SqlInputProps) {
       />
 
       {error && (
-        <p className="sql-input-error t-small" id="sql-error" role="alert">
+        <p className="sql-input-error" id="sql-error" role="alert">
           {error.message}
           {error.line !== undefined && (
             <span className="sql-input-position"> · line {error.line}, column {error.column}</span>

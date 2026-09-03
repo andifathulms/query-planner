@@ -1,37 +1,22 @@
 .sql-input { display: flex; flex-direction: column; gap: var(--s1); }
-
-.sql-input-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--s2);
-}
-
-.sql-input-examples select {
-  font: inherit;
-  font-size: var(--t-label-size);
-  color: var(--ink-mid);
-  background: transparent;
-  border: 1px solid var(--line);
-  border-radius: var(--r-control);
-  padding: 2px var(--s1);
-}
+.sql-input .panel-head { margin-bottom: 0; }
 
 .sql-input-area {
-  width: 100%;
-  min-height: 148px;
-  resize: vertical;
-  padding: var(--s2);
-  background: var(--surface);
-  color: var(--ink);
-  border: 1px solid var(--line);
-  border-radius: var(--r-control);
-  font-size: var(--t-sql-size);
-  line-height: var(--t-sql-lh);
-  tab-size: 2;
+  min-height: 168px;
 }
 
-.sql-input-area[aria-invalid='true'] { border-color: var(--warn); }
-
-.sql-input-error { color: var(--warn); }
-.sql-input-position { color: var(--ink-mid); }
+/* The parser names the limitation rather than the token (DESIGN.md §7), so the
+ * message is a sentence and wants room to be one. */
+.sql-input-error {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s0);
+  padding: var(--s1) var(--s2);
+  border-left: 2px solid var(--warn);
+  border-radius: 0 var(--r-control) var(--r-control) 0;
+  background: var(--surface-sunken);
+  color: var(--warn);
+  font-size: var(--t-label-size);
+  line-height: var(--t-label-lh);
+}
+.sql-input-position { color: var(--ink-mid); font-family: var(--mono); }

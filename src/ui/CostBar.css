@@ -1,16 +1,25 @@
+/* The cost parameter bar (DESIGN.md §4.3).
+ *
+ * Pinned to the bottom, full width, floating above the page on --shadow-raised
+ * rather than reading as the last panel in the stack. */
 .cost-bar {
   display: flex;
-  align-items: flex-end;
-  gap: var(--s3);
+  align-items: center;
+  gap: var(--s2) var(--s3);
   padding: var(--s2) var(--s3);
+  width: 100%;
+  max-width: var(--measure);
+  margin: 0 auto;
   background: var(--surface);
   border-top: 1px solid var(--line);
 }
 
+.cost-bar-eyebrow { flex: 0 0 auto; align-self: center; }
+
 .cost-bar-sliders {
   flex: 1 1 auto;
   display: flex;
-  gap: var(--s3);
+  gap: var(--s2) var(--s3);
   flex-wrap: wrap;
   min-width: 0;
 }
@@ -21,33 +30,37 @@
   grid-template-areas: 'label value' 'track track';
   gap: 2px var(--s1);
   flex: 1 1 148px;
-  min-width: 132px;
+  min-width: 136px;
 }
 
 /* random_page_cost gets the most width: it is the lever worth finding by feel. */
-.cost-slider.is-wide { flex: 2 1 240px; }
+.cost-slider.is-wide { flex: 2 1 260px; }
 
-.cost-slider-label { grid-area: label; color: var(--ink-mid); }
+/* The parameter names are Postgres's own, so they are set in mono — a reader
+ * should recognise them from postgresql.conf without translating. */
+.cost-slider-label {
+  grid-area: label;
+  color: var(--ink-mid);
+  font-size: var(--t-micro-size);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .cost-slider-value {
   grid-area: value;
+  font-family: var(--mono);
   font-size: var(--t-label-size);
+  font-variant-numeric: tabular-nums;
   color: var(--ink-mid);
   /* A byte count must not wrap onto a second line and shift the track. */
   white-space: nowrap;
 }
+/* Moved off its default: a reader who has been dragging for five minutes can
+ * see, without reading seven numbers, that this is no longer stock Postgres. */
 .cost-slider-value.is-changed { color: var(--ink); font-weight: 500; }
 
 .cost-slider-track { grid-area: track; position: relative; display: block; padding-bottom: 10px; }
-
-.cost-slider input[type='range'] {
-  width: 100%;
-  margin: 0;
-  height: 16px;
-  accent-color: var(--ink);
-  background: transparent;
-  position: relative;
-  z-index: 1;
-}
+.cost-slider .range { position: relative; z-index: 1; }
 
 /* The default position, as a hairline tick behind the track. */
 .cost-slider-default {
@@ -78,38 +91,17 @@
 }
 
 .cost-bar-more { display: none; }
-@media (max-width: 900px) {
-  .cost-bar-more {
-    display: block;
-    flex: 0 0 auto;
-    padding: 4px var(--s2);
-    background: transparent;
-    border: 1px solid var(--line);
-    border-radius: var(--r-control);
-    color: var(--ink-mid);
-    cursor: pointer;
-  }
-}
 
-.cost-bar-reset {
-  flex: 0 0 auto;
-  padding: 4px var(--s2);
-  background: transparent;
-  border: 1px solid var(--line);
-  border-radius: var(--r-control);
-  color: var(--ink-mid);
-  cursor: pointer;
-}
-.cost-bar-reset:disabled { opacity: 0.45; cursor: default; }
-.cost-bar-reset:not(:disabled):hover { color: var(--ink); border-color: var(--ink-faint); }
-
-/* §4.5: below 900 px the bar keeps random_page_cost and work_mem; the rest
- * moves behind a disclosure. */
-@media (max-width: 900px) {
+/* §4.7: below 1100 px the bar keeps random_page_cost and work_mem; the rest is
+ * reachable from the disclosure rather than crushed into a strip. */
+@media (max-width: 1100px) {
   .cost-bar { flex-wrap: wrap; padding: var(--s1) var(--s2); gap: var(--s2); }
-  /* The bar keeps random_page_cost and work_mem; the rest is reachable from the
-   * disclosure rather than crushed into a strip (DESIGN.md §4.5). */
+  .cost-bar-more { display: inline-flex; flex: 0 0 auto; }
   .cost-slider:not(.is-primary) { display: none; }
   .cost-bar.is-expanded .cost-slider { display: grid; }
   .cost-slider.is-wide { flex: 1 1 100%; }
+}
+
+@media (max-width: 560px) {
+  .cost-bar-eyebrow { display: none; }
 }
