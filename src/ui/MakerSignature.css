@@ -1,0 +1,82 @@
+/*
+ * The maker's mark (DESIGN.md §7).
+ *
+ * One seam and no more: a single hairline separates the credit from the
+ * derivation above it, and nothing inside it is boxed, ruled or badged. On
+ * desktop the credit and the links sit at opposite ends of that one line; below
+ * 560 px they stack.
+ *
+ * No new tokens. Everything here is the label size, the neutral ramp, and the
+ * spacing scale the rest of the app already uses.
+ */
+.maker {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s2) var(--s3);
+  flex-wrap: wrap;
+  margin-top: var(--s3);
+  padding-top: var(--s3);
+  border-top: 1px solid var(--line);
+}
+
+.maker-credit {
+  color: var(--ink-faint);
+  font-size: var(--t-label-size);
+  line-height: var(--t-label-lh);
+}
+
+/* The name is the one thing here meant to be clicked, so it is the one thing
+ * lifted out of the faint ramp. */
+.maker-name {
+  color: var(--ink-mid);
+  text-decoration: underline;
+  text-decoration-color: var(--line-strong);
+  text-underline-offset: 3px;
+  transition:
+    color var(--d-control) var(--ease-inout),
+    text-decoration-color var(--d-control) var(--ease-inout);
+}
+.maker-name:hover {
+  color: var(--ink);
+  text-decoration-color: var(--focus);
+}
+
+/* Mono and tabular, like every other number in the app. */
+.maker-year {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.maker-links {
+  display: flex;
+  align-items: center;
+  gap: var(--s0);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.maker-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--r-control);
+  color: var(--ink-faint);
+  transition:
+    color var(--d-control) var(--ease-inout),
+    background-color var(--d-control) var(--ease-inout);
+}
+.maker-link:hover {
+  color: var(--ink);
+  background: var(--surface);
+}
+
+.maker-link svg { display: block; }
+
+@media (max-width: 560px) {
+  .maker { justify-content: flex-start; }
+}

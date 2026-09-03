@@ -491,3 +491,48 @@ describe('the cost breakdown bars stay inside their panel', () => {
     expect(track.getAttribute('width')).toMatch(/^calc\(100% - \d+px\)$/);
   });
 });
+
+describe("the maker's mark", () => {
+  it('credits the author with a link to their portfolio', () => {
+    renderApp('n=6000&s=2000');
+    const name = screen.getByRole('link', { name: 'Andi Fathul Mukminin' });
+    expect(name.getAttribute('href')).toBe('https://andifathulms.github.io/en/');
+    expect(document.querySelector('.maker-credit')?.textContent)
+      .toMatch(/^Designed & built by Andi Fathul Mukminin · © \d{4}$/);
+  });
+
+  it('sets the year from the clock rather than from a literal', () => {
+    renderApp('n=6000&s=2000');
+    expect(document.querySelector('.maker-year')?.textContent)
+      .toBe(`© ${new Date().getFullYear()}`);
+  });
+
+  it('names every platform for a screen reader and opens each one safely', () => {
+    renderApp('n=6000&s=2000');
+    const links = [...document.querySelectorAll('.maker-link')];
+    expect(links.map((a) => a.getAttribute('aria-label')))
+      .toEqual(['Portfolio', 'GitHub', 'LinkedIn', 'Instagram']);
+    for (const link of links) {
+      expect(link.getAttribute('target')).toBe('_blank');
+      // Without noopener the opened tab can reach back through window.opener.
+      expect(link.getAttribute('rel')).toBe('noopener noreferrer');
+      expect(link.querySelector('svg')?.getAttribute('aria-hidden')).toBe('true');
+    }
+  });
+
+  it('stays out of the cost bar, which is a control surface and not a footer', () => {
+    renderApp('n=6000&s=2000');
+    const bar = screen.getByRole('group', { name: 'Cost parameters' });
+    expect(bar.querySelector('.maker')).toBeNull();
+    expect(document.querySelector('.app-main .maker')).toBeTruthy();
+  });
+
+  it('adds one seam and no boxes', () => {
+    // A quiet credit, not a badge: a single hairline above it and nothing
+    // inside it ruled, boxed or elevated.
+    renderApp('n=6000&s=2000');
+    const maker = document.querySelector('.maker')!;
+    expect(maker.querySelector('.panel')).toBeNull();
+    expect(maker.querySelectorAll('hr').length).toBe(0);
+  });
+});

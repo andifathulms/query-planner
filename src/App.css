@@ -54,7 +54,8 @@
     'cost   plan'
     'bay    bay'
     'result result'
-    'notes  notes';
+    'notes  notes'
+    'maker  maker';
 }
 
 .app-query { grid-area: query; }
@@ -64,6 +65,7 @@
 .app-cost { grid-area: cost; }
 .bay { grid-area: bay; }
 .app-notes { grid-area: notes; }
+.maker { grid-area: maker; }
 
 .app-main > .panel { padding: var(--s3); min-width: 0; }
 /* The bay draws its own tab strip edge-to-edge, so it opts out of panel padding. */
@@ -122,7 +124,7 @@
 @media (max-width: 1100px) {
   .app-main {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-areas: 'query' 'search' 'plan' 'cost' 'bay' 'result' 'notes';
+    grid-template-areas: 'query' 'search' 'plan' 'cost' 'bay' 'result' 'notes' 'maker';
   }
   .app-header { flex-wrap: wrap; }
   .app-tagline { flex: 1 0 100%; order: 3; }

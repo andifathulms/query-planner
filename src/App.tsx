@@ -21,6 +21,7 @@ import { CostBreakdown } from './views/CostBreakdown/CostBreakdown.js';
 import { InstrumentBay } from './views/InstrumentBay.js';
 import { ThemeToggle } from './ui/ThemeToggle.js';
 import { Mark } from './ui/Mark.js';
+import { MakerSignature } from './ui/MakerSignature.js';
 import { Select } from './ui/Select.js';
 import { useFill, usePrefersReducedMotion } from './ui/useFill.js';
 import { DEFAULT_COST_PARAMS, type Plan } from './planner/types.js';
@@ -230,6 +231,8 @@ export function App() {
         <section className="app-notes panel" aria-label="Model notes">
           <ModelNotes />
         </section>
+
+        <MakerSignature />
       </main>
 
       <footer className="app-footer">

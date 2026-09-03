@@ -701,6 +701,17 @@ Simplification statements (PRD §6.1) sit next to the numbers they affect. The o
 divergence list is reachable from the same place, because a documented list of where this
 model differs from Postgres is more credible than a claim that it does not.
 
+**The maker's mark.** A single line at the bottom of the derivation: who built it, the year in
+mono, and four icon links. It sits at the end of the scrolling page and not in the sticky bar
+below, because that bar is a live control surface rather than a site footer, and a personal
+credit belongs neither among the cost parameters nor in the pinned height they already spend.
+
+One seam and no more. A hairline separates it from the panel above; nothing inside it is
+boxed, ruled or badged. The credit is `--ink-faint` with the name lifted to `--ink-mid` and
+underlined, because the name is the one thing there meant to be clicked. Its underline takes
+`--focus` on hover, which spends no new hue: `--focus` already tracks `--believed` because
+focus is a proposal too (§2.3), and a link is the same kind of offer.
+
 Errors from the parser name the limitation: *"Window functions are not supported"*, not
 *"syntax error near OVER"*.
 
