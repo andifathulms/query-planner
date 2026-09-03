@@ -22,7 +22,7 @@ from one system — and only an engine you control produces both.
 ```
 npm install
 npm run dev        # the app
-npm test           # 233 tests
+npm test           # 244 tests
 npm run oracle     # plan-shape agreement against PGlite
 npm run build      # production bundle
 ```
@@ -67,3 +67,9 @@ also means real Postgres would give different numbers.
 
 Everything except the current selection serialises to the URL. A surprising plan
 is a link.
+
+The theme is the one exception, and it is deliberate: it lives in
+`localStorage`, not in the URL. A shared link carries a plan, and forcing a
+colleague into your colour scheme to show them a plan would be rude. The control
+cycles system, light, dark; "system" means no `data-theme` attribute at all, so
+`prefers-color-scheme` decides.
