@@ -1,0 +1,11 @@
+/* The one place `--r-full` is used (DESIGN.md §4.5). */
+.theme-toggle {
+  flex: 0 0 auto;
+  width: 28px;
+  min-height: 28px;
+  padding: 0;
+  justify-content: center;
+  border-radius: var(--r-full);
+  font-size: 13px;
+  line-height: 1;
+}

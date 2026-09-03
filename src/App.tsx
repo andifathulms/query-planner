@@ -19,6 +19,7 @@ import { PlanTree } from './views/PlanTree/PlanTree.js';
 import { Lattice } from './views/Lattice/Lattice.js';
 import { CostBreakdown } from './views/CostBreakdown/CostBreakdown.js';
 import { InstrumentBay } from './views/InstrumentBay.js';
+import { ThemeToggle } from './ui/ThemeToggle.js';
 import { useFill, usePrefersReducedMotion } from './ui/useFill.js';
 import { DEFAULT_COST_PARAMS, type Plan } from './planner/types.js';
 import { DATASETS } from './storage/datasets/index.js';
@@ -63,33 +64,27 @@ export function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1 className="t-h2">Query planner</h1>
+        <div className="app-brand">
+          <span className="app-mark" aria-hidden="true" />
+          <h1 className="t-h2">Query planner</h1>
+        </div>
         <p className="t-small app-tagline">
           Why your SQL is slow, and what the database believed when it chose
         </p>
-        <div className="app-dataset t-small">
-          <label>
+        <div className="app-status">
+          <label className="app-dataset">
             <span className="visually-hidden">Dataset</span>
             <select
+              className="field"
               value={state.dataset}
               onChange={(e) => dispatch({ type: 'dataset', dataset: e.target.value as 'wilayah' })}
             >
               {DATASETS.map((d) => <option key={d.id} value={d.id}>{d.label}</option>)}
             </select>
           </label>
-          <span aria-hidden="true">·</span>
-          <span>{rows(totalRows)} rows</span>
+          <span className="t-data app-rowcount">{rows(totalRows)} rows</span>
+          <ThemeToggle />
         </div>
-        <DatasetControls
-          rows={state.generator.rows}
-          zipf={state.generator.zipf}
-          seed={state.seed}
-          allowCartesian={state.allowCartesian}
-          onRows={(value) => dispatch({ type: 'generator', patch: { rows: value } })}
-          onZipf={(zipf) => dispatch({ type: 'generator', patch: { zipf } })}
-          onSeed={(value) => dispatch({ type: 'seed', value })}
-          onCartesian={(value) => dispatch({ type: 'cartesian', value })}
-        />
       </header>
 
       <main className="app-main">
@@ -99,12 +94,29 @@ export function App() {
             error={error}
             onChange={(sql) => dispatch({ type: 'sql', sql })}
           />
+          {/* The generator belongs with the data it shapes, not in the title bar
+              beside the product name, which is where revision 1 put it. */}
+          <DatasetControls
+            rows={state.generator.rows}
+            zipf={state.generator.zipf}
+            seed={state.seed}
+            allowCartesian={state.allowCartesian}
+            onRows={(value) => dispatch({ type: 'generator', patch: { rows: value } })}
+            onZipf={(zipf) => dispatch({ type: 'generator', patch: { zipf } })}
+            onSeed={(value) => dispatch({ type: 'seed', value })}
+            onCartesian={(value) => dispatch({ type: 'cartesian', value })}
+          />
         </section>
 
         <section className="app-search panel" aria-label="The search">
-          <div className="app-panel-head">
-            <h2 className="t-h2">The search</h2>
-            {planning && <p className="t-small">planned in {ms(planning.stats.planningMs)}</p>}
+          <div className="panel-head">
+            <span className="panel-head-title">
+              <span className="eyebrow">Search</span>
+              <h2 className="t-h2">Every subset the planner considered</h2>
+            </span>
+            {planning && (
+              <span className="panel-head-meta t-data">planned in {ms(planning.stats.planningMs)}</span>
+            )}
           </div>
           <Lattice
             planning={planning}
@@ -119,9 +131,12 @@ export function App() {
           aria-label="The chosen plan"
           aria-busy={!fill.complete}
         >
-          <div className="app-panel-head">
-            <h2 className="t-h2">The plan</h2>
-            <SpanLegend />
+          <div className="panel-head">
+            <span className="panel-head-title">
+              <span className="eyebrow">Plan</span>
+              <h2 className="t-h2">What it chose, against what happened</h2>
+            </span>
+            <span className="panel-head-meta"><SpanLegend /></span>
           </div>
           <PlanTree
             plan={planning?.winner ?? null}
@@ -148,12 +163,17 @@ export function App() {
         </section>
 
         <section className="app-cost panel" aria-label="Cost breakdown">
-          <div className="app-panel-head">
-            <h2 className="t-h2">Cost breakdown</h2>
-            <p className="t-small">
-              {state.selected.cell ? 'candidates for the selected cell' : 'select a lattice cell'}
-            </p>
+          <div className="panel-head">
+            <span className="panel-head-title">
+              <span className="eyebrow">Cost</span>
+              <h2 className="t-h2">Cost breakdown</h2>
+            </span>
           </div>
+          <p className="t-small app-cost-hint">
+            {state.selected.cell
+              ? 'Candidates for the selected lattice cell, decomposed into the terms the cost model produced.'
+              : 'The chosen plan, decomposed. Select a lattice cell above to see what it was competing against.'}
+          </p>
           <CostBreakdown
             cell={planning?.cells.find((c) => c.key === state.selected.cell) ?? null}
             fallback={planning?.winner ?? null}
@@ -161,8 +181,11 @@ export function App() {
         </section>
 
         <section className="app-result panel" aria-label="Result">
-          <div className="app-panel-head">
-            <h2 className="t-h2">Result</h2>
+          <div className="panel-head">
+            <span className="panel-head-title">
+              <span className="eyebrow">Result</span>
+              <h2 className="t-h2">The rows the plan produced</h2>
+            </span>
             <div className="app-result-meta">
               {execution && (
                 <p className="t-small">
@@ -174,7 +197,7 @@ export function App() {
               {planning && (
                 <button
                   type="button"
-                  className="t-small app-export"
+                  className="control"
                   onClick={() => downloadPlan(state.sql, planning, execution)}
                 >
                   export JSON
@@ -264,9 +287,11 @@ function ResultGrid({ execution }: { execution: NonNullable<ReturnType<typeof us
   const shown = execution.rows.slice(0, 60);
   return (
     <div className="app-grid scroll-x">
-      <table className="t-data">
+      <table className="grid-table t-data">
         <thead>
-          <tr>{execution.columns.map((c) => <th key={c} scope="col">{c}</th>)}</tr>
+          {/* Keyed by position: a join can project two columns of the same
+              name, and React needs the keys to be unique. */}
+          <tr>{execution.columns.map((c, i) => <th key={i} scope="col">{c}</th>)}</tr>
         </thead>
         <tbody>
           {shown.map((row, i) => (

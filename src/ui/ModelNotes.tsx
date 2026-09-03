@@ -19,8 +19,8 @@ export function ModelNotes() {
   const keys = Object.keys(SIMPLIFICATIONS);
 
   return (
-    <details className="model-notes">
-      <summary className="t-small">
+    <details className="model-notes disclosure">
+      <summary>
         Where this model differs from Postgres
         {DIVERGENCES.length > 0
           && ` · ${DIVERGENCES.length} documented ${plural(DIVERGENCES.length, 'divergence')}`}

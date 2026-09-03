@@ -1,23 +1,36 @@
-.bay { display: flex; flex-direction: column; }
+.bay { display: flex; flex-direction: column; overflow: hidden; }
 
 .bay-tabs {
   display: flex;
-  gap: 0;
-  border-bottom: 1px solid var(--line);
+  gap: var(--s0);
+  flex: 1 1 auto;
+  min-width: 0;
   overflow-x: auto;
+  padding-bottom: 0;
 }
 
 .bay-tab {
   padding: var(--s1) var(--s2);
   background: transparent;
-  border: 0;
-  border-bottom: 2px solid transparent;
+  border: 1px solid transparent;
+  border-bottom: 0;
+  border-radius: var(--r-control) var(--r-control) 0 0;
   color: var(--ink-mid);
+  font-family: var(--sans);
+  font-size: var(--t-label-size);
+  font-weight: var(--t-label-weight);
   cursor: pointer;
   white-space: nowrap;
+  transition: color var(--d-control) var(--ease-inout);
 }
 .bay-tab:hover { color: var(--ink); }
-.bay-tab.is-active { color: var(--ink); border-bottom-color: var(--ink); font-weight: 500; }
+/* Lifted out of the sunken strip rather than underlined within it (§4.4). */
+.bay-tab.is-active {
+  color: var(--ink);
+  background: var(--surface);
+  border-color: var(--line);
+  font-weight: 600;
+}
 
 /* Recovery is the only tab that changes the state above it, so it is marked
  * (DESIGN.md §4.3). */
@@ -31,10 +44,22 @@
   vertical-align: 0.15em;
 }
 
-.bay-panel { padding: var(--s3); animation: bay-in var(--d-tab) var(--ease-inout); }
+.bay-panel { padding: var(--s3); border-top: 1px solid var(--line); animation: bay-in var(--d-tab) var(--ease-inout); }
 .bay-panel:focus-visible { outline: 2px solid var(--believed); outline-offset: -2px; }
 
 @keyframes bay-in {
   from { opacity: 0; }
   to { opacity: 1; }
 }
+
+/* The eyebrow sits on the tab strip's baseline rather than above it — stacked,
+ * it would cost a line of height on the widest panel in the app. */
+.bay-head {
+  display: flex;
+  align-items: stretch;
+  gap: var(--s2);
+  padding: var(--s0) var(--s2) 0;
+  background: var(--surface-sunken);
+  border-radius: var(--r-panel) var(--r-panel) 0 0;
+}
+.bay-head .eyebrow { align-self: center; flex: 0 0 auto; }

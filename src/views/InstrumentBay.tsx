@@ -23,7 +23,9 @@ export function InstrumentBay() {
 
   return (
     <section className="bay panel" aria-label="Instruments">
-      <div className="bay-tabs" role="tablist" aria-label="Instruments">
+      <div className="bay-head">
+        <span className="eyebrow">Evidence</span>
+        <div className="bay-tabs" role="tablist" aria-label="Instruments">
         {INSTRUMENTS.map((instrument) => (
           <button
             key={instrument.id}
@@ -40,7 +42,8 @@ export function InstrumentBay() {
           >
             {instrument.label}
           </button>
-        ))}
+          ))}
+        </div>
       </div>
 
       <div

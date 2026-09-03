@@ -1,4 +1,4 @@
-/* The derivation, as a grid (DESIGN.md §4.1). */
+/* The derivation, as a grid (DESIGN.md §4.1–§4.2). */
 .app {
   min-height: 100vh;
   min-height: 100dvh;
@@ -6,38 +6,63 @@
   grid-template-rows: auto 1fr auto;
 }
 
+/* ── Header ───────────────────────────────────────────────────────────────────
+ * Product mark and name, the tagline, then the status readout and the theme
+ * control. The generator that used to sit here has moved to the query panel,
+ * where the data it shapes actually is (§4.1). */
 .app-header {
   display: flex;
-  align-items: baseline;
-  gap: var(--s2);
+  align-items: center;
+  gap: var(--s2) var(--s3);
+  width: 100%;
+  max-width: var(--measure);
+  margin: 0 auto;
   padding: var(--s2) var(--s3);
-  border-bottom: 1px solid var(--line);
+}
+
+.app-brand { display: flex; align-items: center; gap: var(--s1); flex: 0 0 auto; }
+
+/* Two squares offset on a diagonal: a subset and the subset that contains it,
+ * which is the shape the whole lattice is made of. */
+.app-mark {
+  position: relative;
+  width: 14px;
+  height: 14px;
+  border: 1.5px solid var(--ink);
+  border-radius: 1px;
+}
+.app-mark::after {
+  content: '';
+  position: absolute;
+  inset: 4px -4px -4px 4px;
+  border: 1.5px solid var(--believed);
+  border-radius: 1px;
 }
 
 .app-tagline { flex: 1 1 auto; min-width: 0; }
-.app-dataset { display: flex; align-items: baseline; gap: var(--s1); color: var(--ink-mid); }
-.app-dataset select {
-  font: inherit;
-  font-size: var(--t-label-size);
-  color: var(--ink);
-  background: transparent;
-  border: 1px solid var(--line);
-  border-radius: var(--r-control);
-  padding: 1px var(--s1);
-}
 
+.app-status { display: flex; align-items: center; gap: var(--s1); flex: 0 0 auto; }
+.app-rowcount { color: var(--ink-mid); }
+
+/* ── The derivation ──────────────────────────────────────────────────────────
+ * Inputs on the left in a fixed measure, results on the right in what remains.
+ * Beyond the measure the extra space becomes gutter: a 1200 px lattice is not
+ * more legible than a 900 px one (§4.2). */
 .app-main {
   display: grid;
   gap: var(--s2);
-  padding: var(--s2) var(--s3);
+  width: 100%;
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding: 0 var(--s3) var(--s4);
   align-content: start;
-  grid-template-columns: minmax(280px, 340px) minmax(0, 1fr);
+  grid-template-columns: minmax(320px, 380px) minmax(0, 1fr);
   grid-template-areas:
-    'query search'
-    'cost  plan'
-    'cost  result'
-    'bay   bay'
-    'notes notes';
+    'query  search'
+    'cost   plan'
+    'bay    bay'
+    'result result'
+    'notes  notes';
 }
 
 .app-query { grid-area: query; }
@@ -48,60 +73,61 @@
 .bay { grid-area: bay; }
 .app-notes { grid-area: notes; }
 
-.app-main > .panel { padding: var(--s2) var(--s3) var(--s3); min-width: 0; }
-
-.app-panel-head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--s2);
-  margin-bottom: var(--s2);
-}
-.app-panel-head .t-small { color: var(--ink-mid); }
+.app-main > .panel { padding: var(--s3); min-width: 0; }
+/* The bay draws its own tab strip edge-to-edge, so it opts out of panel padding. */
+.app-main > .bay { padding: 0; }
 
 .app-placeholder { color: var(--ink-faint); }
+.app-cost-hint { margin-bottom: var(--s2); }
 
-.span-legend { display: flex; align-items: center; gap: var(--s1); color: var(--ink-mid); }
-
-.app-grid { max-height: 300px; overflow-y: auto; }
-.app-grid table { border-collapse: collapse; width: 100%; }
-.app-grid th,
-.app-grid td {
-  text-align: left;
-  padding: 2px var(--s1);
-  border-bottom: 1px solid var(--line);
-  white-space: nowrap;
-}
-.app-grid th {
-  position: sticky;
-  top: 0;
-  background: var(--surface);
+.span-legend {
+  display: flex;
+  align-items: center;
+  gap: var(--s1);
   color: var(--ink-mid);
-  font-weight: 500;
+  font-size: var(--t-label-size);
 }
+
+/* ── The result grid ─────────────────────────────────────────────────────────
+ * On the sunken canvas, because it is data being displayed rather than a
+ * control being offered. */
+.app-grid {
+  max-height: 320px;
+  overflow-y: auto;
+  background: var(--surface-sunken);
+  border-radius: var(--r-panel);
+  padding: 0 var(--s1);
+}
+.app-grid thead th { background: var(--surface-sunken); }
 .app-grid td.is-null { color: var(--ink-faint); }
 
-.app-footer { position: sticky; bottom: 0; z-index: 2; }
+/* The cost bar floats above the page rather than reading as the last panel. */
+.app-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  box-shadow: var(--shadow-raised);
+}
 
-/* §4.5: below 900 px the columns stack in derivation order. */
-@media (max-width: 900px) {
+.app-result-meta { display: flex; align-items: baseline; gap: var(--s2); }
+
+/* §4.7: below 1100 px the columns stack in derivation order. */
+@media (max-width: 1100px) {
   .app-main {
     grid-template-columns: minmax(0, 1fr);
     grid-template-areas: 'query' 'search' 'plan' 'cost' 'bay' 'result' 'notes';
   }
   .app-header { flex-wrap: wrap; }
+  .app-tagline { flex: 1 0 100%; order: 3; }
 }
 
 /* Usable at 380 px (PRD §8.12). The plan tree keeps its estimate/actual spans —
  * they are the point, and they compress before anything else does. */
 @media (max-width: 560px) {
-  .app-main { padding: var(--s1); gap: var(--s1); }
-  .app-main > .panel { padding: var(--s1) var(--s2) var(--s2); }
+  .app-main { padding: 0 var(--s1) var(--s3); gap: var(--s1); }
+  .app-main > .panel { padding: var(--s2); }
   .app-header { padding: var(--s1) var(--s2); gap: var(--s1); }
-  .app-tagline { flex: 1 0 100%; order: 3; }
-  .app-panel-head { flex-wrap: wrap; gap: 2px; }
-  .plan-tree-ratio { flex: none; }
-  .app-grid { max-height: 220px; }
+  .app-grid { max-height: 240px; }
 }
 
 /* The winning plan descending into the tree (DESIGN.md §6.3), 500 ms.
@@ -121,14 +147,3 @@
   .app-plan.is-waiting .plan-tree { opacity: 1; }
   .app-plan.is-descending .plan-tree { animation: none; }
 }
-
-.app-result-meta { display: flex; align-items: baseline; gap: var(--s2); }
-.app-export {
-  padding: 1px var(--s1);
-  background: transparent;
-  border: 1px solid var(--line);
-  border-radius: var(--r-control);
-  color: var(--ink-mid);
-  cursor: pointer;
-}
-.app-export:hover { color: var(--ink); border-color: var(--ink-faint); }
