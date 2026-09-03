@@ -166,7 +166,7 @@ function PlanNode({
 
       <text className="t-data plan-node-title" x={28} y={17}>{plan.operator}</text>
       <text className="t-micro plan-node-sub" x={28} y={29}>
-        {subtitle(plan)}
+        {clip(subtitle(plan), SUBTITLE_CHARS)}
       </text>
 
       {/* The span, local to the node but on the tree's shared axis. */}
@@ -192,6 +192,21 @@ function PlanNode({
       )}
     </g>
   );
+}
+
+/**
+ * Characters of `--t-micro` mono that fit between the glyph and the node's right
+ * edge. Geist Mono at 10 px advances 6 px, and the box is 168 px with the text
+ * starting at 28: (168 - 28 - 8) / 6.
+ *
+ * A parameterized index scan's subtitle — "on kecamatan · id = k.kecamatan_id" —
+ * is half again as long as that, and SVG text does not wrap or clip on its own.
+ */
+const SUBTITLE_CHARS = 22;
+
+/** Truncate to fit. The full text stays in the node's title and its detail. */
+function clip(text: string, max: number): string {
+  return text.length <= max ? text : `${text.slice(0, max - 1)}…`;
 }
 
 function subtitle(plan: Plan): string {

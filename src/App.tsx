@@ -283,15 +283,30 @@ function downloadPlan(
   URL.revokeObjectURL(url);
 }
 
+/** Column headings, with the ambiguous ones qualified by their relation. */
+function headings(execution: { columns: string[]; columnSources: string[] }): string[] {
+  const seen = new Map<string, number>();
+  for (const c of execution.columns) seen.set(c, (seen.get(c) ?? 0) + 1);
+  return execution.columns.map(
+    (c, i) => ((seen.get(c) ?? 0) > 1 ? execution.columnSources[i] : c),
+  );
+}
+
 function ResultGrid({ execution }: { execution: NonNullable<ReturnType<typeof useStore>['result']['execution']> }) {
-  const shown = execution.rows.slice(0, 60);
+  // Every row the executor kept. Slicing to 60 here while the meta line above
+  // said "showing the first 500" made the interface state something untrue about
+  // itself, which in an app about estimates being wrong is the one thing it
+  // cannot afford. The grid scrolls.
+  const shown = execution.rows;
   return (
     <div className="app-grid scroll-x">
       <table className="grid-table t-data">
         <thead>
-          {/* Keyed by position: a join can project two columns of the same
-              name, and React needs the keys to be unique. */}
-          <tr>{execution.columns.map((c, i) => <th key={i} scope="col">{c}</th>)}</tr>
+          {/* A join can project two columns of the same name — `SELECT k.nama,
+              c.nama` returns `nama` twice, as Postgres does. Faithful, and
+              unreadable in a grid, so an ambiguous heading is qualified with the
+              relation it came from. */}
+          <tr>{headings(execution).map((c, i) => <th key={i} scope="col">{c}</th>)}</tr>
         </thead>
         <tbody>
           {shown.map((row, i) => (

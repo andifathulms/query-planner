@@ -435,3 +435,46 @@ describe('the correlation plot draws selectivity as area', () => {
     expect(plot.querySelector('.correlation-truth.gap-under')).toBeTruthy();
   });
 });
+
+describe('the interface does not state anything untrue about itself', () => {
+  it('draws every row it claims to be showing', () => {
+    // "showing the first 500" beside a grid holding 60 is the one kind of lie an
+    // app about wrong estimates cannot afford.
+    renderApp('n=6000&s=2000');
+    const region = screen.getByRole('region', { name: 'Result' });
+    const claimed = /showing the first ([\d,]+)/.exec(region.textContent ?? '')?.[1];
+    const drawn = region.querySelectorAll('tbody tr').length;
+    if (claimed) expect(drawn).toBe(Number(claimed.replace(/,/g, '')));
+    else expect(drawn).toBeGreaterThan(0);
+  });
+
+  it('qualifies a result heading when the bare name is ambiguous', () => {
+    // SELECT k.nama, c.nama returns `nama` twice, as Postgres does. The engine
+    // keeps that; the grid says which is which.
+    const sql = `SELECT k.nama, c.nama FROM kelurahan k
+      JOIN kecamatan c ON k.kecamatan_id = c.id`;
+    renderApp(`n=6000&s=2000&q=${encodeURIComponent(sql)}`);
+    const region = screen.getByRole('region', { name: 'Result' });
+    const headings = [...region.querySelectorAll('thead th')].map((th) => th.textContent);
+    expect(headings).toEqual(['k.nama', 'c.nama']);
+  });
+
+  it('leaves an unambiguous heading unqualified', () => {
+    const sql = 'SELECT k.nama, k.penduduk FROM kelurahan k';
+    renderApp(`n=6000&s=2000&q=${encodeURIComponent(sql)}`);
+    const region = screen.getByRole('region', { name: 'Result' });
+    const headings = [...region.querySelectorAll('thead th')].map((th) => th.textContent);
+    expect(headings).toEqual(['nama', 'penduduk']);
+  });
+
+  it('keeps plan node subtitles inside their box', () => {
+    // SVG text neither wraps nor clips on its own, and a parameterized index
+    // scan's subtitle is half again as long as the node is wide.
+    renderApp('n=6000&s=2000');
+    const subs = document.querySelectorAll('.plan-node-sub');
+    expect(subs.length).toBeGreaterThan(0);
+    for (const sub of subs) expect((sub.textContent ?? '').length).toBeLessThanOrEqual(22);
+    // And at least one of them actually needed the truncation.
+    expect([...subs].some((s) => (s.textContent ?? '').endsWith('…'))).toBe(true);
+  });
+});

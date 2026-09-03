@@ -335,9 +335,16 @@ Every cost parameter as a live slider with its default marked. These are the app
 controls and they drive everything above: re-plan, re-sort the cost breakdown, re-fill the
 lattice. The 200 ms planning budget exists for this bar.
 
-`random_page_cost` gets the most width and carries a marker at 1.1 labelled with what it
-means, because dragging from 4.0 to 1.1 and watching the plan flip is the single most useful
-thing a DBA can learn here.
+The seven parameters are a grid of equal tracks — `repeat(auto-fit, minmax(150px, 1fr))` —
+not a wrapping flex row. Flexed, six filled the first row and left `cpu_operator_cost` alone
+on a second one stretched to the full width of the bar: a thousand-pixel slider for a value
+between 0.0005 and 0.05.
+
+`random_page_cost` spans two tracks and carries a marker at 1.1 labelled with what it means,
+because dragging from 4.0 to 1.1 and watching the plan flip is the single most useful thing a
+DBA can learn here. At the ends of a track the marker's caption aligns inward while the tick
+stays on its value — 1.1 on a range starting at 1 is half a percent along, and centred the
+caption hangs off the edge of the bar.
 
 A parameter moved off its default has its readout in `--ink` at 500 weight against the
 default's `--ink-mid`, and the reset button counts how many have moved. Both are there so a
@@ -432,7 +439,9 @@ into a navigable record of the entire search rather than an animation that plays
 Reingold–Tilford layout, root at top, drawn in line.
 
 Each node carries: operator name in Postgres's own words, the relation, the estimate/actual
-span, and cost. Operators are distinguished by a glyph at the node — a bar for a scan, a
+span, and cost. The relation line is truncated to the node's width — SVG text neither wraps
+nor clips on its own, and a parameterized index scan's subtitle is half again as long as the
+node is wide. The full text stays in the node's tooltip and in its detail panel. Operators are distinguished by a glyph at the node — a bar for a scan, a
 converging pair for a join, a stack for a sort — not by colour.
 
 **The span is the node's most important element.** A log-scaled horizontal axis local to each
@@ -466,6 +475,9 @@ tinted as a gap. A 4 px box inside a 43 px one is the hundredfold error, seen be
 is read.
 
 The area between the two is the error, and it is the app's thesis as a single picture.
+
+The readout sits beside the plot rather than beneath it. The plot is a fixed square and the
+bay is the full width of the app, so stacked it left two thirds of the panel as empty field.
 
 The correlation coefficient slider lives here. Sweeping it from 0 to 1 and watching the
 rectangle detach from the cloud is a five-second explanation of the whole subject.

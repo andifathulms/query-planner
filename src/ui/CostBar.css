@@ -14,11 +14,15 @@
 
 .cost-bar-eyebrow { flex: 0 0 auto; align-self: center; }
 
+/* A grid rather than a wrapping flex row. Flexed, the seven parameters filled
+ * six slots and left cpu_operator_cost alone on a second row stretched to the
+ * full width of the bar — a slider a thousand pixels long for a value between
+ * 0.0005 and 0.05. Equal tracks wrap evenly instead. */
 .cost-bar-sliders {
   flex: 1 1 auto;
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: var(--s2) var(--s3);
-  flex-wrap: wrap;
   min-width: 0;
 }
 
@@ -27,12 +31,11 @@
   grid-template-columns: 1fr auto;
   grid-template-areas: 'label value' 'track track';
   gap: 2px var(--s1);
-  flex: 1 1 148px;
-  min-width: 136px;
+  min-width: 0;
 }
 
 /* random_page_cost gets the most width: it is the lever worth finding by feel. */
-.cost-slider.is-wide { flex: 2 1 260px; }
+.cost-slider.is-wide { grid-column: span 2; }
 
 /* The parameter names are Postgres's own, so they are set in mono — a reader
  * should recognise them from postgresql.conf without translating. */
@@ -108,7 +111,7 @@
   .cost-bar-more { display: inline-flex; flex: 0 0 auto; }
   .cost-slider:not(.is-primary) { display: none; }
   .cost-bar.is-expanded .cost-slider { display: grid; }
-  .cost-slider.is-wide { flex: 1 1 100%; }
+  .cost-slider.is-wide { grid-column: span 1; }
 }
 
 @media (max-width: 560px) {

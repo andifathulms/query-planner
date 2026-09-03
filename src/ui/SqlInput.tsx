@@ -39,20 +39,6 @@ export function SqlInput({ sql, error, onChange }: SqlInputProps) {
           <span className="eyebrow">Query</span>
           <h2 className="t-h2">The statement to plan</h2>
         </span>
-        <label className="sql-input-examples">
-          <span className="visually-hidden">Example queries</span>
-          <select
-            className="field"
-            value=""
-            onChange={(e) => {
-              const example = EXAMPLES.find((x) => x.label === e.target.value);
-              if (example) commit(example.sql);
-            }}
-          >
-            <option value="">examples…</option>
-            {EXAMPLES.map((x) => <option key={x.label} value={x.label}>{x.label}</option>)}
-          </select>
-        </label>
       </div>
 
       <textarea
@@ -80,6 +66,24 @@ export function SqlInput({ sql, error, onChange }: SqlInputProps) {
           }
         }}
       />
+
+      {/* The examples menu sits below the field rather than in the head. In a
+          380 px column a select wide enough to show "grouping over correlated
+          columns" leaves the heading four words on three lines. */}
+      <label className="sql-input-examples">
+        <span className="visually-hidden">Example queries</span>
+        <select
+          className="field"
+          value=""
+          onChange={(e) => {
+            const example = EXAMPLES.find((x) => x.label === e.target.value);
+            if (example) commit(example.sql);
+          }}
+        >
+          <option value="">examples…</option>
+          {EXAMPLES.map((x) => <option key={x.label} value={x.label}>{x.label}</option>)}
+        </select>
+      </label>
 
       {error && (
         <p className="sql-input-error" id="sql-error" role="alert">

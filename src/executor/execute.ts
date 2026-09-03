@@ -26,6 +26,15 @@ import type {
 export interface ExecutionResult {
   /** Column headings, in projection order. */
   columns: string[];
+  /**
+   * Where each column came from, as `alias.column`, for display only.
+   *
+   * `columns` stays what Postgres would return, which for `SELECT k.nama,
+   * c.nama` is `nama` twice. That is faithful and it is also unreadable in a
+   * grid, so the interface qualifies a heading when the bare name is ambiguous
+   * and leaves the engine's own answer alone.
+   */
+  columnSources: string[];
   rows: Value[][];
   /** Actuals keyed by plan node id, for pairing with the estimates. */
   stats: Map<string, NodeStats>;
@@ -79,6 +88,7 @@ export function execute(
 
   return {
     columns: projection.columns,
+    columnSources: projection.sources,
     rows,
     stats: new Map([...instruments].map(([id, i]) => [id, i.stats])),
     totalMs: clock.now() - origin,
@@ -288,7 +298,9 @@ class Builder {
   }
 
   /** Compile the SELECT list against the root operator's layout. */
-  projection(layout: Layout): { columns: string[]; evaluate: (row: Row) => Value[] } {
+  projection(layout: Layout): {
+    columns: string[]; sources: string[]; evaluate: (row: Row) => Value[];
+  } {
     if (this.spec.star) {
       // SELECT * follows the order the query named the tables in, not the order
       // the plan happened to join them. Otherwise two plans for one query would
@@ -300,7 +312,7 @@ class Builder {
       );
       const positions = bindings.map((b) => layout.indexOf(b.relation, b.column));
       const columns = bindings.map((c) => `${c.relation}.${c.column}`);
-      return { columns, evaluate: (row) => positions.map((i) => row[i]) };
+      return { columns, sources: columns, evaluate: (row) => positions.map((i) => row[i]) };
     }
 
     // Above an aggregate the row already holds the aggregate results, so a
@@ -316,7 +328,12 @@ class Builder {
         ?? (item.expr.kind === 'aggregate' ? formatAggregate(item.expr) : null)
         ?? (item.expr.kind === 'column' ? item.expr.name : `column${i + 1}`),
     );
-    return { columns, evaluate: (row) => compiled.map((c) => c(row)) };
+    const sources = this.spec.projection.map(
+      (item, i) => (item.expr.kind === 'column' && item.expr.table
+        ? `${item.expr.table}.${item.expr.name}`
+        : columns[i]),
+    );
+    return { columns, sources, evaluate: (row) => compiled.map((c) => c(row)) };
   }
 }
 

@@ -7,7 +7,20 @@
 .correlation-slider output { color: var(--ink); }
 .correlation-hint { color: var(--ink-faint); }
 
+.correlation-figure {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s4);
+  flex-wrap: wrap;
+}
+.correlation-figure > .correlation-readout {
+  flex: 1 1 260px;
+  min-width: 0;
+  align-self: center;
+}
+
 .correlation-plot {
+  flex: 0 0 auto;
   background: var(--surface-sunken);
   border-radius: var(--r-panel);
   padding: var(--s2);
@@ -43,11 +56,20 @@
 }
 
 .correlation-readout { display: flex; flex-direction: column; gap: 2px; }
-.correlation-readout dl { display: flex; flex-wrap: wrap; gap: var(--s1) var(--s4); margin: 0; }
-.correlation-readout div { display: flex; gap: var(--s1); align-items: baseline; }
+/* Stacked rather than in a row: beside the plot there is height to spare and the
+ * three figures want to be compared vertically, which is how the three areas in
+ * the picture are stacked too. */
+.correlation-readout dl {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  margin: 0;
+}
+.correlation-readout div { display: flex; flex-direction: column; gap: 1px; }
 .correlation-readout dt { color: var(--ink-mid); }
+.correlation-readout dd { font-size: var(--t-data-size); }
 .correlation-readout dd { margin: 0; font-family: var(--mono); font-variant-numeric: tabular-nums; }
 .correlation-readout dd.is-believed { color: var(--believed); }
 .correlation-readout dd.is-true { color: var(--true); }
 .correlation-readout dd.is-corrected { color: var(--order); }
-.correlation-gap { color: var(--ink); }
+.correlation-gap { color: var(--ink); margin-top: var(--s2); }

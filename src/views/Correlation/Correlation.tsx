@@ -77,6 +77,11 @@ export function Correlation({
         </p>
       ) : (
         <>
+          {/* The plot is a fixed square and the bay is the full width of the
+              app, so on a wide display two thirds of this panel was empty field
+              to the right of it. The readout moves up beside the picture it
+              describes. */}
+          <div className="correlation-figure">
           <div className="correlation-plot scroll-x">
             <Plot model={model} />
           </div>
@@ -109,6 +114,7 @@ export function Correlation({
                 ? `Independence is wrong by ${(model.measured / Math.max(model.independent, 1e-12)).toFixed(0)}× here.`
                 : 'No rows match both predicates.'}
             </p>
+          </div>
           </div>
 
           <TraceDetail trace={model.trace} />
