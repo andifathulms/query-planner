@@ -138,7 +138,9 @@ function Slider({
 
   return (
     <label className={`cost-slider${spec.wide ? ' is-wide' : ''}${spec.primary ? ' is-primary' : ''}`}>
-      <span className="cost-slider-label t-data">{spec.label}</span>
+      {/* effective_cache_size does not fit a 128 px track, and the names are
+          Postgres's own so they cannot be shortened. The full one is on hover. */}
+      <span className="cost-slider-label t-data" title={spec.label}>{spec.label}</span>
       <span className="cost-slider-track">
         <input
           type="range"

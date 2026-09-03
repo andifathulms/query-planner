@@ -21,8 +21,8 @@
 .cost-bar-sliders {
   flex: 1 1 auto;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: var(--s2) var(--s3);
+  grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
+  gap: var(--s2);
   min-width: 0;
 }
 

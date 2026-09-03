@@ -478,3 +478,16 @@ describe('the interface does not state anything untrue about itself', () => {
     expect([...subs].some((s) => (s.textContent ?? '').endsWith('…'))).toBe(true);
   });
 });
+
+describe('the cost breakdown bars stay inside their panel', () => {
+  it('leaves the total its own room rather than drawing the bar under it', () => {
+    // A percentage inside a translated <g> resolves against the whole viewport,
+    // not the group, so the longest bar was drawn LABEL_W wider than the panel
+    // and ran underneath its own figure. The track is a nested viewport now.
+    renderApp('n=6000&s=2000');
+    const table = screen.getByRole('table', { name: 'Candidate plans by cost' });
+    const track = table.querySelector('.cost-bar-track')!;
+    expect(track.tagName.toLowerCase()).toBe('svg');
+    expect(track.getAttribute('width')).toMatch(/^calc\(100% - \d+px\)$/);
+  });
+});

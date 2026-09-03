@@ -20,9 +20,10 @@
 }
 .cost-breakdown-bars svg { display: block; }
 
-/* Bars move rather than redraw, so the moment one overtakes another is visible
- * — and that overtake is the plan flip (DESIGN.md §5.5). */
+/* Bars move rather than redraw, so the moment one overtakes another is visible,
+ * and that overtake is the plan flip (DESIGN.md §5.5). */
 .cost-bar-row { transition: transform var(--d-resort) var(--ease-out); }
+
 
 .cost-bar-label { fill: var(--ink-mid); }
 .cost-bar-row.is-winner .cost-bar-label { fill: var(--ink); font-weight: 500; }

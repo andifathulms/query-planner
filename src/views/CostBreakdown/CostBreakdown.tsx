@@ -21,6 +21,8 @@ import './CostBreakdown.css';
 
 const ROW_H = 26;
 const LABEL_W = 172;
+/** Room at the right for the total, so a full-length bar never runs under it. */
+const TOTAL_W = 46;
 
 export interface CostBreakdownProps {
   cell: DpCell | null;
@@ -132,7 +134,18 @@ function Bar({
       </g>
       <text className="t-micro cost-bar-label" x={24} y={ROW_H / 2 + 2}>{describe(plan)}</text>
 
-      <g transform={`translate(${LABEL_W}, 0)`} className="cost-bar-track">
+      {/* A nested <svg> rather than a <g>, because a percentage inside a group
+          resolves against the whole viewport: the longest bar was drawn 172 px
+          wider than the panel and ran underneath its own total. Nesting
+          establishes a viewport of the track's real width, so the percentages
+          mean what they say and the overflow is clipped. */}
+      <svg
+        className="cost-bar-track"
+        x={LABEL_W}
+        y={0}
+        height={ROW_H}
+        width={`calc(100% - ${LABEL_W + TOTAL_W}px)`}
+      >
         {segments.map((s, i) => (
           <rect
             key={i}
@@ -143,9 +156,9 @@ function Bar({
             height={ROW_H - 14}
           />
         ))}
-      </g>
+      </svg>
 
-      <text className="t-micro cost-bar-total" x="100%" dx={-4} y={ROW_H / 2 + 2}>
+      <text className="t-micro cost-bar-total" x="100%" dx={-2} y={ROW_H / 2 + 2}>
         {formatCost(total)}
       </text>
     </g>
