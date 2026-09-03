@@ -457,8 +457,15 @@ The independence assumption drawn as a hollow dashed rectangle — the product o
 selectivities, positioned at the predicate values. The actual matching points are drawn
 solid.
 
-The area between the rectangle and the cloud is the error, and it is the app's thesis as a
-single picture.
+**Both are drawn at the same scale, and the scale is area over the field: area is
+selectivity.** Revision 1 only did half of this — the belief was drawn to scale and the truth
+was drawn as whichever grid cells happened to match, which is a texture rather than an area,
+so the two could not be compared by eye at all. The measured selectivity now gets a square of
+its own at the same anchor, stroked solid in `--true`, with the region belief failed to cover
+tinted as a gap. A 4 px box inside a 43 px one is the hundredfold error, seen before anything
+is read.
+
+The area between the two is the error, and it is the app's thesis as a single picture.
 
 The correlation coefficient slider lives here. Sweeping it from 0 to 1 and watching the
 rectangle detach from the cloud is a five-second explanation of the whole subject.
@@ -638,8 +645,12 @@ Errors from the parser name the limitation: *"Window functions are not supported
 *"syntax error near OVER"*.
 
 Empty state: the SQL input focused, a dataset already loaded, and one example query
-pre-filled — the correlated-predicate one, because it produces the app's best result on first
-run.
+pre-filled. It has to be a correlated-predicate query, because that failure is the subject.
+It also has to **join**, and revision 1's did not: a single-relation query gives the lattice
+exactly one cell, so the app's hero opened on an empty box with a number in the corner.
+Three relations is seven cells over three levels — small enough to read at a glance, large
+enough to be a lattice — and it gives the under-estimate somewhere to do damage, so the
+verdict block, the timeline and the recovery tab all have their subject on first run.
 
 ---
 

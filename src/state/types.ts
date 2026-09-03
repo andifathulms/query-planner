@@ -40,12 +40,25 @@ export const INSTRUMENTS: Array<{ id: InstrumentId; label: string }> = [
 ];
 
 /**
- * The empty state: a dataset loaded and the correlated-predicate query
- * pre-filled, because it produces the app's best result on first run
- * (DESIGN.md §7).
+ * The empty state (DESIGN.md §7): a dataset loaded and one query pre-filled.
+ *
+ * It has to be the correlated-predicate one, because that failure is what the
+ * app is about. It also has to join, and revision 1's default did not: a
+ * single-relation query gives the lattice exactly one cell, so the app's hero
+ * opened on an empty box with a number in the corner. Three relations is seven
+ * cells over three levels, which is small enough to read at a glance and large
+ * enough to be a lattice.
+ *
+ * Joining also means the under-estimate has somewhere to do damage. The planner
+ * believes the correlated predicates match a handful of rows, picks a nested
+ * loop on that belief, and receives two orders of magnitude more — so the
+ * verdict block, the timeline and the recovery tab all have their subject on
+ * first run rather than after the reader has found the examples menu.
  */
-export const EXAMPLE_QUERY = `SELECT k.nama, k.penduduk
-FROM kelurahan k
+export const EXAMPLE_QUERY = `SELECT p.pekerjaan, k.nama, c.nama
+FROM penduduk p
+JOIN kelurahan k ON p.kelurahan_id = k.id
+JOIN kecamatan c ON k.kecamatan_id = c.id
 WHERE k.kota = 'Kupang'
   AND k.provinsi = 'Nusa Tenggara Timur'`;
 

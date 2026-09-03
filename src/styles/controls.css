@@ -175,3 +175,9 @@ textarea.field {
   font-weight: var(--t-label-weight);
 }
 .grid-table tbody tr:last-child > * { border-bottom: 0; }
+/* Columns size to their content and the last one absorbs what is left. Without
+ * this, a two-column result sets `nama` at the far left and `penduduk` at the
+ * far right with 900 px of nothing between them, and the eye has to travel the
+ * whole width to pair a row up. */
+.grid-table th:last-child,
+.grid-table td:last-child { width: 100%; }

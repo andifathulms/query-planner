@@ -154,12 +154,33 @@ function Plot({ model }: { model: Model }) {
   const cellW = size / Math.max(1, model.xValues.length);
   const cellH = size / Math.max(1, model.yValues.length);
 
+  // Every area on this plot is on one scale: area over the field is
+  // selectivity. That is the whole point of the picture and revision 1 only did
+  // half of it — the belief was drawn to scale and the truth was drawn as
+  // whichever grid cells happened to match, which is a texture, not an area.
+  // Side by side at the same anchor, a 4 px box inside a 43 px one is the
+  // hundredfold error, seen before anything is read.
+  const anchorX = model.xTarget * cellW + cellW / 2;
+  const anchorY = model.yTarget * cellH + cellH / 2;
+  const centred = (side: number) => ({
+    x: Math.max(0, Math.min(size - side, anchorX - side / 2)),
+    y: Math.max(0, Math.min(size - side, anchorY - side / 2)),
+    width: side,
+    height: side,
+  });
+
   // The independence rectangle: the product of two marginals, positioned at the
   // predicate's values. Its area is what the planner believes.
   const rectW = Math.max(3, model.xMarginal * size);
   const rectH = Math.max(3, model.yMarginal * size);
-  const rectX = Math.max(0, Math.min(size - rectW, model.xTarget * cellW + cellW / 2 - rectW / 2));
-  const rectY = Math.max(0, Math.min(size - rectH, model.yTarget * cellH + cellH / 2 - rectH / 2));
+  const rectX = Math.max(0, Math.min(size - rectW, anchorX - rectW / 2));
+  const rectY = Math.max(0, Math.min(size - rectH, anchorY - rectH / 2));
+
+  // The measured area, on the same scale. Under-estimates are the dangerous
+  // direction, so the region belief failed to cover is tinted rather than left
+  // as bare field (DESIGN.md §2.2).
+  const truth = centred(Math.sqrt(Math.max(model.measured, 0) * size * size));
+  const underestimated = model.measured > model.independent;
 
   // What the multivariate statistic predicts, if one exists, at the same scale.
   const correctedArea = model.corrected === null ? null : model.corrected * size * size;
@@ -171,7 +192,8 @@ function Plot({ model }: { model: Model }) {
       height={size + PAD * 2}
       role="img"
       aria-label={
-        `Scatter of ${model.xLabel} against ${model.yLabel}. `
+        `Scatter of ${model.xLabel} against ${model.yLabel}, `
+        + 'with selectivity drawn as area. '
         + `Independence predicts ${formatSelectivity(model.independent)}; `
         + `the truth is ${formatSelectivity(model.measured)}.`
       }
@@ -188,9 +210,23 @@ function Plot({ model }: { model: Model }) {
             y={p.y * cellH}
             width={Math.max(cellW - 0.5, 1)}
             height={Math.max(cellH - 0.5, 1)}
-            style={{ opacity: p.matches ? 0.9 : Math.min(0.5, 0.12 + p.count / model.maxCount) }}
+            style={{ opacity: p.matches ? 1 : Math.min(0.62, 0.2 + p.count / model.maxCount) }}
           />
         ))}
+
+        {/* The measured area, beneath the belief so the belief sits inside it.
+            The fill is the gap: the part of the truth the estimate missed. */}
+        {truth.width > 0 && (
+          <rect
+            className={`correlation-truth ${underestimated ? 'gap-under' : 'gap-over'}`}
+            {...truth}
+          />
+        )}
+        {truth.width > 0 && (
+          <rect className="correlation-truth-edge" {...truth}>
+            <title>{`measured ${formatSelectivity(model.measured)}`}</title>
+          </rect>
+        )}
 
         {/* The wrong belief, drawn hollow and dashed the way a proposal is. */}
         <rect

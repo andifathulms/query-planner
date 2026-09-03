@@ -23,6 +23,17 @@
 .correlation-point.is-match { fill: var(--true); }
 
 .correlation-rect { pointer-events: none; }
+
+/* The truth at the same scale as the belief. Stroked rather than filled solid,
+ * because a filled square this size would hide the cloud it is measuring; the
+ * gap tint inside it carries the fill instead. */
+.correlation-truth { pointer-events: none; }
+.correlation-truth-edge {
+  fill: none;
+  stroke: var(--true);
+  stroke-width: 1.5;
+  pointer-events: none;
+}
 /* What the multivariate statistic predicts: solid, because it is derived from a
  * measurement of the combination rather than from an assumption about it. */
 .correlation-corrected {

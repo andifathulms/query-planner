@@ -43,7 +43,15 @@ export function Sample({
 }: SampleProps) {
   const relations = spec?.relations ?? [];
   const [chosen, setChosen] = useState<string | null>(null);
-  const relation = relations.find((r) => r.alias === chosen) ?? relations[0] ?? null;
+  // Default to a relation that carries a predicate. The comparison this view
+  // exists for — the estimate from the sample against the estimate from every
+  // row — needs something to estimate, and the first relation in the FROM
+  // clause is frequently the one with no WHERE clause on it.
+  const withRestrictions = spec
+    ? relations.find((r) => restrictionsFor(spec, r.alias).length > 0)
+    : undefined;
+  const relation = relations.find((r) => r.alias === chosen)
+    ?? withRestrictions ?? relations[0] ?? null;
 
   const sample = relation ? samples.get(relation.table) ?? null : null;
   const table = relation && spec ? tableFor(schema, spec, relation.alias) : null;

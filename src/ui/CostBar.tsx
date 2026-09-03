@@ -157,12 +157,17 @@ function Slider({
           aria-hidden="true"
         />
         {markerFraction !== null && (
+          /* random_page_cost's SSD marker sits at 1.1 on a range starting at 1,
+             which is half a percent along: centred, its caption hangs off the
+             left edge of the bar. At either end the caption aligns inward while
+             the tick stays exactly where the value is. */
           <span
             className="cost-slider-marker"
+            data-edge={markerFraction < 0.12 ? 'start' : markerFraction > 0.88 ? 'end' : undefined}
             style={{ left: `${markerFraction * 100}%` }}
             aria-hidden="true"
           >
-            <span className="t-micro">{spec.marker!.label}</span>
+            <span className="t-micro cost-slider-marker-label">{spec.marker!.label}</span>
           </span>
         )}
       </span>

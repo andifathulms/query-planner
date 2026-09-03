@@ -281,7 +281,10 @@ describe('every instrument has a keyboard-reachable table', () => {
 describe('selecting a plan node opens its trace', () => {
   it('names the method and the assumptions', () => {
     renderApp('n=6000&s=2000');
-    const leaf = screen.getAllByRole('treeitem').at(-1)!;
+    // The scan carrying the WHERE clause: a leaf with no predicate on it has no
+    // selectivity to explain, and correctly shows only its cost.
+    const leaf = screen.getAllByRole('treeitem')
+      .find((n) => /kelurahan/.test(n.getAttribute('aria-label') ?? ''))!;
     fireEvent.click(leaf);
 
     const detail = document.querySelector('.plan-detail')!;
@@ -378,5 +381,57 @@ describe('prefers-reduced-motion', () => {
     withReducedMotion(false);
     renderApp('n=6000&s=2000');
     expect(screen.getByRole('button', { name: 'pause' })).toBeTruthy();
+  });
+});
+
+describe('the empty state', () => {
+  it('opens on a lattice with something in it', () => {
+    // A single-relation default gives the app's hero exactly one cell. Three
+    // relations is seven cells over three levels: small enough to read at a
+    // glance, large enough to be a lattice.
+    renderApp('n=6000&s=2000');
+    for (const level of [1, 2, 3]) {
+      expect(screen.getByRole('group', { name: new RegExp(`Level ${level}:`) })).toBeTruthy();
+    }
+    expect(screen.getAllByRole('button', { name: /candidate/ }).length).toBeGreaterThan(3);
+  });
+
+  it('opens on an under-estimate, which is what the app is about', () => {
+    renderApp('n=6000&s=2000');
+    const root = screen.getAllByRole('treeitem')[0];
+    const label = root.getAttribute('aria-label') ?? '';
+    const estimated = Number((/estimated ([\d,]+) rows/.exec(label)?.[1] ?? '0').replace(/,/g, ''));
+    const actual = Number((/actual ([\d,]+) rows/.exec(label)?.[1] ?? '0').replace(/,/g, ''));
+    expect(estimated).toBeLessThan(actual);
+    expect(document.querySelector('.plan-tree-verdict.is-under')).toBeTruthy();
+  });
+
+  it('gives the sample view a relation that has a predicate on it', () => {
+    // The first relation in the FROM clause frequently has no WHERE clause on
+    // it, and the comparison this view exists for needs something to estimate.
+    renderApp('n=6000&s=2000');
+    fireEvent.click(screen.getByRole('tab', { name: 'sample' }));
+    expect(screen.getByText('The estimates as a table')).toBeTruthy();
+  });
+});
+
+describe('the correlation plot draws selectivity as area', () => {
+  it('puts the belief and the truth on one scale, with the gap between them', () => {
+    renderApp('n=6000&s=2000');
+    const plot = screen.getByRole('img', { name: /Scatter of/ });
+
+    const believed = plot.querySelector('.mark-believed')!;
+    const truth = plot.querySelector('.correlation-truth-edge')!;
+    expect(believed).toBeTruthy();
+    expect(truth).toBeTruthy();
+
+    const area = (el: Element) =>
+      Number(el.getAttribute('width')) * Number(el.getAttribute('height'));
+
+    // Independence under-estimates these predicates badly, so the measured area
+    // is the larger one — and the region it missed is tinted as an under-shoot
+    // rather than left as bare field.
+    expect(area(truth)).toBeGreaterThan(area(believed));
+    expect(plot.querySelector('.correlation-truth.gap-under')).toBeTruthy();
   });
 });
