@@ -20,6 +20,7 @@ import { Lattice } from './views/Lattice/Lattice.js';
 import { CostBreakdown } from './views/CostBreakdown/CostBreakdown.js';
 import { InstrumentBay } from './views/InstrumentBay.js';
 import { ThemeToggle } from './ui/ThemeToggle.js';
+import { Mark } from './ui/Mark.js';
 import { useFill, usePrefersReducedMotion } from './ui/useFill.js';
 import { DEFAULT_COST_PARAMS, type Plan } from './planner/types.js';
 import { DATASETS } from './storage/datasets/index.js';
@@ -65,7 +66,7 @@ export function App() {
     <div className="app">
       <header className="app-header">
         <div className="app-brand">
-          <span className="app-mark" aria-hidden="true" />
+          <Mark />
           <h1 className="t-h2">Query planner</h1>
         </div>
         <p className="t-small app-tagline">

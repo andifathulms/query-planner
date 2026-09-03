@@ -421,6 +421,35 @@ Below 560 px the verdict block's display figure drops to `--t-figure`, the panel
 drops a step, and the header wraps its status line beneath the title. Usable at 380 px with
 the plan tree legible is the floor, and it is a floor rather than an aspiration.
 
+### 4.8 The mark
+
+The product mark is the planner's own DP lattice: cells at level one, the kept plan above
+them, and only the kept cell filled. It says *search*, not storage, which is the distinction
+the whole app exists to make, and it is the reason a database cylinder would have been the
+wrong icon here.
+
+It has size tiers, and they matter. At 96 px and up it draws three levels with hairline
+outlines. Below 32 px, where those outlines turn to mud, the cells go solid and the level
+count drops to two. The header mark and the favicon are both that small tier.
+
+**Two colour treatments, and the split is deliberate.** The brand package fills the kept cell
+in mint. Inside the interface it is filled in `--ink`, because §2.3 says the winner is drawn
+fully rather than coloured, and a mint cell in the header would be the single place that rule
+broke. The mint version is what ships as the favicon, the home-screen icon and the social
+card, where the brand is doing the talking rather than the interface.
+
+**The brand package carries a second accent rule that this app does not follow, and it is
+worth writing down rather than quietly diverging.** The package assigns mint to *estimated*
+and amber to *actual*. The app assigns `--believed` (blue) to estimated and `--true` (amber)
+to actual. Amber agrees to within a few percent; the estimated side does not. Two reasons for
+keeping blue. Blue against amber is the safest pair available for red-green colour blindness,
+where mint against amber is one of the harder ones, and this app asks a reader to compare
+those two marks several hundred times per screen. And `--order` is already the app's one
+green, marking plans retained for an interesting order, so mint would collide with it.
+
+If the brand rule should win, the change is four token values and a note here; it is not a
+refactor. It is left undone deliberately rather than by oversight.
+
 ---
 
 ## 5. Instruments

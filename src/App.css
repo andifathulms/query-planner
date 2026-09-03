@@ -22,22 +22,10 @@
 
 .app-brand { display: flex; align-items: center; gap: var(--s1); flex: 0 0 auto; }
 
-/* Two squares offset on a diagonal: a subset and the subset that contains it,
- * which is the shape the whole lattice is made of. */
-.app-mark {
-  position: relative;
-  width: 14px;
-  height: 14px;
-  border: 1.5px solid var(--ink);
-  border-radius: 1px;
-}
-.app-mark::after {
-  content: '';
-  position: absolute;
-  inset: 4px -4px -4px 4px;
-  border: 1.5px solid var(--believed);
-  border-radius: 1px;
-}
+/* The lattice, at the brand package's 32 px tier (src/ui/Mark.tsx). */
+.app-mark { display: block; flex: 0 0 auto; }
+.app-mark-kept { fill: var(--ink); }
+.app-mark-cell { fill: var(--ink-faint); }
 
 .app-tagline { flex: 1 1 auto; min-width: 0; }
 
