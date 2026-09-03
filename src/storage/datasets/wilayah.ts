@@ -31,64 +31,75 @@ const PROVINSI = [
 ] as const;
 
 /**
- * Cities, each paired with the province it is actually in.
+ * Cities, each paired with the province it is actually in, ordered by rough
+ * population.
+ *
+ * Two things about this list are load-bearing.
  *
  * The pairing is real rather than arbitrary. This dataset exists for
  * credibility (PRD §4.7), and a reader who knows that Balikpapan is in
  * Kalimantan Timur will stop trusting every other number on the screen the
  * moment they see it filed under Jawa Barat. It is also what makes the
  * functional dependency genuine: kota really does determine provinsi.
+ *
+ * The order matters because the Zipf sampler draws by list position, so
+ * position is the city's frequency. Grouped by province — as this list first
+ * was — a province's cities all landed at adjacent ranks, which made both
+ * marginals large together and collapsed the independence error the app is
+ * about from about 30x down to 3x. Ordering by population is both the more
+ * realistic arrangement and the one that keeps frequency and province
+ * independent of each other, which is the whole point of the demonstration.
  */
 const KOTA: ReadonlyArray<readonly [string, string]> = [
-  ['Balikpapan', 'Kalimantan Timur'],
-  ['Samarinda', 'Kalimantan Timur'],
-  ['Bontang', 'Kalimantan Timur'],
-  ['Bandung', 'Jawa Barat'],
-  ['Bekasi', 'Jawa Barat'],
-  ['Depok', 'Jawa Barat'],
-  ['Bogor', 'Jawa Barat'],
+  ['Jakarta Timur', 'DKI Jakarta'],
   ['Surabaya', 'Jawa Timur'],
-  ['Malang', 'Jawa Timur'],
-  ['Kediri', 'Jawa Timur'],
-  ['Semarang', 'Jawa Tengah'],
-  ['Surakarta', 'Jawa Tengah'],
-  ['Yogyakarta', 'DI Yogyakarta'],
-  ['Denpasar', 'Bali'],
+  ['Bekasi', 'Jawa Barat'],
+  ['Bandung', 'Jawa Barat'],
+  ['Jakarta Barat', 'DKI Jakarta'],
   ['Medan', 'Sumatera Utara'],
-  ['Binjai', 'Sumatera Utara'],
-  ['Padang', 'Sumatera Barat'],
-  ['Pekanbaru', 'Riau'],
+  ['Jakarta Selatan', 'DKI Jakarta'],
+  ['Depok', 'Jawa Barat'],
+  ['Tangerang', 'Banten'],
+  ['Jakarta Utara', 'DKI Jakarta'],
   ['Palembang', 'Sumatera Selatan'],
-  ['Bandar Lampung', 'Lampung'],
-  ['Pontianak', 'Kalimantan Barat'],
-  ['Banjarmasin', 'Kalimantan Selatan'],
-  ['Palangka Raya', 'Kalimantan Tengah'],
-  ['Tarakan', 'Kalimantan Utara'],
+  ['Semarang', 'Jawa Tengah'],
   ['Makassar', 'Sulawesi Selatan'],
+  ['Bogor', 'Jawa Barat'],
+  ['Jakarta Pusat', 'DKI Jakarta'],
+  ['Pekanbaru', 'Riau'],
+  ['Bandar Lampung', 'Lampung'],
+  ['Padang', 'Sumatera Barat'],
+  ['Malang', 'Jawa Timur'],
+  ['Samarinda', 'Kalimantan Timur'],
+  ['Denpasar', 'Bali'],
+  ['Banjarmasin', 'Kalimantan Selatan'],
+  ['Serang', 'Banten'],
+  ['Balikpapan', 'Kalimantan Timur'],
+  ['Pontianak', 'Kalimantan Barat'],
+  ['Jambi', 'Jambi'],
+  ['Surakarta', 'Jawa Tengah'],
+  ['Cilegon', 'Banten'],
   ['Manado', 'Sulawesi Utara'],
-  ['Palu', 'Sulawesi Tengah'],
-  ['Kendari', 'Sulawesi Tenggara'],
-  ['Gorontalo', 'Gorontalo'],
-  ['Mamuju', 'Sulawesi Barat'],
-  ['Ambon', 'Maluku'],
-  ['Ternate', 'Maluku Utara'],
-  ['Jayapura', 'Papua'],
-  ['Manokwari', 'Papua Barat'],
-  ['Sorong', 'Papua Barat Daya'],
   ['Mataram', 'Nusa Tenggara Barat'],
   ['Kupang', 'Nusa Tenggara Timur'],
-  ['Serang', 'Banten'],
-  ['Tangerang', 'Banten'],
-  ['Cilegon', 'Banten'],
-  ['Jakarta Pusat', 'DKI Jakarta'],
-  ['Jakarta Selatan', 'DKI Jakarta'],
-  ['Jakarta Timur', 'DKI Jakarta'],
-  ['Jakarta Barat', 'DKI Jakarta'],
-  ['Jakarta Utara', 'DKI Jakarta'],
-  ['Banda Aceh', 'Aceh'],
-  ['Jambi', 'Jambi'],
   ['Bengkulu', 'Bengkulu'],
+  ['Jayapura', 'Papua'],
+  ['Palu', 'Sulawesi Tengah'],
+  ['Yogyakarta', 'DI Yogyakarta'],
+  ['Ambon', 'Maluku'],
+  ['Kendari', 'Sulawesi Tenggara'],
+  ['Palangka Raya', 'Kalimantan Tengah'],
+  ['Kediri', 'Jawa Timur'],
+  ['Binjai', 'Sumatera Utara'],
+  ['Sorong', 'Papua Barat Daya'],
+  ['Banda Aceh', 'Aceh'],
+  ['Tarakan', 'Kalimantan Utara'],
   ['Tanjung Pinang', 'Kepulauan Riau'],
+  ['Gorontalo', 'Gorontalo'],
+  ['Ternate', 'Maluku Utara'],
+  ['Manokwari', 'Papua Barat'],
+  ['Bontang', 'Kalimantan Timur'],
+  ['Mamuju', 'Sulawesi Barat'],
 ] as const;
 
 const PROVINSI_INDEX = new Map<string, number>(PROVINSI.map(([name], i) => [name, i]));

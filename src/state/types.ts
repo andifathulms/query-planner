@@ -46,14 +46,22 @@ export const INSTRUMENTS: Array<{ id: InstrumentId; label: string }> = [
  */
 export const EXAMPLE_QUERY = `SELECT k.nama, k.penduduk
 FROM kelurahan k
-WHERE k.kota = 'Balikpapan'
-  AND k.provinsi = 'Kalimantan Timur'`;
+WHERE k.kota = 'Kupang'
+  AND k.provinsi = 'Nusa Tenggara Timur'`;
 
 export const EXAMPLES: Array<{ label: string; sql: string; note: string }> = [
   {
     label: 'correlated predicates',
     sql: EXAMPLE_QUERY,
-    note: 'Two predicates that are not independent. The estimate is wrong by two orders of magnitude until a multivariate statistic exists.',
+    note: 'Each predicate matches about one row in a hundred, so independence predicts one in ten thousand. The truth is one in a hundred, because the second condition adds nothing once the first holds.',
+  },
+  {
+    label: 'the same error, damped',
+    sql: `SELECT k.nama, k.penduduk
+FROM kelurahan k
+WHERE k.kota = 'Balikpapan'
+  AND k.provinsi = 'Kalimantan Timur'`,
+    note: 'Kalimantan Timur holds three cities rather than one, so knowing the city still narrows the province but does not fix it. The same failure, an order of magnitude smaller.',
   },
   {
     label: 'the lattice, six tables',

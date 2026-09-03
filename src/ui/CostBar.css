@@ -28,7 +28,13 @@
 .cost-slider.is-wide { flex: 2 1 240px; }
 
 .cost-slider-label { grid-area: label; color: var(--ink-mid); }
-.cost-slider-value { grid-area: value; font-size: var(--t-small-size); color: var(--ink-mid); }
+.cost-slider-value {
+  grid-area: value;
+  font-size: var(--t-small-size);
+  color: var(--ink-mid);
+  /* A byte count must not wrap onto a second line and shift the track. */
+  white-space: nowrap;
+}
 .cost-slider-value.is-changed { color: var(--ink); font-weight: 500; }
 
 .cost-slider-track { grid-area: track; position: relative; display: block; padding-bottom: 10px; }

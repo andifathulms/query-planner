@@ -37,7 +37,15 @@ export interface ExecutionResult {
 export interface ExecuteOptions {
   params: CostParams;
   clock?: Clock;
-  /** Stop after this many result rows. A guard for the interface, not for SQL. */
+  /**
+   * Materialise at most this many result rows.
+   *
+   * A display cap, not a LIMIT: the plan still runs to completion, because the
+   * actual row count at every node is the number the whole app is comparing
+   * against. Stopping the pipeline here would cap the actuals too, and the plan
+   * tree would report an error ratio computed against the cap rather than
+   * against the truth.
+   */
   maxRows?: number;
 }
 
@@ -53,6 +61,7 @@ export function execute(
   const projection = builder.projection(root.layout);
 
   const rows: Value[][] = [];
+  const cap = options.maxRows ?? Infinity;
   let produced = 0;
   root.open();
   try {
@@ -60,8 +69,9 @@ export function execute(
       const row = root.next();
       if (row === null) break;
       produced++;
-      rows.push(projection.evaluate(row));
-      if (options.maxRows !== undefined && rows.length >= options.maxRows) break;
+      // Past the cap the row is counted and discarded. The pipeline keeps
+      // running so every node's instrumentation describes the whole execution.
+      if (rows.length < cap) rows.push(projection.evaluate(row));
     }
   } finally {
     root.close();
