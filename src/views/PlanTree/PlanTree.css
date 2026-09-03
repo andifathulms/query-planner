@@ -1,13 +1,20 @@
+/* The verdict sits beneath the tree rather than beside it, so the tree gets the
+ * full width it needs and the finding gets a full-width frame (DESIGN.md §4.1). */
 .plan-tree {
   display: flex;
-  gap: var(--s4);
-  align-items: flex-start;
+  flex-direction: column;
+  gap: var(--s3);
+  align-items: stretch;
 }
 
 .plan-tree-canvas {
   flex: 1 1 auto;
   min-width: 0;
-  padding-bottom: var(--s1);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  background: var(--surface-sunken);
+  border-radius: var(--r-panel);
+  padding: var(--s2);
 }
 
 .plan-tree-svg { display: block; }
@@ -24,38 +31,45 @@
 
 .plan-node { cursor: pointer; }
 /* §6.6: no hover transitions. The budget is the lattice fill and the recovery. */
-.plan-node:hover .plan-node-box { fill: var(--bg); }
+.plan-node:hover .plan-node-box { fill: var(--surface-raised); }
 .plan-node.is-selected .plan-node-box { stroke-width: 2; }
 
 .plan-node-title { fill: var(--ink); font-weight: 500; }
 .plan-node-sub { fill: var(--ink-mid); }
 .plan-node-ratio { fill: var(--ink-mid); text-anchor: end; }
 
-.plan-tree-ratio {
-  flex: 0 0 208px;
-  padding-top: var(--s2);
+/* The verdict block. The winner is drawn in ink; the ratio is not a colour, it
+ * is a number. An under-estimate takes the leading border in --warn, because
+ * those are the ones that produce the nested loop disaster (DESIGN.md §5.2). */
+.plan-tree-verdict {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s3);
+  padding: var(--s2) var(--s3);
+  border-left: 3px solid var(--line-strong);
+  border-radius: 0 var(--r-panel) var(--r-panel) 0;
+  background: var(--surface-sunken);
+}
+.plan-tree-verdict.is-under { border-left-color: var(--warn); }
+
+.plan-tree-verdict-figure { flex: 0 0 auto; color: var(--ink); }
+.plan-tree-verdict.is-under .plan-tree-verdict-figure { color: var(--warn); }
+
+.plan-tree-verdict-body {
+  flex: 1 1 auto;
+  min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--s1);
+  gap: var(--s0);
 }
-
-/* The winner is drawn in ink; the ratio is not a colour, it is a number. An
- * under-estimate carries a warn marker because those are the ones that produce
- * the nested loop disaster (DESIGN.md §5.2). */
-.plan-tree-ratio .t-display { color: var(--ink); }
-.plan-tree-ratio .t-display.is-under { color: var(--warn); }
 .plan-tree-warn { color: var(--warn); }
 
-@media (max-width: 900px) {
-  .plan-tree { flex-direction: column; gap: var(--s2); }
-  .plan-tree-ratio { flex: none; padding-top: 0; }
-}
-
 /* At 380 px the display figure would take a third of the screen. It drops to the
- * figure size; the spans keep their width, because the gap between believed and
- * true is the thing that must stay legible. */
+ * figure size and the block stacks; the spans keep their width, because the gap
+ * between believed and true is the thing that must stay legible. */
 @media (max-width: 560px) {
-  .plan-tree-ratio .t-display {
+  .plan-tree-verdict { flex-direction: column; gap: var(--s1); padding: var(--s2); }
+  .plan-tree-verdict-figure {
     font-size: var(--t-figure-size);
     line-height: var(--t-figure-lh);
   }

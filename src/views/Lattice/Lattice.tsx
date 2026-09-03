@@ -48,9 +48,13 @@ export function Lattice({ planning, selectedKey, onSelect, fill }: LatticeProps)
 
   return (
     <div className="lattice">
-      <div className="lattice-levels">
-        {/* Level 1 at the bottom, so the search reads upward as it builds. */}
-        {[...levels].reverse().map((cells) => (
+      {/* The diagram sits on a sunken canvas: drawn straight onto panel ground
+          it has no edge and no floor (DESIGN.md §4.5). */}
+      <div className="lattice-levels canvas">
+        {/* Level 1 at the bottom, so the search reads upward as it builds — done
+            with column-reverse rather than by reversing the array, so the reading
+            order and the tab order run in the same direction the search does. */}
+        {levels.map((cells) => (
           <Level
             key={cells[0].level}
             cells={cells}
@@ -232,20 +236,20 @@ function Controls({
   return (
     <div className="lattice-controls">
       <div className="lattice-buttons">
-        <button type="button" onClick={fill.playing ? fill.pause : fill.play} className="t-small">
+        <button type="button" onClick={fill.playing ? fill.pause : fill.play} className="control">
           {fill.playing ? 'pause' : fill.complete ? 'replay' : 'play'}
         </button>
-        <button type="button" onClick={fill.stepCell} className="t-small" disabled={fill.complete}>
+        <button type="button" onClick={fill.stepCell} className="control" disabled={fill.complete}>
           step cell
         </button>
-        <button type="button" onClick={fill.stepLevel} className="t-small" disabled={fill.complete}>
+        <button type="button" onClick={fill.stepLevel} className="control" disabled={fill.complete}>
           step level
         </button>
-        <button type="button" onClick={fill.finish} className="t-small" disabled={fill.complete}>
+        <button type="button" onClick={fill.finish} className="control" disabled={fill.complete}>
           fill
         </button>
       </div>
-      <p className="t-small lattice-status" role="status">
+      <p className="lattice-status t-data" role="status">
         {fill.complete
           ? `${exact(planning.stats.filledSubsets)} of ${exact(planning.stats.subsets)} subsets · `
             + `${exact(planning.stats.candidates)} candidates · `

@@ -71,7 +71,7 @@ export function PlanTree({ plan, stats, selectedId, onSelect }: PlanTreeProps) {
                 key={`edge-${n.plan.id}`}
                 d={edgePath(n)}
                 fill="none"
-                stroke="var(--rule)"
+                stroke="var(--line)"
                 strokeWidth={1}
               />
             ))}
@@ -92,27 +92,29 @@ export function PlanTree({ plan, stats, selectedId, onSelect }: PlanTreeProps) {
       </div>
 
       {ratio && (
-        <div className="plan-tree-ratio">
-          {/* The app's one piece of typographic drama: the root's error ratio,
-              set large, in ink, beside the tree. */}
-          <div
-            className={`t-display${ratio.direction === 'under' ? ' is-under' : ''}`}
-            aria-hidden="true"
-          >
+        /* The verdict block (DESIGN.md §4.1, §5.2). The finding gets a frame:
+           the ratio at display size, the direction in words, and the assumption
+           that produced it named. Bordered on the leading edge only, in --warn
+           when the estimate was low, so it reads as a verdict rather than as one
+           more card. */
+        <div className={`plan-tree-verdict${ratio.direction === 'under' ? ' is-under' : ''}`}>
+          <div className="t-display plan-tree-verdict-figure" aria-hidden="true">
             {ratio.label}
           </div>
-          <p className="t-small">
-            {ratio.direction === 'exact'
-              ? 'The root estimate matched the actual row count.'
-              : `The root ${directionWord(ratio.direction)} by ${ratio.label}: `
-                + `${exact(plan.estimatedRows)} estimated, ${exact(rootStats!.actualRows)} actual.`}
-          </p>
-          {ratio.direction === 'under' && (
-            <p className="t-small plan-tree-warn">
-              An under-estimate is the dangerous direction. It is what makes a planner
-              choose a nested loop it cannot afford.
+          <div className="plan-tree-verdict-body">
+            <p className="t-body">
+              {ratio.direction === 'exact'
+                ? 'The root estimate matched the actual row count.'
+                : `The root ${directionWord(ratio.direction)} by ${ratio.label}: `
+                  + `${exact(plan.estimatedRows)} estimated, ${exact(rootStats!.actualRows)} actual.`}
             </p>
-          )}
+            {ratio.direction === 'under' && (
+              <p className="t-small plan-tree-warn">
+                An under-estimate is the dangerous direction. It is what makes a planner
+                choose a nested loop it cannot afford.
+              </p>
+            )}
+          </div>
         </div>
       )}
     </div>
