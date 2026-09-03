@@ -1,9 +1,16 @@
 /*
  * Design tokens (DESIGN.md §2–§4).
  *
- * The whole palette rests on one idea: every quantity in this app exists twice,
- * as what the planner believed and as what turned out to be true. Two colours
- * carry that distinction and everything else is neutral.
+ * Two rules govern this file and nothing else in the app is allowed to break
+ * them:
+ *
+ *   1. Every colour is defined here, semantically, and instantiated once per
+ *      theme. No component stylesheet names a hex value or a theme. A third
+ *      theme would be an addition to this file and nothing else (§8).
+ *   2. The palette rests on one idea: every quantity in this app exists twice,
+ *      as what the planner believed and as what turned out to be true. Two
+ *      colours carry that distinction. Two more exist — order and warn — and
+ *      that is the whole hue budget (§2.3).
  */
 
 /* Geist and Geist Mono, subsetted to Latin and self-hosted — there is no
@@ -39,48 +46,148 @@
   font-weight: 600; font-style: normal; font-display: swap;
 }
 
+/* ═══ Light: the default (§2.1) ═══════════════════════════════════════════
+ * Raised is lighter, sunken is darker. That holds in both themes, so the
+ * reader learns depth once. */
 :root {
-  /* ── Ground (§2.1). Cool rather than warm: a schematic on drafting stock. ── */
-  --stock: #edeff1;
-  --stock-panel: #f6f7f8;
-  --stock-deep: #e0e3e6;
-  --ink: #15181b;
-  --ink-mid: #565d64;
-  --ink-faint: #98a0a7;
-  --rule: #cbd0d5;
+  color-scheme: light;
 
-  /* ── The two colours (§2.2) ────────────────────────────────────────────── */
-  --believed: #4a6fa5;
-  --true: #b5622f;
+  --bg: #e7eaee;
+  --surface: #f7f8fa;
+  --surface-raised: #ffffff;
+  --surface-sunken: #dde1e6;
 
-  /* ── Everything else (§2.3) ────────────────────────────────────────────── */
-  --winner: #15181b;
-  --pruned: #98a0a7;
-  --order: #5c7f6b;
-  --warn: #c04a2e;
+  --ink: #12161a;
+  --ink-mid: #5a626b;
+  --ink-faint: #8b949d;
 
+  --line: #c9cfd6;
+  --line-strong: #a8b1ba;
+
+  /* The two colours (§2.2). Lifted in chroma from revision 1, where both read
+   * as greys at a 1.5 px stroke on a light field. */
+  --believed: #3b6fb6;
+  --true: #b45c22;
+
+  /* The rest of the hue budget (§2.3). */
+  --winner: #12161a;
+  --pruned: #8b949d;
+  --order: #3f7d63;
+  --warn: #c0432a;
+  --focus: #3b6fb6;
+
+  /* The gap fill sits over a light ground and wants a little more than it did. */
+  --gap-opacity: 0.14;
+
+  /* Elevation (§2.5). Near-invisible, and still stopping a hairline box from
+   * reading as a table cell. */
+  --shadow-panel: 0 1px 2px rgb(18 22 26 / 0.04), 0 1px 1px rgb(18 22 26 / 0.03);
+  --shadow-raised: 0 4px 12px rgb(18 22 26 / 0.08), 0 1px 3px rgb(18 22 26 / 0.06);
+}
+
+/* ═══ Dark ════════════════════════════════════════════════════════════════
+ * A dimmed instrument panel, not a terminal: `#101317` rather than black,
+ * `#edf0f3` rather than white. Pure black under pure white is the halation
+ * that makes dark interfaces tiring, and this one is read for an hour. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+
+    --bg: #101317;
+    --surface: #191d22;
+    --surface-raised: #20252b;
+    --surface-sunken: #0b0e11;
+
+    --ink: #edf0f3;
+    --ink-mid: #9aa4ae;
+    --ink-faint: #69737d;
+
+    --line: #2c333a;
+    --line-strong: #3d454e;
+
+    /* Lighter rather than the same colours on a dark ground: a mid-tone stroke
+     * on `#191d22` disappears. */
+    --believed: #7aa5e8;
+    --true: #e8974a;
+
+    --winner: #edf0f3;
+    --pruned: #69737d;
+    --order: #5fbe92;
+    --warn: #f0785a;
+    --focus: #7aa5e8;
+
+    --gap-opacity: 0.2;
+
+    --shadow-panel: 0 1px 2px rgb(0 0 0 / 0.4);
+    --shadow-raised: 0 6px 20px rgb(0 0 0 / 0.5);
+  }
+}
+
+/* The explicit choice wins in both directions (§2.4). */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --bg: #101317;
+  --surface: #191d22;
+  --surface-raised: #20252b;
+  --surface-sunken: #0b0e11;
+
+  --ink: #edf0f3;
+  --ink-mid: #9aa4ae;
+  --ink-faint: #69737d;
+
+  --line: #2c333a;
+  --line-strong: #3d454e;
+
+  --believed: #7aa5e8;
+  --true: #e8974a;
+
+  --winner: #edf0f3;
+  --pruned: #69737d;
+  --order: #5fbe92;
+  --warn: #f0785a;
+  --focus: #7aa5e8;
+
+  --gap-opacity: 0.2;
+
+  --shadow-panel: 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow-raised: 0 6px 20px rgb(0 0 0 / 0.5);
+}
+
+:root {
   /* ── Type (§3) ─────────────────────────────────────────────────────────── */
   --sans: 'Geist', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --mono: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
 
-  --t-display-size: 34px;   --t-display-lh: 1.05;  --t-display-weight: 600;
-  --t-figure-size: 22px;    --t-figure-lh: 1.1;    --t-figure-weight: 600;
-  --t-h2-size: 17px;        --t-h2-lh: 1.3;        --t-h2-weight: 600;
-  --t-sql-size: 14px;       --t-sql-lh: 1.6;
+  /* Seven steps, each one visibly a step. Revision 1 had four crowded into
+   * 10–14 px that were not distinguishable in use (§3.1). */
+  --t-display-size: 40px;   --t-display-lh: 1.0;   --t-display-weight: 600;
+  --t-figure-size: 24px;    --t-figure-lh: 1.1;    --t-figure-weight: 600;
+  --t-h2-size: 15px;        --t-h2-lh: 1.3;        --t-h2-weight: 600;
   --t-body-size: 14px;      --t-body-lh: 1.55;
   --t-data-size: 12.5px;    --t-data-lh: 1.45;
-  --t-small-size: 11.5px;   --t-small-lh: 1.35;
+  --t-label-size: 11.5px;   --t-label-lh: 1.35;    --t-label-weight: 500;
   --t-micro-size: 10px;     --t-micro-lh: 1.2;     --t-micro-weight: 500;
 
-  /* ── Grid and rhythm (§4.4). Tighter than the other apps: density is the
-   *    design. ─────────────────────────────────────────────────────────────── */
+  /* The SQL input reads at body size in mono. */
+  --t-sql-size: 13.5px;     --t-sql-lh: 1.65;
+
+  /* ── Grid and rhythm (§4.5). The 4 px step is for the inside of controls. ─ */
+  --s0: 4px;
   --s1: 8px;
   --s2: 12px;
   --s3: 16px;
   --s4: 24px;
   --s5: 40px;
   --s6: 64px;
-  --radius: 2px;
+
+  /* Three radii and no more: panels are large and want one you can see,
+   * controls are small and want one you can barely see. */
+  --r-control: 4px;
+  --r-panel: 8px;
+  --r-full: 999px;
+
+  --measure: 1680px;
 
   /* ── Motion (§6.2) ─────────────────────────────────────────────────────── */
   --ease-out: cubic-bezier(0.32, 0.72, 0, 1);
@@ -92,6 +199,7 @@
   --d-recovery: 700ms;
   --d-tab: 220ms;
   --d-popover: 140ms;
+  --d-control: 120ms;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -100,7 +208,7 @@ html { -webkit-text-size-adjust: 100%; }
 
 body {
   margin: 0;
-  background: var(--stock);
+  background: var(--bg);
   color: var(--ink);
   font-family: var(--sans);
   font-size: var(--t-body-size);
@@ -110,7 +218,7 @@ body {
 
 /* Values update on every frame of a cost-slider drag; proportional figures
  * would make the whole interface shimmer (§3.1). */
-code, pre, kbd, samp, .mono, input[type='text'], textarea {
+code, pre, kbd, samp, .mono, input[type='text'], input[type='number'], textarea {
   font-family: var(--mono);
   font-variant-numeric: tabular-nums;
 }
@@ -119,8 +227,10 @@ h1, h2, h3 { margin: 0; font-weight: 600; }
 p { margin: 0; }
 button { font: inherit; color: inherit; }
 
+/* Never removed, never replaced by a colour change — including on SVG lattice
+ * cells and plan nodes (§4.6). */
 :focus-visible {
-  outline: 2px solid var(--believed);
+  outline: 2px solid var(--focus);
   outline-offset: 2px;
 }
 
@@ -128,12 +238,12 @@ button { font: inherit; color: inherit; }
 .t-display {
   font-family: var(--mono); font-size: var(--t-display-size);
   line-height: var(--t-display-lh); font-weight: var(--t-display-weight);
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: tabular-nums; letter-spacing: -0.02em;
 }
 .t-figure {
   font-family: var(--mono); font-size: var(--t-figure-size);
   line-height: var(--t-figure-lh); font-weight: var(--t-figure-weight);
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: tabular-nums; letter-spacing: -0.01em;
 }
 .t-h2 {
   font-family: var(--sans); font-size: var(--t-h2-size);
@@ -144,16 +254,37 @@ button { font: inherit; color: inherit; }
   font-family: var(--mono); font-size: var(--t-data-size);
   line-height: var(--t-data-lh); font-variant-numeric: tabular-nums;
 }
-.t-small { font-size: var(--t-small-size); line-height: var(--t-small-lh); color: var(--ink-mid); }
+.t-small {
+  font-family: var(--sans); font-size: var(--t-label-size);
+  line-height: var(--t-label-lh); color: var(--ink-mid);
+}
+.t-label {
+  font-family: var(--sans); font-size: var(--t-label-size);
+  line-height: var(--t-label-lh); font-weight: var(--t-label-weight);
+  color: var(--ink-mid);
+}
 .t-micro {
   font-family: var(--mono); font-size: var(--t-micro-size);
   line-height: var(--t-micro-lh); font-weight: var(--t-micro-weight);
   font-variant-numeric: tabular-nums;
 }
 
+/* §3.2: a landmark rather than a label. One word, found rather than read,
+ * which is why the ban on all-caps does not apply to it. */
+.eyebrow {
+  font-family: var(--sans);
+  font-size: var(--t-micro-size);
+  line-height: 1;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+
 /* ── The paired encoding (§2.2) ───────────────────────────────────────────────
  * Believed is hollow and dashed; true is solid and filled. A reader with no
- * colour vision still reads proposed against measured, at 3 px and in print. */
+ * colour vision still reads proposed against measured, at 3 px, in either
+ * theme, and in print. */
 .mark-believed {
   fill: none;
   stroke: var(--believed);
@@ -167,17 +298,26 @@ button { font: inherit; color: inherit; }
 /* The gap is filled in the colour of whichever side is wrong. An under-estimate
  * is the dangerous one — it is what makes a planner choose a nested loop it
  * cannot afford — so the two look different. */
-.gap-under { fill: var(--believed); opacity: 0.12; }
-.gap-over { fill: var(--true); opacity: 0.12; }
+.gap-under { fill: var(--believed); opacity: var(--gap-opacity); }
+.gap-over { fill: var(--true); opacity: var(--gap-opacity); }
 
-/* ── Panels: raised by value with a hairline, not by shadow (§4.4) ────────── */
+/* ── Panels (§4.5) ────────────────────────────────────────────────────────── */
 .panel {
-  background: var(--stock-panel);
-  border: 1px solid var(--rule);
-  border-radius: var(--radius);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-panel);
+  box-shadow: var(--shadow-panel);
 }
 
-.rule { border: 0; border-top: 1px solid var(--rule); margin: 0; }
+/* A diagram sits on a sunken canvas inside its panel. The value step is the
+ * border; a lattice drawn directly on panel ground has no edge and no floor. */
+.canvas {
+  background: var(--surface-sunken);
+  border-radius: var(--r-panel);
+  padding: var(--s2);
+}
+
+.rule { border: 0; border-top: 1px solid var(--line); margin: 0; }
 
 /* Wide content scrolls inside its own container; the page never scrolls
  * horizontally. */

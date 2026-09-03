@@ -7,7 +7,7 @@
 .trace.is-nested {
   margin-left: var(--s2);
   padding-left: var(--s2);
-  border-left: 1px solid var(--rule);
+  border-left: 1px solid var(--line);
 }
 
 .trace-head { display: flex; align-items: baseline; gap: var(--s1); flex-wrap: wrap; }
@@ -16,8 +16,8 @@
 
 .trace-method {
   padding: 1px 5px;
-  border: 1px solid var(--rule);
-  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  border-radius: var(--r-control);
   color: var(--ink-mid);
 }
 /* A method that rests on an assumption the app is arguing about is marked, not

@@ -27,7 +27,7 @@
 .cost-bar-marker { fill: var(--ink); }
 
 /* I/O hatched, CPU solid: separable without spending hue. */
-.term-io { fill: url(#io-hatch); stroke: var(--rule); stroke-width: 0.5; }
+.term-io { fill: url(#io-hatch); stroke: var(--line); stroke-width: 0.5; }
 .term-cpu { fill: var(--ink-faint); }
 .cost-bar-row.is-winner .term-cpu { fill: var(--ink-mid); }
 

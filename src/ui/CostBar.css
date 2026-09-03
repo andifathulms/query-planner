@@ -3,8 +3,8 @@
   align-items: flex-end;
   gap: var(--s3);
   padding: var(--s2) var(--s3);
-  background: var(--stock-panel);
-  border-top: 1px solid var(--rule);
+  background: var(--surface);
+  border-top: 1px solid var(--line);
 }
 
 .cost-bar-sliders {
@@ -30,7 +30,7 @@
 .cost-slider-label { grid-area: label; color: var(--ink-mid); }
 .cost-slider-value {
   grid-area: value;
-  font-size: var(--t-small-size);
+  font-size: var(--t-label-size);
   color: var(--ink-mid);
   /* A byte count must not wrap onto a second line and shift the track. */
   white-space: nowrap;
@@ -84,8 +84,8 @@
     flex: 0 0 auto;
     padding: 4px var(--s2);
     background: transparent;
-    border: 1px solid var(--rule);
-    border-radius: var(--radius);
+    border: 1px solid var(--line);
+    border-radius: var(--r-control);
     color: var(--ink-mid);
     cursor: pointer;
   }
@@ -95,8 +95,8 @@
   flex: 0 0 auto;
   padding: 4px var(--s2);
   background: transparent;
-  border: 1px solid var(--rule);
-  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  border-radius: var(--r-control);
   color: var(--ink-mid);
   cursor: pointer;
 }

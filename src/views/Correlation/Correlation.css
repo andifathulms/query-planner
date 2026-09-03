@@ -8,7 +8,7 @@
 .correlation-hint { color: var(--ink-faint); }
 
 .correlation-plot svg { display: block; }
-.correlation-field { fill: var(--stock); stroke: var(--rule); }
+.correlation-field { fill: var(--surface-sunken); stroke: var(--line); }
 .correlation-axis { fill: var(--ink-mid); }
 
 /* Points at low opacity so density reads (DESIGN.md §5.3). */

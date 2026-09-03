@@ -6,8 +6,8 @@
 .plan-detail-close {
   padding: 1px var(--s1);
   background: transparent;
-  border: 1px solid var(--rule);
-  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  border-radius: var(--r-control);
   color: var(--ink-mid);
   cursor: pointer;
 }
@@ -29,8 +29,8 @@
 .plan-detail-kind {
   flex: 0 0 auto;
   padding: 0 4px;
-  border: 1px solid var(--rule);
-  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  border-radius: var(--r-control);
   color: var(--ink-faint);
 }
 .plan-detail-kind.io { border-style: dashed; }

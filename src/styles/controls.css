@@ -1,0 +1,177 @@
+/*
+ * The control vocabulary (DESIGN.md §4.6).
+ *
+ * One set, defined once, used everywhere. Revision 1 had six near-identical
+ * copies of a chip button spread across six stylesheets, which is how three of
+ * them ended up with different padding. Nothing below is themed: every rule
+ * reads a semantic token from tokens.css.
+ */
+
+/* ── The chip button ──────────────────────────────────────────────────────── */
+.control {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s0);
+  min-height: 26px;
+  padding: 0 var(--s1);
+  font-family: var(--sans);
+  font-size: var(--t-label-size);
+  line-height: var(--t-label-lh);
+  font-weight: var(--t-label-weight);
+  color: var(--ink-mid);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r-control);
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    color var(--d-control) var(--ease-inout),
+    border-color var(--d-control) var(--ease-inout),
+    background-color var(--d-control) var(--ease-inout);
+}
+
+.control:not(:disabled):hover {
+  color: var(--ink);
+  border-color: var(--line-strong);
+}
+
+/* Pressed and active are the same shape: lifted out of the ground it sits on. */
+.control[aria-pressed='true'],
+.control.is-active {
+  color: var(--ink);
+  background: var(--surface-raised);
+  border-color: var(--line-strong);
+}
+
+.control:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* For dense clusters, where six bordered chips in a row would read as a fence. */
+.control-quiet {
+  background: transparent;
+  border-color: transparent;
+}
+.control-quiet:not(:disabled):hover {
+  background: var(--surface);
+  border-color: var(--line);
+}
+
+/* ── Fields: text, number, and select ─────────────────────────────────────── */
+.field {
+  min-height: 26px;
+  padding: 0 var(--s1);
+  font-family: var(--mono);
+  font-size: var(--t-label-size);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  background: var(--surface-sunken);
+  border: 1px solid var(--line);
+  border-radius: var(--r-control);
+  transition: border-color var(--d-control) var(--ease-inout);
+}
+.field:hover { border-color: var(--line-strong); }
+
+/* A select is a field that behaves like a control: it opens something. */
+select.field { cursor: pointer; padding-right: var(--s0); }
+
+textarea.field {
+  width: 100%;
+  padding: var(--s2);
+  font-size: var(--t-sql-size);
+  line-height: var(--t-sql-lh);
+  resize: vertical;
+  tab-size: 2;
+}
+
+.field[aria-invalid='true'] { border-color: var(--warn); }
+
+/* ── Range: the app's continuous control ──────────────────────────────────── */
+.range {
+  width: 100%;
+  height: 16px;
+  margin: 0;
+  background: transparent;
+  accent-color: var(--ink);
+  cursor: pointer;
+}
+
+/* ── Checkbox ─────────────────────────────────────────────────────────────── */
+.checkbox { accent-color: var(--ink); }
+
+/* ── The panel head: eyebrow, heading, and a right-aligned meta slot ───────── */
+.panel-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s2);
+  margin-bottom: var(--s2);
+  min-width: 0;
+}
+
+.panel-head-title {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s1);
+  min-width: 0;
+}
+
+/* The eyebrow sits on the heading's baseline rather than above it: stacked, it
+ * would cost a line of height on every one of eight panels. */
+.panel-head .eyebrow { flex: 0 0 auto; }
+
+.panel-head-meta {
+  flex: 0 1 auto;
+  display: flex;
+  align-items: baseline;
+  gap: var(--s2);
+  min-width: 0;
+  color: var(--ink-mid);
+  font-size: var(--t-label-size);
+  text-align: right;
+}
+
+/* ── A disclosure that reads as a control rather than as a browser default ── */
+.disclosure > summary {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s0);
+  cursor: pointer;
+  color: var(--ink-mid);
+  font-size: var(--t-label-size);
+  font-weight: var(--t-label-weight);
+  list-style: none;
+  transition: color var(--d-control) var(--ease-inout);
+}
+.disclosure > summary::-webkit-details-marker { display: none; }
+.disclosure > summary::before {
+  content: '';
+  width: 0; height: 0;
+  border: 3.5px solid transparent;
+  border-left-color: currentColor;
+  transition: transform var(--d-control) var(--ease-inout);
+}
+.disclosure[open] > summary::before { transform: rotate(90deg) translateX(1px); }
+.disclosure > summary:hover { color: var(--ink); }
+
+/* ── Dense data tables, which appear in a dozen places ────────────────────── */
+.grid-table { border-collapse: collapse; width: 100%; }
+.grid-table th,
+.grid-table td {
+  text-align: left;
+  padding: var(--s0) var(--s1);
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+.grid-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--surface);
+  color: var(--ink-mid);
+  font-family: var(--sans);
+  font-size: var(--t-label-size);
+  font-weight: var(--t-label-weight);
+}
+.grid-table tbody tr:last-child > * { border-bottom: 0; }

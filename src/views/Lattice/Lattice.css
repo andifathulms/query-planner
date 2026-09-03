@@ -18,20 +18,20 @@
 /* §6.6: no hover transitions on lattice cells. */
 .lattice-cell { cursor: pointer; }
 .lattice-cell-box {
-  fill: var(--stock);
-  stroke: var(--rule);
+  fill: var(--bg);
+  stroke: var(--line);
   stroke-width: 1;
 }
 
 /* Unfilled cells are recessed; filled cells are ink (§5.1). */
-.lattice-cell.is-empty .lattice-cell-box { fill: var(--stock-deep); stroke: var(--stock-deep); }
+.lattice-cell.is-empty .lattice-cell-box { fill: var(--surface-sunken); stroke: var(--surface-sunken); }
 .lattice-cell.is-empty { cursor: default; }
 .lattice-cell.is-empty .lattice-cell-label { fill: var(--ink-faint); }
 
 .lattice-cell.is-resolved .lattice-cell-box { stroke: var(--ink); }
-.lattice-cell.is-selected .lattice-cell-box { stroke-width: 2; fill: var(--stock-panel); }
+.lattice-cell.is-selected .lattice-cell-box { stroke-width: 2; fill: var(--surface); }
 /* The final cell: the winner is not a colour, it is simply drawn fully. */
-.lattice-cell.is-root.is-resolved .lattice-cell-box { fill: var(--stock-panel); stroke-width: 2; }
+.lattice-cell.is-root.is-resolved .lattice-cell-box { fill: var(--surface); stroke-width: 2; }
 
 .lattice-cell-label { fill: var(--ink); font-weight: 500; }
 .lattice-cell-cost { fill: var(--ink-mid); text-anchor: end; }
@@ -54,8 +54,8 @@
 .lattice-buttons button {
   padding: 2px var(--s1);
   background: transparent;
-  border: 1px solid var(--rule);
-  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  border-radius: var(--r-control);
   color: var(--ink-mid);
   cursor: pointer;
 }

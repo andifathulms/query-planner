@@ -20,11 +20,11 @@
 .dataset-seed {
   width: 74px;
   padding: 1px var(--s1);
-  background: var(--stock-panel);
+  background: var(--surface);
   color: var(--ink);
-  border: 1px solid var(--rule);
-  border-radius: var(--radius);
-  font-size: var(--t-small-size);
+  border: 1px solid var(--line);
+  border-radius: var(--r-control);
+  font-size: var(--t-label-size);
 }
 
 .dataset-toggle { display: flex; align-items: center; gap: 6px; color: var(--ink-mid); }

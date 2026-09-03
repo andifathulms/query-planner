@@ -11,18 +11,18 @@
   align-items: baseline;
   gap: var(--s2);
   padding: var(--s2) var(--s3);
-  border-bottom: 1px solid var(--rule);
+  border-bottom: 1px solid var(--line);
 }
 
 .app-tagline { flex: 1 1 auto; min-width: 0; }
 .app-dataset { display: flex; align-items: baseline; gap: var(--s1); color: var(--ink-mid); }
 .app-dataset select {
   font: inherit;
-  font-size: var(--t-small-size);
+  font-size: var(--t-label-size);
   color: var(--ink);
   background: transparent;
-  border: 1px solid var(--rule);
-  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  border-radius: var(--r-control);
   padding: 1px var(--s1);
 }
 
@@ -69,13 +69,13 @@
 .app-grid td {
   text-align: left;
   padding: 2px var(--s1);
-  border-bottom: 1px solid var(--rule);
+  border-bottom: 1px solid var(--line);
   white-space: nowrap;
 }
 .app-grid th {
   position: sticky;
   top: 0;
-  background: var(--stock-panel);
+  background: var(--surface);
   color: var(--ink-mid);
   font-weight: 500;
 }
@@ -126,8 +126,8 @@
 .app-export {
   padding: 1px var(--s1);
   background: transparent;
-  border: 1px solid var(--rule);
-  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  border-radius: var(--r-control);
   color: var(--ink-mid);
   cursor: pointer;
 }

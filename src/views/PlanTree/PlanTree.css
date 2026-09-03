@@ -17,14 +17,14 @@
 
 /* Nodes are drawn in line on panel ground, with no inner card (DESIGN.md §4.4). */
 .plan-node-box {
-  fill: var(--stock-panel);
+  fill: var(--surface);
   stroke: var(--ink);
   stroke-width: 1;
 }
 
 .plan-node { cursor: pointer; }
 /* §6.6: no hover transitions. The budget is the lattice fill and the recovery. */
-.plan-node:hover .plan-node-box { fill: var(--stock); }
+.plan-node:hover .plan-node-box { fill: var(--bg); }
 .plan-node.is-selected .plan-node-box { stroke-width: 2; }
 
 .plan-node-title { fill: var(--ink); font-weight: 500; }

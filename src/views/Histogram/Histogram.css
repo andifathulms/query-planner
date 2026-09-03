@@ -10,11 +10,11 @@
 .histogram-head select {
   font: inherit;
   font-family: var(--mono);
-  font-size: var(--t-small-size);
+  font-size: var(--t-label-size);
   color: var(--ink);
   background: transparent;
-  border: 1px solid var(--rule);
-  border-radius: var(--radius);
+  border: 1px solid var(--line);
+  border-radius: var(--r-control);
   padding: 1px var(--s1);
 }
 .histogram-summary { color: var(--ink-mid); }
@@ -24,11 +24,11 @@
 
 /* Everything is drawn in ink and greys; the predicate's coverage is the one
  * thing that changes value, so it is what the eye goes to. */
-.histogram-mcv { fill: var(--stock-deep); stroke: var(--rule); stroke-width: 0.5; }
-.histogram-bucket { fill: var(--stock-deep); stroke: var(--rule); stroke-width: 0.4; }
+.histogram-mcv { fill: var(--surface-sunken); stroke: var(--line); stroke-width: 0.5; }
+.histogram-bucket { fill: var(--surface-sunken); stroke: var(--line); stroke-width: 0.4; }
 .histogram-mcv.is-covered,
 .histogram-bucket.is-covered { fill: var(--ink-mid); stroke: none; }
-.histogram-null { fill: var(--stock); stroke: var(--ink-faint); stroke-width: 0.5; stroke-dasharray: 2 2; }
+.histogram-null { fill: var(--surface-sunken); stroke: var(--ink-faint); stroke-width: 0.5; stroke-dasharray: 2 2; }
 
 .histogram-comparison { display: flex; flex-direction: column; gap: var(--s1); }
 .histogram-pair { display: flex; align-items: center; gap: var(--s2); flex-wrap: wrap; }
