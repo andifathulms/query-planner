@@ -2,3 +2,6 @@ node_modules
 dist
 .DS_Store
 *.local
+
+# Brand source artboards. The subset the app actually ships lives in public/brand.
+exports
