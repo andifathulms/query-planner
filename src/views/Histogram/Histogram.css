@@ -7,25 +7,20 @@
   gap: var(--s2);
   flex-wrap: wrap;
 }
-.histogram-head select {
-  font: inherit;
-  font-family: var(--mono);
-  font-size: var(--t-label-size);
-  color: var(--ink);
-  background: transparent;
-  border: 1px solid var(--line);
-  border-radius: var(--r-control);
-  padding: 1px var(--s1);
-}
 .histogram-summary { color: var(--ink-mid); }
 
+.histogram-chart {
+  background: var(--surface-sunken);
+  border-radius: var(--r-panel);
+  padding: var(--s2);
+}
 .histogram-chart svg { display: block; }
 .histogram-axis { fill: var(--ink-faint); }
 
 /* Everything is drawn in ink and greys; the predicate's coverage is the one
  * thing that changes value, so it is what the eye goes to. */
-.histogram-mcv { fill: var(--surface-sunken); stroke: var(--line); stroke-width: 0.5; }
-.histogram-bucket { fill: var(--surface-sunken); stroke: var(--line); stroke-width: 0.4; }
+.histogram-mcv { fill: var(--line); stroke: none; }
+.histogram-bucket { fill: var(--line); stroke: var(--surface-sunken); stroke-width: 0.5; }
 .histogram-mcv.is-covered,
 .histogram-bucket.is-covered { fill: var(--ink-mid); stroke: none; }
 .histogram-null { fill: var(--surface-sunken); stroke: var(--ink-faint); stroke-width: 0.5; stroke-dasharray: 2 2; }

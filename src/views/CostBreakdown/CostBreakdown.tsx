@@ -74,7 +74,7 @@ export function CostBreakdown({ cell, fallback }: CostBreakdownProps) {
             {/* A fine hatch rather than a second hue: I/O and CPU must be
                 separable in a screenshot, and hue is spoken for. */}
             <pattern id="io-hatch" width={4} height={4} patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-              <rect width={4} height={4} fill="var(--stock-deep)" />
+              <rect width={4} height={4} fill="var(--surface-sunken)" />
               <line x1={0} y1={0} x2={0} y2={4} stroke="var(--ink-mid)" strokeWidth={1.2} />
             </pattern>
           </defs>

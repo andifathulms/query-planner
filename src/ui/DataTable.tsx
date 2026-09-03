@@ -19,10 +19,10 @@ export interface DataTableProps {
 export function DataTable({ caption, columns, rows, open = false }: DataTableProps) {
   if (rows.length === 0) return null;
   return (
-    <details className="data-table" open={open}>
-      <summary className="t-small">{caption} as a table</summary>
+    <details className="data-table disclosure" open={open}>
+      <summary>{caption} as a table</summary>
       <div className="data-table-scroll scroll-x">
-        <table className="t-data">
+        <table className="grid-table t-data">
           <caption className="visually-hidden">{caption}</caption>
           <thead>
             <tr>{columns.map((c) => <th key={c} scope="col">{c}</th>)}</tr>

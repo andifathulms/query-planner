@@ -93,7 +93,7 @@ export function Sample({
       <div className="sample-controls">
         <label className="t-small">
           <span className="visually-hidden">Table</span>
-          <select value={relation.alias} onChange={(e) => setChosen(e.target.value)}>
+          <select className="field" value={relation.alias} onChange={(e) => setChosen(e.target.value)}>
             {relations.map((r) => (
               <option key={r.alias} value={r.alias}>{r.table} {r.alias}</option>
             ))}
@@ -104,6 +104,7 @@ export function Sample({
           <span>sample size</span>
           <input
             type="range"
+            className="range"
             min={Math.log10(100)}
             max={Math.log10(500_000)}
             step={0.01}

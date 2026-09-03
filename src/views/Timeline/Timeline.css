@@ -1,6 +1,11 @@
 .timeline { display: flex; flex-direction: column; gap: var(--s1); }
 .timeline-empty { color: var(--ink-faint); }
 
+.timeline-tracks {
+  background: var(--surface-sunken);
+  border-radius: var(--r-panel);
+  padding: var(--s2);
+}
 .timeline-tracks svg { display: block; }
 .timeline-label { fill: var(--ink-mid); }
 .timeline-rows { fill: var(--ink-mid); text-anchor: end; }

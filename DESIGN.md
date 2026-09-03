@@ -491,9 +491,11 @@ one overtakes another is visible — that overtake is the plan flip.
 
 ### 5.6 Sample
 
-The table rendered as a dense grid of rows, sampled rows in ink and unsampled rows in
-`--ink-faint`. At a million rows this is a texture rather than a table, which is correct — it
-shows what fraction the statistics actually saw.
+The table rendered as a dense grid of rows on the sunken canvas, sampled rows in `--true` and
+unsampled rows in `--line`. Hue is spent here rather than value, and it is the app's own hue:
+a sampled row is a row the statistics actually measured, which is exactly what `--true`
+means everywhere else. At a million rows this is a texture rather than a table, which is
+correct — it shows what fraction the statistics actually saw.
 
 Beside it, the estimate from the sample and the estimate from a full scan, as a paired span.
 

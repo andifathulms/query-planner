@@ -95,7 +95,7 @@ export function Timeline({ plan, execution }: TimelineProps) {
           ))}
 
           <g transform={`translate(${LABEL_W}, ${tracks.length * TRACK_H})`}>
-            <line x1={0} y1={0} x2="100%" y2={0} stroke="var(--rule)" />
+            <line x1={0} y1={0} x2="100%" y2={0} stroke="var(--line)" />
             <text className="t-micro timeline-axis" x={0} y={12}>0</text>
             <text className="t-micro timeline-axis" x="100%" dx={-4} y={12} textAnchor="end">
               {ms(execution.totalMs)}

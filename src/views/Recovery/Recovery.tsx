@@ -142,7 +142,7 @@ function Group({
                 <span className="t-micro recovery-kind-cost">{bytes(storageFor([kind]))}</span>
                 <button
                   type="button"
-                  className="t-small recovery-action"
+                  className="control recovery-action"
                   onClick={() => (exists ? onDrop([kind]) : onCreate([kind]))}
                 >
                   {exists ? 'drop' : 'create'}

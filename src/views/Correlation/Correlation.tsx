@@ -55,6 +55,7 @@ export function Correlation({
           <span>generator correlation</span>
           <input
             type="range"
+            className="range"
             min={0}
             max={1}
             step={0.01}

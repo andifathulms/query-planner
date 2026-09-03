@@ -36,7 +36,7 @@ export function PlanDetail({ plan, stats, onClose }: PlanDetailProps) {
       <div className="plan-detail-head">
         <OperatorGlyph operator={plan.operator} />
         <h3 className="t-data plan-detail-title">{planLabel(plan)}</h3>
-        <button type="button" className="t-small plan-detail-close" onClick={onClose}>
+        <button type="button" className="control plan-detail-close" onClick={onClose}>
           close
         </button>
       </div>

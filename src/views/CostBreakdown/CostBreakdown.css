@@ -12,7 +12,12 @@
 .cost-breakdown-legend { display: flex; gap: var(--s2); color: var(--ink-mid); }
 .cost-breakdown-legend span { display: inline-flex; align-items: center; gap: 4px; }
 
-.cost-breakdown-bars { position: relative; }
+.cost-breakdown-bars {
+  position: relative;
+  background: var(--surface-sunken);
+  border-radius: var(--r-panel);
+  padding: var(--s2);
+}
 .cost-breakdown-bars svg { display: block; }
 
 /* Bars move rather than redraw, so the moment one overtakes another is visible
@@ -27,8 +32,8 @@
 .cost-bar-marker { fill: var(--ink); }
 
 /* I/O hatched, CPU solid: separable without spending hue. */
-.term-io { fill: url(#io-hatch); stroke: var(--line); stroke-width: 0.5; }
-.term-cpu { fill: var(--ink-faint); }
+.term-io { fill: url(#io-hatch); stroke: var(--line-strong); stroke-width: 0.5; }
+.term-cpu { fill: var(--line-strong); }
 .cost-bar-row.is-winner .term-cpu { fill: var(--ink-mid); }
 
 .cost-breakdown-note { color: var(--ink-faint); max-width: 68ch; }

@@ -3,12 +3,17 @@
 
 .correlation-controls { display: flex; align-items: baseline; gap: var(--s3); flex-wrap: wrap; }
 .correlation-slider { display: flex; align-items: center; gap: var(--s1); color: var(--ink-mid); }
-.correlation-slider input { width: 180px; accent-color: var(--ink); }
+.correlation-slider .range { width: 180px; }
 .correlation-slider output { color: var(--ink); }
 .correlation-hint { color: var(--ink-faint); }
 
+.correlation-plot {
+  background: var(--surface-sunken);
+  border-radius: var(--r-panel);
+  padding: var(--s2);
+}
 .correlation-plot svg { display: block; }
-.correlation-field { fill: var(--surface-sunken); stroke: var(--line); }
+.correlation-field { fill: none; stroke: var(--line); }
 .correlation-axis { fill: var(--ink-mid); }
 
 /* Points at low opacity so density reads (DESIGN.md §5.3). */

@@ -50,7 +50,7 @@ export function Span({ believed, actual, min, max, width, height = 12, label }: 
   return (
     <g className="span" aria-hidden="true">
       {/* The axis itself, so a mark near zero still has something to sit on. */}
-      <line x1={0} y1={mid} x2={width} y2={mid} stroke="var(--rule)" strokeWidth={1} />
+      <line x1={0} y1={mid} x2={width} y2={mid} stroke="var(--line)" strokeWidth={1} />
 
       {a !== null && Math.abs(a - b) > 0.5 && (
         <rect
@@ -84,7 +84,7 @@ export function SpanLegend() {
     <div className="span-legend t-small">
       <svg width={54} height={12} aria-hidden="true">
         <rect className="mark-believed" x={4} y={1.5} width={6} height={9} rx={1} />
-        <line x1={13} y1={6} x2={39} y2={6} stroke="var(--rule)" />
+        <line x1={13} y1={6} x2={39} y2={6} stroke="var(--line)" />
         <rect className="mark-true" x={42} y={2} width={4} height={8} rx={1} />
       </svg>
       <span>estimated</span>

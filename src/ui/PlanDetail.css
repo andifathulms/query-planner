@@ -1,16 +1,19 @@
-.plan-detail { display: flex; flex-direction: column; gap: var(--s1); }
+/* The selected node's trace, on the sunken ground so it reads as opened out of
+ * the tree rather than as another panel. */
+.plan-detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+  margin-top: var(--s2);
+  padding: var(--s2) var(--s3);
+  background: var(--surface-sunken);
+  border-radius: var(--r-panel);
+}
 .plan-detail-empty { color: var(--ink-faint); }
 
 .plan-detail-head { display: flex; align-items: center; gap: var(--s1); }
 .plan-detail-title { flex: 1 1 auto; min-width: 0; }
-.plan-detail-close {
-  padding: 1px var(--s1);
-  background: transparent;
-  border: 1px solid var(--line);
-  border-radius: var(--r-control);
-  color: var(--ink-mid);
-  cursor: pointer;
-}
+.plan-detail-close { flex: 0 0 auto; }
 .plan-detail-note { color: var(--ink-mid); max-width: 68ch; }
 
 .plan-detail-figures { display: flex; flex-wrap: wrap; gap: var(--s1) var(--s3); margin: var(--s1) 0 0; }

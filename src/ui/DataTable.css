@@ -1,25 +1,11 @@
 .data-table { margin-top: var(--s2); }
-.data-table > summary {
-  cursor: pointer;
-  color: var(--ink-mid);
-  padding: 2px 0;
+.data-table-scroll {
+  max-height: 260px;
+  overflow: auto;
+  margin-top: var(--s1);
+  background: var(--surface-sunken);
+  border-radius: var(--r-panel);
+  padding: 0 var(--s1);
 }
-.data-table > summary:hover { color: var(--ink); }
-
-.data-table-scroll { max-height: 260px; overflow-y: auto; margin-top: var(--s1); }
-.data-table table { border-collapse: collapse; width: 100%; }
-.data-table th,
-.data-table td {
-  text-align: left;
-  padding: 2px var(--s1);
-  border-bottom: 1px solid var(--line);
-  white-space: nowrap;
-}
-.data-table thead th {
-  position: sticky;
-  top: 0;
-  background: var(--surface);
-  color: var(--ink-mid);
-  font-weight: 500;
-}
+.data-table-scroll thead th { background: var(--surface-sunken); }
 .data-table tbody th { font-weight: 400; color: var(--ink); }

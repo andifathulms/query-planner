@@ -50,7 +50,7 @@ export function Histogram({ schema, statistics, spec }: HistogramProps) {
       <div className="histogram-head">
         <label className="t-small">
           <span className="visually-hidden">Column</span>
-          <select value={active.key} onChange={(e) => setChosen(e.target.value)}>
+          <select className="field" value={active.key} onChange={(e) => setChosen(e.target.value)}>
             {columns.map((c) => <option key={c.key} value={c.key}>{c.key}</option>)}
           </select>
         </label>
@@ -175,7 +175,7 @@ function ColumnChart({
           </g>
         )}
 
-        <line x1={0} y1={BAR_H - 10} x2={WIDTH} y2={BAR_H - 10} stroke="var(--rule)" />
+        <line x1={0} y1={BAR_H - 10} x2={WIDTH} y2={BAR_H - 10} stroke="var(--line)" />
       </svg>
     </div>
   );

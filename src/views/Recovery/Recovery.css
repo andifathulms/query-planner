@@ -13,6 +13,7 @@
 }
 
 .recovery-kind {
+  background: var(--surface-sunken);
   border: 1px solid var(--line);
   border-radius: var(--r-control);
   padding: var(--s1) var(--s2) var(--s2);
@@ -24,15 +25,7 @@
 .recovery-kind-cost { color: var(--ink-faint); margin-left: auto; }
 .recovery-kind-repairs { color: var(--ink-mid); }
 
-.recovery-action {
-  padding: 1px var(--s1);
-  background: transparent;
-  border: 1px solid var(--line);
-  border-radius: var(--r-control);
-  color: var(--ink-mid);
-  cursor: pointer;
-}
-.recovery-action:hover { color: var(--ink); border-color: var(--ink-faint); }
+.recovery-action { flex: 0 0 auto; }
 
 .recovery-compare { display: flex; flex-direction: column; gap: var(--s2); }
 
