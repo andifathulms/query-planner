@@ -230,6 +230,7 @@ distinguishable in use. Revision 2 has seven, and each is a step you can see.
 | `--t-display` | 40 / 1.0 / 600 | Geist Mono | The error ratio. One instance, and it should be large. |
 | `--t-figure` | 24 / 1.1 / 600 | Geist Mono | Panel values, chosen plan cost, verdict numbers. |
 | `--t-h2` | 15 / 1.3 / 600 | Geist | Panel headings. |
+| `--t-prose` | 16 / 1.6 / 400 | Geist | Running copy that explains the app to someone who does not know it. |
 | `--t-body` | 14 / 1.55 / 400 | Geist | SQL input and explanatory copy. Max 68 characters. |
 | `--t-data` | 12.5 / 1.45 / 400 | Geist Mono | Plan nodes, tables, axis numbers. |
 | `--t-label` | 11.5 / 1.35 / 500 | Geist | Control labels, legends, tab labels. |
@@ -240,6 +241,12 @@ from being the only 600-weight sans on the panel, not from size — seventeen pa
 is a lot of shouting. The display figure rises from 34 px to 40 px, because it is the one
 number the app has earned the right to set large and it was competing with the panel headings
 rather than dominating them.
+
+**The scale splits by role, not by taste.** Prose that orients a newcomer is 16 px: the
+orientation strip, the key above each instrument, the model-notes lede. Data keeps the dense
+scale, because a 16 px lattice cell at 255 cells is not a lattice and a 16 px plan node is not
+a tree. Raising everything to a single reading size would make the explanations legible by
+destroying the thing they explain.
 
 `font-variant-numeric: tabular-nums` on all Geist Mono. Values update on every frame of a
 cost-slider drag and proportional figures would make the whole interface shimmer.
@@ -274,6 +281,25 @@ Postgres operator names, and the §3.2 eyebrows.
 ---
 
 ## 4. Layout
+
+### 4.0 The orientation strip
+
+Between the header and the derivation, at full measure and on the page ground rather than in
+a panel of its own: one sentence saying what the app does, and beside it the number this
+particular query produced.
+
+It exists because of a failure that only shows up when you watch someone land here cold. The
+first five seconds gave them a dark panel, monospace, seven `snake_case` sliders and a grid of
+three-letter boxes, which reads as an internal debugger for people who already know what a
+query planner is. The one sentence saying otherwise was 11.5 px of muted text wedged between
+the product name and a dropdown, and the app's actual finding was below the fold.
+
+The sentence also introduces the estimate-against-truth pairing before the reader meets the
+encoding that depends on it, which is the right order and was not the order before.
+
+The verdict here is the same `errorRatio` the plan tree prints in §5.2, so the two can never
+disagree. It is stated twice deliberately: once early, where it is the reason to keep reading,
+and once beneath the tree, where it is the conclusion of an argument.
 
 ### 4.1 The derivation
 

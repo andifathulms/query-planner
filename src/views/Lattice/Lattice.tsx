@@ -251,9 +251,9 @@ function Controls({
       </div>
       <p className="lattice-status t-data" role="status">
         {fill.complete
-          ? `${exact(planning.stats.filledSubsets)} of ${exact(planning.stats.subsets)} subsets · `
-            + `${exact(planning.stats.candidates)} candidates · `
-            + `${exact(planning.stats.ordersKept)} ${plural(planning.stats.ordersKept, 'order')} kept`
+          ? `${exact(planning.stats.filledSubsets)} of ${exact(planning.stats.subsets)} `
+            + `table combinations planned · ${exact(planning.stats.candidates)} candidate plans · `
+            + `${exact(planning.stats.ordersKept)} kept for their sort order`
           : `filling level ${fill.currentLevel}`}
       </p>
     </div>

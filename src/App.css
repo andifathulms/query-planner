@@ -3,7 +3,7 @@
   min-height: 100vh;
   min-height: 100dvh;
   display: grid;
-  grid-template-rows: auto 1fr auto;
+  grid-template-rows: auto auto 1fr auto;
 }
 
 /* ── Header ───────────────────────────────────────────────────────────────────
@@ -20,14 +20,13 @@
   padding: var(--s2) var(--s3);
 }
 
-.app-brand { display: flex; align-items: center; gap: var(--s1); flex: 0 0 auto; }
+.app-brand { display: flex; align-items: center; gap: var(--s1); flex: 1 1 auto; min-width: 0; }
 
 /* The lattice, at the brand package's 32 px tier (src/ui/Mark.tsx). */
 .app-mark { display: block; flex: 0 0 auto; }
 .app-mark-kept { fill: var(--ink); }
 .app-mark-cell { fill: var(--ink-faint); }
 
-.app-tagline { flex: 1 1 auto; min-width: 0; }
 
 .app-status { display: flex; align-items: center; gap: var(--s1); flex: 0 0 auto; }
 .app-dataset { display: flex; }
@@ -72,7 +71,9 @@
 .app-main > .bay { padding: 0; }
 
 .app-placeholder { color: var(--ink-faint); }
-.app-cost-hint { margin-bottom: var(--s2); }
+.app-cost-hint,
+.app-plan-key,
+.app-search-key { color: var(--ink-mid); margin-bottom: var(--s2); }
 
 /* Choose a query, or shape the data it runs against. */
 .app-query-controls {
@@ -127,7 +128,6 @@
     grid-template-areas: 'query' 'search' 'plan' 'cost' 'bay' 'result' 'notes' 'maker';
   }
   .app-header { flex-wrap: wrap; }
-  .app-tagline { flex: 1 0 100%; order: 3; }
 }
 
 /* Usable at 380 px (PRD §8.12). The plan tree keeps its estimate/actual spans —

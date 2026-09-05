@@ -27,7 +27,7 @@ export function ModelNotes() {
       </summary>
 
       <div className="model-notes-body">
-        <p className="t-small model-notes-lede">
+        <p className="t-prose model-notes-lede">
           This is a real cost model with real parameters, and it is not Postgres. Estimates
           and actuals here come from one engine, which makes their pairing exact and also
           means real Postgres would give different numbers. Every simplification is listed,

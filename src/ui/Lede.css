@@ -1,0 +1,56 @@
+/* The orientation strip (DESIGN.md §4.1). Sits between the header and the
+ * derivation, at full measure, with no panel of its own: it is the page talking,
+ * not one more instrument. */
+.lede {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s3) var(--s5);
+  flex-wrap: wrap;
+  width: 100%;
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding: 0 var(--s3) var(--s3);
+}
+
+.lede-copy {
+  flex: 1 1 30ch;
+  color: var(--ink-mid);
+  margin: 0;
+}
+
+/* The finding, at the top of the page rather than below the fold. Bordered on
+ * the leading edge only, like the plan tree's verdict, because it is the same
+ * verdict said early. */
+.lede-verdict {
+  flex: 0 1 auto;
+  display: flex;
+  align-items: baseline;
+  gap: var(--s2);
+  padding: var(--s1) var(--s3);
+  border-left: 3px solid var(--line-strong);
+  border-radius: 0 var(--r-panel) var(--r-panel) 0;
+  background: var(--surface);
+}
+.lede-verdict.is-under { border-left-color: var(--warn); }
+
+.lede-verdict-figure { color: var(--ink); }
+.lede-verdict.is-under .lede-verdict-figure { color: var(--warn-ink); }
+
+.lede-verdict-label {
+  display: flex;
+  flex-direction: column;
+  font-size: var(--t-label-size);
+  line-height: var(--t-label-lh);
+  color: var(--ink-mid);
+}
+.lede-verdict-detail {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-faint);
+}
+
+@media (max-width: 900px) {
+  .lede { gap: var(--s2); }
+  .lede-copy { flex: 1 1 100%; }
+}

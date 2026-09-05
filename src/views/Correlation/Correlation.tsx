@@ -65,7 +65,7 @@ export function Correlation({
           />
           <output className="t-data">{correlation.toFixed(2)}</output>
         </label>
-        <p className="t-small correlation-hint">
+        <p className="t-prose correlation-hint">
           Sweep it from 0 to 1 and watch the rectangle detach from the cloud.
         </p>
       </div>

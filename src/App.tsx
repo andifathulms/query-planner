@@ -22,6 +22,7 @@ import { InstrumentBay } from './views/InstrumentBay.js';
 import { ThemeToggle } from './ui/ThemeToggle.js';
 import { Mark } from './ui/Mark.js';
 import { MakerSignature } from './ui/MakerSignature.js';
+import { Lede } from './ui/Lede.js';
 import { Select } from './ui/Select.js';
 import { useFill, usePrefersReducedMotion } from './ui/useFill.js';
 import { DEFAULT_COST_PARAMS, type Plan } from './planner/types.js';
@@ -72,9 +73,6 @@ export function App() {
           <Mark />
           <h1 className="t-h2">Query planner</h1>
         </div>
-        <p className="t-small app-tagline">
-          Why your SQL is slow, and what the database believed when it chose
-        </p>
         <div className="app-status">
           <label className="app-dataset">
             <span className="visually-hidden">Dataset</span>
@@ -89,6 +87,11 @@ export function App() {
           <ThemeToggle />
         </div>
       </header>
+
+      <Lede
+        estimatedRows={planning?.winner.estimatedRows ?? null}
+        actualRows={rootActualRows(planning, execution)}
+      />
 
       <main className="app-main">
         <section className="app-query panel" aria-label="Query">
@@ -135,6 +138,13 @@ export function App() {
               <span className="panel-head-meta t-data">planned in {ms(planning.stats.planningMs)}</span>
             )}
           </div>
+          {/* Cells read `ckp`, `ck`, `cp`. Nothing said those were the aliases
+              from the reader's own FROM clause, or that the number was a cost. */}
+          <p className="t-prose app-search-key">
+            Each box is one combination of the tables in your query, holding the cheapest
+            plan found for it and that plan&rsquo;s cost. A dashed box is a combination with
+            no join condition to connect it.
+          </p>
           <Lattice
             planning={planning}
             selectedKey={state.selected.cell}
@@ -155,6 +165,13 @@ export function App() {
             </span>
             <span className="panel-head-meta"><SpanLegend /></span>
           </div>
+          {/* The paired encoding is the app's one idea and it was only ever
+              stated as two 6 px marks and the words "estimated · actual" in a
+              panel head. Said plainly, once, beside the tree that uses it. */}
+          <p className="t-prose app-plan-key">
+            Every node carries what the planner predicted, drawn hollow and dashed, against
+            what it measured, drawn solid. The distance between the two marks is the error.
+          </p>
           <PlanTree
             plan={planning?.winner ?? null}
             stats={execution?.stats ?? null}
@@ -186,7 +203,7 @@ export function App() {
               <h2 className="t-h2">What each candidate costs</h2>
             </span>
           </div>
-          <p className="t-small app-cost-hint">
+          <p className="t-prose app-cost-hint">
             {state.selected.cell
               ? 'Candidates for the selected lattice cell, decomposed into the terms the cost model produced.'
               : 'The chosen plan, decomposed. Select a lattice cell above to see what it was competing against.'}
@@ -244,6 +261,15 @@ export function App() {
       </footer>
     </div>
   );
+}
+
+/** The root node's measured row count, which is what the estimate is judged against. */
+function rootActualRows(
+  planning: ReturnType<typeof useStore>['result']['planning'],
+  execution: ReturnType<typeof useStore>['result']['execution'],
+): number | null {
+  if (!planning || !execution) return null;
+  return execution.stats.get(planning.winner.id)?.actualRows ?? null;
 }
 
 /**

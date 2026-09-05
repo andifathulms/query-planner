@@ -536,3 +536,59 @@ describe("the maker's mark", () => {
     expect(maker.querySelectorAll('hr').length).toBe(0);
   });
 });
+
+describe('a stranger can tell what this is', () => {
+  it('explains the app in prose at reading size, above the derivation', () => {
+    // The only explanation used to be an 11.5 px tagline between the title and a
+    // dropdown. Prose that orients a newcomer is 16 px and comes first.
+    renderApp('n=6000&s=2000');
+    const lede = screen.getByRole('region', { name: 'What this is' });
+    expect(lede.querySelector('.lede-copy')?.className).toMatch(/t-prose/);
+    expect(lede.textContent).toMatch(/guess how many rows/);
+    expect(document.querySelector('.app-main')!.compareDocumentPosition(lede))
+      .toBe(Node.DOCUMENT_POSITION_PRECEDING);
+  });
+
+  it('puts the finding at the top, not only below the fold', () => {
+    renderApp('n=6000&s=2000');
+    const verdict = document.querySelector('.lede-verdict')!;
+    expect(verdict).toBeTruthy();
+    // The same ratio the plan tree prints, so the two cannot disagree.
+    const figure = verdict.querySelector('.lede-verdict-figure')!.textContent;
+    expect(document.querySelector('.plan-tree-verdict-figure')!.textContent).toBe(figure);
+    expect(figure).toMatch(/^[\d.]+×$/);
+  });
+
+  it('says what a lattice cell is, since the labels are bare aliases', () => {
+    renderApp('n=6000&s=2000');
+    const search = screen.getByRole('region', { name: 'The search' });
+    expect(search.querySelector('.app-search-key')?.textContent)
+      .toMatch(/combination of the tables in your query/);
+  });
+
+  it('states the paired encoding in words, not only as two marks', () => {
+    renderApp('n=6000&s=2000');
+    const plan = screen.getByRole('region', { name: 'The chosen plan' });
+    const key = plan.querySelector('.app-plan-key')?.textContent ?? '';
+    expect(key).toMatch(/hollow and dashed/);
+    expect(key).toMatch(/solid/);
+    expect(key).toMatch(/distance between the two marks is the error/);
+  });
+
+  it('spells out the search summary rather than naming three jargon counts', () => {
+    // Reduced motion, so the fill has already resolved and the status line shows
+    // its summary rather than "filling level 1".
+    Object.defineProperty(window, 'matchMedia', {
+      writable: true,
+      value: (query: string) => ({
+        matches: query.includes('prefers-reduced-motion'),
+        media: query,
+        addEventListener: () => {},
+        removeEventListener: () => {},
+      }),
+    });
+    renderApp('n=6000&s=2000');
+    expect(document.querySelector('.lattice-status')?.textContent)
+      .toMatch(/table combinations planned .* candidate plans .* kept for their sort order/);
+  });
+});
