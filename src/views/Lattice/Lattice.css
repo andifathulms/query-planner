@@ -23,7 +23,7 @@
 .lattice-cell { cursor: pointer; }
 .lattice-cell-box {
   fill: var(--surface);
-  stroke: var(--line);
+  stroke: var(--line-strong);
   stroke-width: 1;
 }
 
@@ -32,7 +32,7 @@
  * dashed edge so a disconnected subset still reads as a subset (§5.1). */
 .lattice-cell.is-empty .lattice-cell-box {
   fill: none;
-  stroke: var(--line);
+  stroke: var(--line-strong);
   stroke-dasharray: 2 3;
 }
 .lattice-cell.is-empty { cursor: default; }

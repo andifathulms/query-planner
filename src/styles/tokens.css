@@ -58,16 +58,31 @@
   --surface-sunken: #dde1e6;
 
   --ink: #12161a;
-  --ink-mid: #5a626b;
-  --ink-faint: #8b949d;
+  /* The ramp is spaced by measured contrast against --surface-sunken, which is
+   * the harder of the two grounds. 17.1 / 7.0 / 4.5, so all three clear AA for
+   * body text and stay three visibly different steps. Revision 2 had --ink-faint
+   * at 2.34 on this ground while using it for the app's explanatory prose, which
+   * made the text that explains the app its least readable text. */
+  --ink-mid: #43484f;
+  --ink-faint: #5d656e;
 
+  /* --line is decorative separation and carries no meaning: table rules, panel
+   * edges. --line-strong is for graphical objects that do carry meaning, such as
+   * an unfilled lattice cell, and clears 3:1 on both grounds. */
   --line: #c9cfd6;
-  --line-strong: #a8b1ba;
+  --line-strong: #738290;
 
   /* The two colours (§2.2). Lifted in chroma from revision 1, where both read
    * as greys at a 1.5 px stroke on a light field. */
   --believed: #3b6fb6;
   --true: #b45c22;
+
+  /* The same two colours at text weight. A mark on a chart needs 3:1 and a word
+   * needs 4.5:1, so darkening the marks to satisfy the text would muddy every
+   * plot to fix four labels. These are used only where an accent is set as
+   * type. In dark they are the base colours, which already clear AA. */
+  --believed-ink: #3564a5;
+  --true-ink: #9c4f1d;
 
   /* The rest of the hue budget (§2.3). */
   --winner: #12161a;
@@ -75,6 +90,8 @@
   --order: #3f7d63;
   --warn: #c0432a;
   --focus: #3b6fb6;
+  --order-ink: #386e57;
+  --warn-ink: #b03d27;
 
   /* The gap fill sits over a light ground and wants a little more than it did. */
   --gap-opacity: 0.14;
@@ -100,21 +117,25 @@
 
     --ink: #edf0f3;
     --ink-mid: #9aa4ae;
-    --ink-faint: #69737d;
+    --ink-faint: #7a8590;
 
     --line: #2c333a;
-    --line-strong: #3d454e;
+    --line-strong: #5c6976;
 
     /* Lighter rather than the same colours on a dark ground: a mid-tone stroke
      * on `#191d22` disappears. */
     --believed: #7aa5e8;
     --true: #e8974a;
+    --believed-ink: #7aa5e8;
+    --true-ink: #e8974a;
 
     --winner: #edf0f3;
     --pruned: #69737d;
     --order: #5fbe92;
     --warn: #f0785a;
     --focus: #7aa5e8;
+    --order-ink: #5fbe92;
+    --warn-ink: #f0785a;
 
     --gap-opacity: 0.2;
 
@@ -134,19 +155,23 @@
 
   --ink: #edf0f3;
   --ink-mid: #9aa4ae;
-  --ink-faint: #69737d;
+  --ink-faint: #7a8590;
 
   --line: #2c333a;
-  --line-strong: #3d454e;
+  --line-strong: #5c6976;
 
   --believed: #7aa5e8;
   --true: #e8974a;
+  --believed-ink: #7aa5e8;
+  --true-ink: #e8974a;
 
   --winner: #edf0f3;
   --pruned: #69737d;
   --order: #5fbe92;
   --warn: #f0785a;
   --focus: #7aa5e8;
+  --order-ink: #5fbe92;
+  --warn-ink: #f0785a;
 
   --gap-opacity: 0.2;
 
@@ -164,6 +189,10 @@
   --t-display-size: 40px;   --t-display-lh: 1.0;   --t-display-weight: 600;
   --t-figure-size: 24px;    --t-figure-lh: 1.1;    --t-figure-weight: 600;
   --t-h2-size: 15px;        --t-h2-lh: 1.3;        --t-h2-weight: 600;
+  /* Running prose: the copy that explains the app to someone who does not yet
+   * know it. Data keeps the dense scale below, because a 16 px lattice cell at
+   * 255 cells is not a lattice. The split is by role, not by taste. */
+  --t-prose-size: 16px;     --t-prose-lh: 1.6;
   --t-body-size: 14px;      --t-body-lh: 1.55;
   --t-data-size: 12.5px;    --t-data-lh: 1.45;
   --t-label-size: 11.5px;   --t-label-lh: 1.35;    --t-label-weight: 500;
@@ -248,6 +277,12 @@ button { font: inherit; color: inherit; }
 .t-h2 {
   font-family: var(--sans); font-size: var(--t-h2-size);
   line-height: var(--t-h2-lh); font-weight: var(--t-h2-weight);
+}
+.t-prose {
+  font-family: var(--sans);
+  font-size: var(--t-prose-size);
+  line-height: var(--t-prose-lh);
+  max-width: 68ch;
 }
 .t-body { font-size: var(--t-body-size); line-height: var(--t-body-lh); max-width: 68ch; }
 .t-data {

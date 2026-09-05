@@ -50,10 +50,10 @@
   border-radius: 0 var(--r-panel) var(--r-panel) 0;
   background: var(--surface-sunken);
 }
-.plan-tree-verdict.is-under { border-left-color: var(--warn); }
+.plan-tree-verdict.is-under { border-left-color: var(--warn-ink); }
 
 .plan-tree-verdict-figure { flex: 0 0 auto; color: var(--ink); }
-.plan-tree-verdict.is-under .plan-tree-verdict-figure { color: var(--warn); }
+.plan-tree-verdict.is-under .plan-tree-verdict-figure { color: var(--warn-ink); }
 
 .plan-tree-verdict-body {
   flex: 1 1 auto;
@@ -62,7 +62,7 @@
   flex-direction: column;
   gap: var(--s0);
 }
-.plan-tree-warn { color: var(--warn); }
+.plan-tree-warn { color: var(--warn-ink); }
 
 /* At 380 px the display figure would take a third of the screen. It drops to the
  * figure size and the block stacks; the spans keep their width, because the gap

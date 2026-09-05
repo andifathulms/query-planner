@@ -20,7 +20,7 @@
 .plan-detail-figures > div { display: flex; flex-direction: column; }
 .plan-detail-figures dt { color: var(--ink-mid); }
 .plan-detail-figures dd { margin: 0; color: var(--ink); }
-.plan-detail-figures dd.is-under { color: var(--warn); }
+.plan-detail-figures dd.is-under { color: var(--warn-ink); }
 
 .plan-detail-section { color: var(--ink-mid); margin-top: var(--s2); }
 

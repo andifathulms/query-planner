@@ -17,7 +17,7 @@
   border-left: 2px solid var(--warn);
   border-radius: 0 var(--r-control) var(--r-control) 0;
   background: var(--surface-sunken);
-  color: var(--warn);
+  color: var(--warn-ink);
   font-size: var(--t-label-size);
   line-height: var(--t-label-lh);
 }

@@ -22,7 +22,7 @@
 }
 /* A method that rests on an assumption the app is arguing about is marked, not
  * coloured: hue means believed or true here and nothing else. */
-.trace-method.is-assumed { border-style: dashed; border-color: var(--believed); color: var(--believed); }
+.trace-method.is-assumed { border-style: dashed; border-color: var(--believed); color: var(--believed-ink); }
 
 .trace-inputs {
   display: flex;
