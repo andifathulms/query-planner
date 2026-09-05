@@ -191,6 +191,7 @@ export function App() {
             <PlanDetail
               plan={selectedNode}
               stats={execution?.stats.get(selectedNode.id) ?? null}
+              allStats={execution?.stats ?? null}
               onClose={() => selectNode(null)}
             />
           )}

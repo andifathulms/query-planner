@@ -84,7 +84,7 @@ export function errorRatio(estimated: number, actual: number): ErrorRatio {
   return { ratio, direction: 'over', label: `${formatRatio(ratio)}×` };
 }
 
-function formatRatio(r: number): string {
+export function formatRatio(r: number): string {
   if (r >= 1000) return rows(r);
   if (r >= 100) return r.toFixed(0);
   if (r >= 10) return r.toFixed(0);

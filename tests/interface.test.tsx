@@ -592,3 +592,29 @@ describe('a stranger can tell what this is', () => {
       .toMatch(/table combinations planned .* candidate plans .* kept for their sort order/);
   });
 });
+
+describe('the error is attributed, not just measured', () => {
+  it('names the node that added the error rather than the one carrying it', () => {
+    renderApp('n=6000&s=2000');
+    const source = document.querySelector('.plan-tree-source');
+    expect(source).toBeTruthy();
+    expect(source!.textContent).toMatch(/Most of it entered at/);
+    // It names a real node of this plan. That the ranking is by error added
+    // rather than error carried is asserted on hand-computed trees in
+    // errorSource.test.ts, where the two can be made to disagree on purpose.
+    const named = source!.querySelector('strong')!.textContent!;
+    const labels = screen.getAllByRole('treeitem')
+      .map((n) => n.getAttribute('aria-label') ?? '');
+    expect(labels.some((l) => l.startsWith(named))).toBe(true);
+  });
+
+  it('splits a selected node error into inherited and introduced', () => {
+    renderApp('n=6000&s=2000');
+    // A join, so there are children whose error can arrive from below.
+    const join = screen.getAllByRole('treeitem')
+      .find((n) => /Nested Loop|Hash Join|Merge Join/.test(n.getAttribute('aria-label') ?? ''))!;
+    fireEvent.click(join);
+    const detail = document.querySelector('.plan-detail')!;
+    expect(detail.textContent).toMatch(/added here/);
+  });
+});

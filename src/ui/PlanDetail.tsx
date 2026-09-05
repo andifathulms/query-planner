@@ -8,19 +8,23 @@
  */
 import { OperatorGlyph, OPERATOR_NOTES } from '../views/PlanTree/glyphs.js';
 import { TraceDetail } from './TraceDetail.js';
-import { cost as formatCost, directionWord, errorRatio, exact, ms, plural } from './format.js';
+import { cost as formatCost, directionWord, errorRatio, exact, formatRatio, ms, plural } from './format.js';
 import { SIMPLIFICATIONS } from '../planner/index.js';
 import { planLabel, type Plan } from '../planner/types.js';
 import type { NodeStats } from '../executor/trace.js';
+import { errorSource } from './errorSource.js';
 import './PlanDetail.css';
 
 export interface PlanDetailProps {
   plan: Plan | null;
   stats: NodeStats | null;
+  /** Every node's actuals, so this node's error can be split from its children's. */
+  allStats?: Map<string, NodeStats> | null;
   onClose: () => void;
 }
 
-export function PlanDetail({ plan, stats, onClose }: PlanDetailProps) {
+export function PlanDetail({ plan, stats, allStats, onClose }: PlanDetailProps) {
+  const source = plan && allStats ? errorSource(plan, stats, allStats) : null;
   if (!plan) {
     return (
       <p className="t-small plan-detail-empty">
@@ -60,6 +64,20 @@ export function PlanDetail({ plan, stats, onClose }: PlanDetailProps) {
             <dd className={ratio.direction === 'under' ? 'is-under' : undefined}>
               {ratio.label} {directionWord(ratio.direction)}
             </dd>
+          </div>
+        )}
+        {/* Splitting the error tells you which statistic to fix. The two factors
+            multiply back to the error above them, exactly. */}
+        {source && source.inherited !== 1 && (
+          <div>
+            <dt className="t-small">from below</dt>
+            <dd>{factor(source.inherited)}</dd>
+          </div>
+        )}
+        {source && (
+          <div>
+            <dt className="t-small">added here</dt>
+            <dd>{factor(source.introduced)}</dd>
           </div>
         )}
         <div>
@@ -127,4 +145,10 @@ function simplificationFor(plan: Plan): string {
     case 'GroupAggregate': return 'parallel';
     default: return 'parallel';
   }
+}
+
+/** A ratio as a factor, so 1 reads as "nothing" rather than as "1x". */
+function factor(v: number): string {
+  if (Math.abs(v - 1) < 0.02) return 'nothing';
+  return v >= 1 ? `${formatRatio(v)}\u00d7 low` : `${formatRatio(1 / v)}\u00d7 high`;
 }

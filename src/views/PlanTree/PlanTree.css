@@ -74,3 +74,8 @@
     line-height: var(--t-figure-lh);
   }
 }
+
+/* The attribution beneath the verdict: which node added the error, as opposed
+ * to which node carries the most of it. */
+.plan-tree-source { color: var(--ink-mid); }
+.plan-tree-source strong { color: var(--ink); font-family: var(--mono); font-weight: 500; }

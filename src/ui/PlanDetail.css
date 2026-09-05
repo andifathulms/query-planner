@@ -39,3 +39,6 @@
 .plan-detail-kind.io { border-style: dashed; }
 
 .plan-detail-simplification { color: var(--ink-faint); max-width: 68ch; margin-top: var(--s1); }
+
+/* "from below" and "added here" multiply back to "error" above them. */
+.plan-detail-figures dd { font-variant-numeric: tabular-nums; }

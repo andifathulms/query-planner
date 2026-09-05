@@ -15,6 +15,7 @@ import { DEFAULT_LAYOUT, layoutPlan, type LaidOutNode } from './layout.js';
 import { OperatorGlyph, OPERATOR_NOTES } from './glyphs.js';
 import { Span } from '../../ui/Span.js';
 import { cost, directionWord, errorRatio, exact, rows } from '../../ui/format.js';
+import { largestSource, magnitude } from '../../ui/errorSource.js';
 import { planLabel, type Plan } from '../../planner/types.js';
 import type { NodeStats } from '../../executor/trace.js';
 import './PlanTree.css';
@@ -50,6 +51,7 @@ export function PlanTree({ plan, stats, selectedId, onSelect }: PlanTreeProps) {
 
   const rootStats = stats?.get(plan.id);
   const ratio = rootStats ? errorRatio(plan.estimatedRows, rootStats.actualRows) : null;
+  const source = stats ? largestSource(plan, stats) : null;
 
   return (
     <div className="plan-tree">
@@ -112,6 +114,17 @@ export function PlanTree({ plan, stats, selectedId, onSelect }: PlanTreeProps) {
               <p className="t-small plan-tree-warn">
                 An under-estimate is the dangerous direction. It is what makes a planner
                 choose a nested loop it cannot afford.
+              </p>
+            )}
+            {/* Not "the root is 83x low" but "83x low, and most of it entered
+                here". The root's total error is the largest by construction, so
+                nodes are ranked by what they added rather than what they carry. */}
+            {source && magnitude(source.source.introduced) > 1.5 && (
+              <p className="t-small plan-tree-source">
+                Most of it entered at <strong>{planLabel(source.plan)}</strong>, which
+                predicted {exact(source.plan.estimatedRows)} from inputs it had already
+                measured and produced{' '}
+                {exact(stats!.get(source.plan.id)!.actualRows)}.
               </p>
             )}
           </div>
