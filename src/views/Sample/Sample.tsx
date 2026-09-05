@@ -30,6 +30,15 @@ import './Sample.css';
 const GRID_COLUMNS = 120;
 const GRID_ROWS = 44;
 
+/** The three estimates the split is computed from, all already on screen. */
+interface Comparison {
+  fromSample: number;
+  fromFullScan: number;
+  measured: number;
+  rowCount: number;
+  error: number;
+}
+
 export interface SampleProps {
   schema: Schema;
   statistics: Statistics;
@@ -57,7 +66,7 @@ export function Sample({
   const sample = relation ? samples.get(relation.table) ?? null : null;
   const table = relation && spec ? tableFor(schema, spec, relation.alias) : null;
 
-  const comparison = useMemo(() => {
+  const comparison: Comparison | null = useMemo(() => {
     if (!relation || !spec || !table || !sample) return null;
     const restrictions = restrictionsFor(spec, relation.alias);
     if (restrictions.length === 0) return null;
@@ -168,12 +177,56 @@ export function Sample({
             {' '}±{percent(1.96 * comparison.error, 3)} at 95% confidence. Shrink the sample
             and it widens; the plan above eventually flips.
           </p>
+
+          {/* The app commits to showing sampling error honestly (PRD §6.3) and
+              did, which left every affordance here inviting the reader to blame
+              the sample for an error the sample cannot cause. Independence
+              failure does not shrink as the sample grows. Splitting the two is
+              the difference between "collect more" and "collect differently". */}
+          <ErrorSplit comparison={comparison} />
         </div>
       ) : (
         <p className="t-small sample-empty">
           Add a WHERE clause on this table to compare the sampled estimate with the truth.
         </p>
       )}
+    </div>
+  );
+}
+
+/**
+ * How much of the gap a bigger sample could close, and how much it could not.
+ *
+ * Both halves are already computed: the estimate from this sample, the estimate
+ * the same model gives when it sees every row, and the measured truth. The first
+ * gap is sampling error and shrinks with the sample. The second is the model
+ * being wrong about the data, and no sample size touches it.
+ */
+function ErrorSplit({ comparison }: { comparison: Comparison }) {
+  const sampling = Math.abs(comparison.fromSample - comparison.fromFullScan);
+  const model = Math.abs(comparison.fromFullScan - comparison.measured);
+  const total = sampling + model;
+  if (total <= 0) return null;
+
+  const modelShare = model / total;
+  return (
+    <div className="sample-split">
+      <p className="t-prose">
+        Of the distance between this estimate and the truth,{' '}
+        <strong>{percent(modelShare, 0)} is the model rather than the sample</strong>:
+        it is what remains when the same estimator is shown every row in the table.
+        Only the other {percent(1 - modelShare, 0)} would narrow if you sampled more.
+      </p>
+      <dl className="sample-split-figures t-data">
+        <div>
+          <dt className="t-small">sampling error</dt>
+          <dd>{formatSelectivity(sampling)}</dd>
+        </div>
+        <div>
+          <dt className="t-small">model error</dt>
+          <dd className="is-model">{formatSelectivity(model)}</dd>
+        </div>
+      </dl>
     </div>
   );
 }

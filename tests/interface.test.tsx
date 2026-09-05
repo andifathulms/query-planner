@@ -618,3 +618,27 @@ describe('the error is attributed, not just measured', () => {
     expect(detail.textContent).toMatch(/added here/);
   });
 });
+
+describe('the app distinguishes a close decision from a decisive one', () => {
+  it('states how far ahead the winning plan is', () => {
+    const sql = `SELECT k.nama, c.nama FROM kelurahan k
+      JOIN kecamatan c ON k.kecamatan_id = c.id`;
+    renderApp(`n=6000&s=2000&q=${encodeURIComponent(sql)}`);
+    const panel = screen.getByRole('region', { name: 'Cost breakdown' });
+    expect(panel.querySelector('.cost-breakdown-margin')?.textContent)
+      .toMatch(/cheaper than the next candidate/);
+  });
+});
+
+describe('the sample view separates the two kinds of error', () => {
+  it('says how much of the gap a bigger sample could not close', () => {
+    renderApp('n=6000&s=2000');
+    fireEvent.click(screen.getByRole('tab', { name: 'sample' }));
+    const split = document.querySelector('.sample-split')!;
+    expect(split).toBeTruthy();
+    expect(split.textContent).toMatch(/is the model rather than the sample/);
+    // Both halves are named, so neither can be mistaken for the whole.
+    expect(split.textContent).toMatch(/sampling error/);
+    expect(split.textContent).toMatch(/model error/);
+  });
+});

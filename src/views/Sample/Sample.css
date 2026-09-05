@@ -29,3 +29,21 @@
 .sample-pair { display: flex; align-items: center; gap: var(--s2); flex-wrap: wrap; }
 .sample-pair .t-small { color: var(--ink-mid); }
 .sample-error { color: var(--ink-mid); max-width: 68ch; }
+
+/* The half of the gap a bigger sample cannot close. */
+.sample-split {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  margin-top: var(--s2);
+  padding-top: var(--s2);
+  border-top: 1px solid var(--line);
+}
+.sample-split .t-prose { color: var(--ink-mid); }
+.sample-split strong { color: var(--ink); font-weight: 500; }
+
+.sample-split-figures { display: flex; flex-wrap: wrap; gap: var(--s1) var(--s4); margin: 0; }
+.sample-split-figures > div { display: flex; flex-direction: column; }
+.sample-split-figures dd { margin: 0; color: var(--ink); }
+/* The model half is the app's own subject, so it carries the app's own colour. */
+.sample-split-figures dd.is-model { color: var(--true-ink); }

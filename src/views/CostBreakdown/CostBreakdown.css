@@ -42,3 +42,7 @@
 @media (prefers-reduced-motion: reduce) {
   .cost-bar-row { transition: none; }
 }
+
+/* How close the decision was, which the bars cannot show: both are simply first. */
+.cost-breakdown-margin { color: var(--ink-mid); margin-bottom: var(--s1); }
+.cost-breakdown-margin strong { color: var(--ink); font-weight: 500; }

@@ -26,6 +26,7 @@ import { Lede } from './ui/Lede.js';
 import { Select } from './ui/Select.js';
 import { useFill, usePrefersReducedMotion } from './ui/useFill.js';
 import { DEFAULT_COST_PARAMS, type Plan } from './planner/types.js';
+import type { DpCell } from './planner/selinger.js';
 import { DATASETS } from './storage/datasets/index.js';
 import { EXAMPLES } from './state/types.js';
 import { cost as formatCost, exact, ms, rows } from './ui/format.js';
@@ -207,10 +208,15 @@ export function App() {
           <p className="t-prose app-cost-hint">
             {state.selected.cell
               ? 'Candidates for the selected lattice cell, decomposed into the terms the cost model produced.'
-              : 'The chosen plan, decomposed. Select a lattice cell above to see what it was competing against.'}
+              : 'Every plan considered for the whole query, cheapest first. Select a lattice cell above to see one join order in isolation.'}
           </p>
+          {/* With nothing selected the panel used to show the winner alone,
+              which made a heading about candidates true of exactly one of them
+              and left no runner-up to measure the decision against. The root
+              cell is the whole query's candidate list, which is what a reader
+              who has not clicked anything is asking about. */}
           <CostBreakdown
-            cell={planning?.cells.find((c) => c.key === state.selected.cell) ?? null}
+            cell={planning?.cells.find((c) => c.key === state.selected.cell) ?? rootCell(planning)}
             fallback={planning?.winner ?? null}
           />
         </section>
@@ -262,6 +268,15 @@ export function App() {
       </footer>
     </div>
   );
+}
+
+/** The cell holding every candidate for the whole query, which is the top level. */
+function rootCell(
+  planning: ReturnType<typeof useStore>['result']['planning'],
+): DpCell | null {
+  if (!planning) return null;
+  const top = Math.max(...planning.cells.map((c) => c.level));
+  return planning.cells.find((c) => c.level === top) ?? null;
 }
 
 /** The root node's measured row count, which is what the estimate is judged against. */

@@ -13,7 +13,7 @@
  */
 import { useMemo } from 'react';
 import { OperatorGlyph } from '../PlanTree/glyphs.js';
-import { cost as formatCost, exact, plural } from '../../ui/format.js';
+import { cost as formatCost, exact, formatRatio, plural } from '../../ui/format.js';
 import { SIMPLIFICATIONS } from '../../planner/index.js';
 import { planChildren, type Plan } from '../../planner/types.js';
 import type { DpCell } from '../../planner/selinger.js';
@@ -50,6 +50,15 @@ export function CostBreakdown({ cell, fallback }: CostBreakdownProps) {
 
   const kinds = new Set(candidates.flatMap((c) => c.cost.terms.map((t) => t.kind)));
 
+  // How close the decision was. A plan that wins by 0.4% on an estimate that is
+  // 83x wrong is a different object from one that wins by 40x, and the bars
+  // render them identically: both are simply "first". The margin is the runner
+  // up's cost over the winner's, which is a property of the model rather than
+  // advice about it (PRD §6.4).
+  const margin = ranked.length > 1 && ranked[0].cost.total > 0
+    ? ranked[1].cost.total / ranked[0].cost.total - 1
+    : null;
+
   return (
     <div className="cost-breakdown">
       <div className="cost-breakdown-head">
@@ -69,6 +78,13 @@ export function CostBreakdown({ cell, fallback }: CostBreakdownProps) {
           )}
         </div>
       </div>
+
+      {margin !== null && (
+        <p className="t-small cost-breakdown-margin">
+          The winner is <strong>{formatMargin(margin)}</strong> cheaper than the next
+          candidate, {describe(ranked[1])}.
+        </p>
+      )}
 
       <div className="cost-breakdown-bars" style={{ height: ranked.length * ROW_H }}>
         <svg width="100%" height={ranked.length * ROW_H} role="table" aria-label="Candidate plans by cost">
@@ -210,4 +226,17 @@ function noteKeyFor(plan: Plan): string {
     case 'Sort': return 'sort';
     default: return 'parallel';
   }
+}
+
+/**
+ * The gap to second place.
+ *
+ * Below one percent it is stated as a fraction rather than rounded to "0%",
+ * because a decision that close is the interesting case and rounding it away
+ * would hide exactly what the number is for.
+ */
+function formatMargin(m: number): string {
+  if (m < 0.01) return `${(m * 100).toFixed(2)}%`;
+  if (m < 1) return `${Math.round(m * 100)}%`;
+  return `${formatRatio(1 + m)}\u00d7`;
 }
