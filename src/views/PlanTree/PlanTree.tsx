@@ -34,7 +34,10 @@ export function PlanTree({ plan, stats, selectedId, onSelect }: PlanTreeProps) {
   const svgRef = useRef<SVGSVGElement>(null);
 
   if (!plan || !layout.root) {
-    return <p className="t-prose plan-tree-empty">No plan yet.</p>;
+    return <p className="t-prose plan-tree-empty">
+        No plan yet. The chosen plan is drawn here once the query above parses; the message
+        beneath it says what could not be accepted.
+      </p>;
   }
 
   // One axis domain for the whole tree, so a span's width means the same thing

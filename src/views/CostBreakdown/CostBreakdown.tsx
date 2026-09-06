@@ -37,7 +37,9 @@ export function CostBreakdown({ cell, fallback }: CostBreakdownProps) {
   }, [cell, fallback]);
 
   if (candidates.length === 0) {
-    return <p className="t-prose cost-breakdown-empty">No candidates to show.</p>;
+    return <p className="t-prose cost-breakdown-empty">
+        No candidates yet. Every plan the search considered is costed here, cheapest first.
+      </p>;
   }
 
   const max = Math.max(...candidates.map((c) => c.cost.total));

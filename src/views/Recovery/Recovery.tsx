@@ -44,7 +44,10 @@ export function Recovery() {
   }, [state]);
 
   if (!spec || !planning) {
-    return <p className="t-prose recovery-empty">No plan to repair.</p>;
+    return <p className="t-prose recovery-empty">
+        No plan to repair yet. This view needs a query that parses, so that there is an
+        estimate to correct.
+      </p>;
   }
 
   if (groups.length === 0) {

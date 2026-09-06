@@ -41,7 +41,10 @@ export function Lattice({ planning, selectedKey, onSelect, fill }: LatticeProps)
   const levels = useMemo(() => groupByLevel(planning?.cells ?? []), [planning]);
 
   if (!planning) {
-    return <p className="t-prose lattice-empty">No search to show.</p>;
+    return <p className="t-prose lattice-empty">
+        Nothing to search. Once the query above parses, every combination of its tables
+        appears here with the cheapest plan found for it.
+      </p>;
   }
 
   const rootKey = planning.cells.find((c) => c.level === levels.length)?.key ?? null;

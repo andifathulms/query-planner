@@ -101,7 +101,10 @@ export function Sample({
   }, [relation, spec, table, sample, statistics]);
 
   if (!relation || !sample || !table) {
-    return <p className="t-prose sample-empty">No table in scope.</p>;
+    return <p className="t-prose sample-empty">
+        No table in scope. This view reads one table named in the query&rsquo;s FROM clause
+        and shows which of its rows the statistics were built from.
+      </p>;
   }
 
   const fraction = sample.rowIds.length / Math.max(1, sample.populationSize);

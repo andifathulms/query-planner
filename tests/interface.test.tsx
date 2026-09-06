@@ -642,3 +642,34 @@ describe('the sample view separates the two kinds of error', () => {
     expect(split.textContent).toMatch(/model error/);
   });
 });
+
+describe('empty panels say what would be there', () => {
+  // An unsupported query empties four panels at once, which is the moment a
+  // newcomer is most likely to be lost. Stating the absence teaches nothing.
+  const UNSUPPORTED = 'SELECT row_number() OVER () FROM kelurahan k';
+
+  it('explains each empty panel rather than naming the void', () => {
+    renderApp(`n=6000&s=2000&q=${encodeURIComponent(UNSUPPORTED)}`);
+    for (const [selector, expected] of [
+      ['.lattice-empty', /every combination of its tables/],
+      ['.plan-tree-empty', /once the query above parses/],
+      ['.cost-breakdown-empty', /costed here, cheapest first/],
+      ['.app-placeholder', /once the query above parses and runs/],
+    ] as const) {
+      expect(document.querySelector(selector)?.textContent).toMatch(expected);
+    }
+  });
+
+  it('still names the limitation once, where the query is', () => {
+    // The panels describe themselves; only the parser says what was wrong.
+    renderApp(`n=6000&s=2000&q=${encodeURIComponent(UNSUPPORTED)}`);
+    expect(screen.getByRole('alert').textContent).toMatch(/Window functions are not supported/);
+  });
+
+  it('does not repeat one sentence across every empty panel', () => {
+    renderApp(`n=6000&s=2000&q=${encodeURIComponent(UNSUPPORTED)}`);
+    const texts = ['.lattice-empty', '.plan-tree-empty', '.cost-breakdown-empty', '.app-placeholder']
+      .map((s) => document.querySelector(s)?.textContent?.trim().replace(/\s+/g, ' ') ?? '');
+    expect(new Set(texts).size).toBe(texts.length);
+  });
+});

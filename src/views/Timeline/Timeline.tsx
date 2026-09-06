@@ -30,7 +30,10 @@ export function Timeline({ plan, execution }: TimelineProps) {
   const tracks = useMemo(() => buildTracks(plan, execution), [plan, execution]);
 
   if (!plan || !execution || tracks.length === 0) {
-    return <p className="t-prose timeline-empty">Nothing has been executed.</p>;
+    return <p className="t-prose timeline-empty">
+        Nothing has run yet. Each node of the plan gets a track here showing when it started
+        and when it began producing rows.
+      </p>;
   }
 
   const total = Math.max(execution.totalMs, 0.001);
