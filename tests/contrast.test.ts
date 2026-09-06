@@ -48,8 +48,8 @@ const THEMES = ['light', 'dark'] as const;
 /** Text tokens, and the floor each must clear on both grounds. */
 const TEXT = ['ink', 'ink-mid', 'ink-faint', 'believed-ink', 'true-ink', 'order-ink', 'warn-ink'];
 
-/** Lines that carry meaning rather than decorate. */
-const GRAPHICAL = ['line-strong', 'believed', 'true', 'order', 'warn'];
+/** Lines that carry meaning rather than decorate, plus the focus ring. */
+const GRAPHICAL = ['line-strong', 'believed', 'true', 'order', 'warn', 'focus'];
 
 describe.each(THEMES)('%s theme', (theme) => {
   const p = palette(theme);

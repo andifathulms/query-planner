@@ -21,6 +21,25 @@
 
 /* §6.6: no hover transitions on lattice cells. */
 .lattice-cell { cursor: pointer; }
+
+/* The focus ring, drawn in the SVG rather than around it.
+ *
+ * `outline` on an SVG <g> renders unevenly: Safari has shipped it late and
+ * partially, and where it works it traces the group's bounding box rather than
+ * the cell. A stroke on the cell's own rect is drawn by every SVG renderer there
+ * has ever been, so this is the one focus indicator in the app that cannot
+ * quietly fail to appear (WCAG 2.4.7).
+ *
+ * --focus against either ground clears the 3:1 that a focus indicator needs, and
+ * contrast.test.ts holds it there. */
+.lattice-cell:focus-visible { outline: none; }
+.lattice-cell:focus-visible .lattice-cell-box {
+  stroke: var(--focus);
+  stroke-width: 3;
+}
+/* Focus and selection can be on different cells, so they must not look alike:
+ * selection keeps its ink outline and focus adds the coloured one. */
+.lattice-cell:focus-visible .lattice-cell-label { fill: var(--ink); }
 .lattice-cell-box {
   fill: var(--surface);
   stroke: var(--line-strong);
