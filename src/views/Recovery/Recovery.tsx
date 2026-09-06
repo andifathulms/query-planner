@@ -189,7 +189,13 @@ function BeforeAfter({
 
       <div className="recovery-stage" style={{ '--stage': 1 } as React.CSSProperties}>
         <span className="t-small recovery-stage-label">the estimate</span>
-        <svg width={300} height={16} aria-hidden="true">
+        <svg
+              className="span-strip"
+              viewBox="0 0 300 16"
+              preserveAspectRatio="none"
+              height={16}
+              aria-hidden="true"
+            >
           <Span believed={Math.max(1, beforeRows)} actual={Math.max(1, actual)}
             min={1} max={max} width={292} height={14} />
         </svg>

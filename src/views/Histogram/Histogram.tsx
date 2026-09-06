@@ -216,7 +216,13 @@ function Comparison({
   return (
     <div className="histogram-comparison">
       <div className="histogram-pair">
-        <svg width={280} height={16} aria-hidden="true">
+        <svg
+          className="span-strip"
+          viewBox="0 0 280 16"
+          preserveAspectRatio="none"
+          height={16}
+          aria-hidden="true"
+        >
           <Span
             believed={Math.max(1, predictedRows)}
             actual={Math.max(1, measuredRows)}

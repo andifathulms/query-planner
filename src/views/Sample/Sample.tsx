@@ -159,7 +159,13 @@ export function Sample({
       {comparison ? (
         <div className="sample-comparison">
           <div className="sample-pair">
-            <svg width={300} height={16} aria-hidden="true">
+            <svg
+              className="span-strip"
+              viewBox="0 0 300 16"
+              preserveAspectRatio="none"
+              height={16}
+              aria-hidden="true"
+            >
               <Span
                 believed={Math.max(1, comparison.fromSample * comparison.rowCount)}
                 actual={Math.max(1, comparison.measured * comparison.rowCount)}

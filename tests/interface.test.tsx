@@ -813,3 +813,16 @@ describe('the plan tree points at the node it has selected', () => {
     expect(tree.getAttribute('aria-activedescendant')).toBeNull();
   });
 });
+
+describe('nothing forces the page sideways at 320px', () => {
+  it('lets the estimate strips reflow instead of pinning them at 300px', () => {
+    // Every chart sits in a scroll-x container; these two did not, so a 300 px
+    // SVG in a 280 px panel pushed the page into horizontal scroll (1.4.10).
+    renderApp('n=6000&s=2000');
+    fireEvent.click(screen.getByRole('tab', { name: 'sample' }));
+    const strip = document.querySelector('.span-strip')!;
+    expect(strip).toBeTruthy();
+    expect(strip.getAttribute('width')).toBeNull();
+    expect(strip.getAttribute('viewBox')).toBe('0 0 300 16');
+  });
+});

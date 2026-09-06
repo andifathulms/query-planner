@@ -181,3 +181,15 @@ textarea.field {
  * whole width to pair a row up. */
 .grid-table th:last-child,
 .grid-table td:last-child { width: 100%; }
+
+/* An estimate-against-truth strip. Fixed at 300 px it could not reflow at 320 px
+ * and pushed the page into horizontal scroll (WCAG 1.4.10); a viewBox lets it
+ * shrink. Height is fixed and the aspect ratio is not preserved on purpose: the
+ * strip is a position along an axis, and squashing the axis keeps the marks
+ * where they belong while narrowing the distance between them. */
+.span-strip {
+  display: block;
+  width: 100%;
+  max-width: 300px;
+  min-width: 0;
+}
