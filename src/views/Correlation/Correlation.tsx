@@ -71,7 +71,7 @@ export function Correlation({
       </div>
 
       {!model ? (
-        <p className="t-small correlation-empty">
+        <p className="t-prose correlation-empty">
           Two equality predicates on one table are needed to draw this. The example query
           has them.
         </p>
@@ -109,7 +109,7 @@ export function Correlation({
                 </dd>
               </div>
             </dl>
-            <p className="t-small correlation-gap">
+            <p className="t-prose correlation-gap">
               {model.measured > 0
                 ? `Independence is wrong by ${(model.measured / Math.max(model.independent, 1e-12)).toFixed(0)}× here.`
                 : 'No rows match both predicates.'}

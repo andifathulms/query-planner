@@ -247,7 +247,7 @@ export function App() {
             </div>
           </div>
           {execution ? <ResultGrid execution={execution} /> : (
-            <p className="t-small app-placeholder">Nothing executed.</p>
+            <p className="t-prose app-placeholder">Nothing executed.</p>
           )}
         </section>
         <InstrumentBay />

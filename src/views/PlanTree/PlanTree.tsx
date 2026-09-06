@@ -34,7 +34,7 @@ export function PlanTree({ plan, stats, selectedId, onSelect }: PlanTreeProps) {
   const svgRef = useRef<SVGSVGElement>(null);
 
   if (!plan || !layout.root) {
-    return <p className="t-small plan-tree-empty">No plan yet.</p>;
+    return <p className="t-prose plan-tree-empty">No plan yet.</p>;
   }
 
   // One axis domain for the whole tree, so a span's width means the same thing
@@ -111,7 +111,7 @@ export function PlanTree({ plan, stats, selectedId, onSelect }: PlanTreeProps) {
                   + `${exact(plan.estimatedRows)} estimated, ${exact(rootStats!.actualRows)} actual.`}
             </p>
             {ratio.direction === 'under' && (
-              <p className="t-small plan-tree-warn">
+              <p className="t-prose plan-tree-warn">
                 An under-estimate is the dangerous direction. It is what makes a planner
                 choose a nested loop it cannot afford.
               </p>
@@ -120,7 +120,7 @@ export function PlanTree({ plan, stats, selectedId, onSelect }: PlanTreeProps) {
                 here". The root's total error is the largest by construction, so
                 nodes are ranked by what they added rather than what they carry. */}
             {source && magnitude(source.source.introduced) > 1.5 && (
-              <p className="t-small plan-tree-source">
+              <p className="t-prose plan-tree-source">
                 Most of it entered at <strong>{planLabel(source.plan)}</strong>, which
                 predicted {exact(source.plan.estimatedRows)} from inputs it had already
                 measured and produced{' '}

@@ -43,7 +43,7 @@ export function Histogram({ schema, statistics, spec }: HistogramProps) {
   const active = columns.find((c) => c.key === chosen) ?? columns[0] ?? null;
 
   if (!spec || !active) {
-    return <p className="t-small histogram-empty">Add a WHERE clause to see a column&rsquo;s statistics.</p>;
+    return <p className="t-prose histogram-empty">Add a WHERE clause to see a column&rsquo;s statistics.</p>;
   }
 
   return (
@@ -207,7 +207,7 @@ function Comparison({
   }, [schema, statistics, spec, alias, restrictions]);
 
   if (!result) {
-    return <p className="t-small histogram-empty">No predicate on this column.</p>;
+    return <p className="t-prose histogram-empty">No predicate on this column.</p>;
   }
 
   const predictedRows = result.estimate.selectivity * result.rowCount;
@@ -235,7 +235,7 @@ function Comparison({
 
       {/* The arithmetic prints so it can be checked by hand (§5.4). */}
       <TraceDetail trace={result.estimate.trace} />
-      <p className="t-micro histogram-note">
+      <p className="t-prose histogram-note">
         The prediction comes from a sample of {exact(stat.sampleSize)} rows. The measurement
         scans all {exact(result.rowCount)}.
       </p>

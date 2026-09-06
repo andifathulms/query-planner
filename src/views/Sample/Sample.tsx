@@ -101,7 +101,7 @@ export function Sample({
   }, [relation, spec, table, sample, statistics]);
 
   if (!relation || !sample || !table) {
-    return <p className="t-small sample-empty">No table in scope.</p>;
+    return <p className="t-prose sample-empty">No table in scope.</p>;
   }
 
   const fraction = sample.rowIds.length / Math.max(1, sample.populationSize);
@@ -172,7 +172,7 @@ export function Sample({
               {' · '}measured {formatSelectivity(comparison.measured)}
             </p>
           </div>
-          <p className="t-small sample-error">
+          <p className="t-prose sample-error">
             Sampling error on this estimate is about
             {' '}±{percent(1.96 * comparison.error, 3)} at 95% confidence. Shrink the sample
             and it widens; the plan above eventually flips.
@@ -186,7 +186,7 @@ export function Sample({
           <ErrorSplit comparison={comparison} />
         </div>
       ) : (
-        <p className="t-small sample-empty">
+        <p className="t-prose sample-empty">
           Add a WHERE clause on this table to compare the sampled estimate with the truth.
         </p>
       )}

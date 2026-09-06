@@ -37,7 +37,7 @@ export function CostBreakdown({ cell, fallback }: CostBreakdownProps) {
   }, [cell, fallback]);
 
   if (candidates.length === 0) {
-    return <p className="t-small cost-breakdown-empty">No candidates to show.</p>;
+    return <p className="t-prose cost-breakdown-empty">No candidates to show.</p>;
   }
 
   const max = Math.max(...candidates.map((c) => c.cost.total));
@@ -80,7 +80,7 @@ export function CostBreakdown({ cell, fallback }: CostBreakdownProps) {
       </div>
 
       {margin !== null && (
-        <p className="t-small cost-breakdown-margin">
+        <p className="t-prose cost-breakdown-margin">
           The winner is <strong>{formatMargin(margin)}</strong> cheaper than the next
           candidate, {describe(ranked[1])}.
         </p>
@@ -109,7 +109,7 @@ export function CostBreakdown({ cell, fallback }: CostBreakdownProps) {
         </svg>
       </div>
 
-      <p className="t-small cost-breakdown-note">
+      <p className="t-prose cost-breakdown-note">
         {SIMPLIFICATIONS[noteKeyFor(winner)]}
       </p>
     </div>

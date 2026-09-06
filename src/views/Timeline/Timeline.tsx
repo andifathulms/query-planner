@@ -30,7 +30,7 @@ export function Timeline({ plan, execution }: TimelineProps) {
   const tracks = useMemo(() => buildTracks(plan, execution), [plan, execution]);
 
   if (!plan || !execution || tracks.length === 0) {
-    return <p className="t-small timeline-empty">Nothing has been executed.</p>;
+    return <p className="t-prose timeline-empty">Nothing has been executed.</p>;
   }
 
   const total = Math.max(execution.totalMs, 0.001);
@@ -121,7 +121,7 @@ export function Timeline({ plan, execution }: TimelineProps) {
         ])}
       />
 
-      <p className="t-small timeline-note">
+      <p className="t-prose timeline-note">
         {blocking.length > 0
           ? `${blocking.map((t) => t.operator).join(', ')} `
             + `${blocking.length === 1 ? 'is blocking' : 'are blocking'}: nothing comes out until `

@@ -40,11 +40,11 @@ export function ModelNotes() {
             return (
               <li key={key} className="model-note">
                 <code className="t-data model-note-key">{key}</code>
-                <p className="t-small">{SIMPLIFICATIONS[key]}</p>
+                <p className="t-prose">{SIMPLIFICATIONS[key]}</p>
                 {divergences.map((d) => (
                   <div key={d.match} className="model-note-divergence">
                     <code className="t-micro">{d.match}</code>
-                    <p className="t-small">{d.reason}</p>
+                    <p className="t-prose">{d.reason}</p>
                   </div>
                 ))}
               </li>

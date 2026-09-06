@@ -44,12 +44,12 @@ export function Recovery() {
   }, [state]);
 
   if (!spec || !planning) {
-    return <p className="t-small recovery-empty">No plan to repair.</p>;
+    return <p className="t-prose recovery-empty">No plan to repair.</p>;
   }
 
   if (groups.length === 0) {
     return (
-      <p className="t-small recovery-empty">
+      <p className="t-prose recovery-empty">
         Multivariate statistics describe a group of columns on one table. This query
         constrains or groups by fewer than two columns of any single table, so there is
         nothing for one to correct.
@@ -104,7 +104,7 @@ export function Recovery() {
           afterOperators={operatorsOf(after.planning.winner)}
         />
       ) : (
-        <p className="t-small recovery-note">
+        <p className="t-prose recovery-note">
           No multivariate statistic exists yet, so the estimate above assumes independence.
           Create one and the estimate, the plan and the elapsed time all change together.
         </p>
@@ -127,7 +127,7 @@ function Group({
       <h3 className="t-data recovery-group-name">
         {group.table} ({group.columns.join(', ')})
       </h3>
-      <p className="t-small recovery-group-why">{group.why}</p>
+      <p className="t-prose recovery-group-why">{group.why}</p>
 
       <ul className="recovery-kinds">
         {KINDS.map((kind) => {
@@ -148,7 +148,7 @@ function Group({
                   {exists ? 'drop' : 'create'}
                 </button>
               </div>
-              <p className="t-small recovery-kind-repairs">{REPAIRS[kind]}</p>
+              <p className="t-prose recovery-kind-repairs">{REPAIRS[kind]}</p>
             </li>
           );
         })}
@@ -228,7 +228,7 @@ function BeforeAfter({
                 than presented as a benchmark. */}
             one run each, in this browser
           </span>
-          <p className="t-micro recovery-elapsed-note">{SIMPLIFICATIONS.elapsed}</p>
+          <p className="t-prose recovery-elapsed-note">{SIMPLIFICATIONS.elapsed}</p>
         </div>
       )}
     </div>

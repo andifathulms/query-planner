@@ -64,3 +64,28 @@ describe('shippable copy', () => {
     expect(eyebrows.length).toBe(new Set(eyebrows).size);
   });
 });
+
+describe('the type scale is applied by role', () => {
+  const TSX = FILES.filter((f) => f.endsWith('.tsx'));
+
+  it('sets running prose at the prose size, not the label size', () => {
+    // DESIGN §3.1 splits the scale by role: prose that explains the app to
+    // someone who does not know it is 16 px, data keeps the dense scale. A
+    // paragraph carrying a sentence is prose wherever it appears.
+    const offenders: string[] = [];
+    for (const path of TSX) {
+      shippable(path).split('\n').forEach((line, i) => {
+        const m = /<p className="t-(small|micro)( [\w-]+)?"/.exec(line);
+        // The six data readouts are numbers rather than sentences and are
+        // listed by name, so adding a seventh has to be deliberate.
+        const READOUTS = ['sample-fraction', 'histogram-summary'];
+        if (!m) return;
+        const cls = (m[2] ?? '').trim();
+        if (READOUTS.includes(cls)) return;
+        if (cls === '') return; // bare readouts: rows/ms, selectivity triples
+        offenders.push(`${path}:${i + 1} ${line.trim()}`);
+      });
+    }
+    expect(offenders).toEqual([]);
+  });
+});

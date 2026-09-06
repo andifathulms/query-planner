@@ -27,7 +27,7 @@ export function PlanDetail({ plan, stats, allStats, onClose }: PlanDetailProps) 
   const source = plan && allStats ? errorSource(plan, stats, allStats) : null;
   if (!plan) {
     return (
-      <p className="t-small plan-detail-empty">
+      <p className="t-prose plan-detail-empty">
         Select a plan node to see how its estimate was made.
       </p>
     );
@@ -45,7 +45,7 @@ export function PlanDetail({ plan, stats, allStats, onClose }: PlanDetailProps) 
         </button>
       </div>
 
-      <p className="t-small plan-detail-note">{OPERATOR_NOTES[plan.operator]}</p>
+      <p className="t-prose plan-detail-note">{OPERATOR_NOTES[plan.operator]}</p>
 
       <dl className="plan-detail-figures t-data">
         <div>
@@ -126,7 +126,7 @@ export function PlanDetail({ plan, stats, allStats, onClose }: PlanDetailProps) 
         </>
       )}
 
-      <p className="t-micro plan-detail-simplification">
+      <p className="t-prose plan-detail-simplification">
         {SIMPLIFICATIONS[simplificationFor(plan)]}
       </p>
     </div>

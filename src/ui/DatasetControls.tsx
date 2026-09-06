@@ -82,7 +82,7 @@ export function DatasetControls({
           <span>allow cartesian products</span>
         </label>
 
-        <p className="t-micro dataset-note">
+        <p className="t-prose dataset-note">
           The same seed, size and skew always produce the same data, the same statistics
           and the same plan. Everything here is in the address bar.
         </p>
