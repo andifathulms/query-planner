@@ -773,3 +773,43 @@ describe('the lattice is one tab stop, not two hundred', () => {
     expect(cell.getAttribute('aria-pressed')).toBe('true');
   });
 });
+
+describe('the plan tree points at the node it has selected', () => {
+  const SQL = `SELECT k.nama, c.nama FROM kelurahan k
+    JOIN kecamatan c ON k.kecamatan_id = c.id`;
+
+  it('names the active node on the tree, not just in the drawing', () => {
+    renderApp(`n=6000&s=2000&q=${encodeURIComponent(SQL)}`);
+    const tree = screen.getByRole('tree', { name: 'The chosen plan' });
+    const root = screen.getAllByRole('treeitem')[0];
+    fireEvent.click(root);
+
+    // The id the tree points at has to exist and be the selected item, or the
+    // pointer dangles and a screen reader is told about nothing.
+    const active = tree.getAttribute('aria-activedescendant');
+    expect(active).toBeTruthy();
+    expect(document.getElementById(active!)).toBe(root);
+    expect(root.getAttribute('aria-selected')).toBe('true');
+  });
+
+  it('follows the arrow keys', () => {
+    renderApp(`n=6000&s=2000&q=${encodeURIComponent(SQL)}`);
+    const tree = screen.getByRole('tree', { name: 'The chosen plan' });
+    const root = screen.getAllByRole('treeitem')[0];
+    fireEvent.click(root);
+    const before = tree.getAttribute('aria-activedescendant');
+
+    fireEvent.keyDown(tree, { key: 'ArrowDown' });
+    const after = tree.getAttribute('aria-activedescendant');
+    expect(after).not.toBe(before);
+    expect(document.getElementById(after!)?.getAttribute('aria-selected')).toBe('true');
+  });
+
+  it('drops the pointer when the selection is cleared', () => {
+    renderApp(`n=6000&s=2000&q=${encodeURIComponent(SQL)}`);
+    const tree = screen.getByRole('tree', { name: 'The chosen plan' });
+    fireEvent.click(screen.getAllByRole('treeitem')[0]);
+    fireEvent.keyDown(tree, { key: 'Escape' });
+    expect(tree.getAttribute('aria-activedescendant')).toBeNull();
+  });
+});

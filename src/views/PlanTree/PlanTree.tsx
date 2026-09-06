@@ -59,12 +59,19 @@ export function PlanTree({ plan, stats, selectedId, onSelect }: PlanTreeProps) {
   return (
     <div className="plan-tree">
       <div className="plan-tree-canvas scroll-x">
+        {/* The tree keeps focus and points at the current node rather than moving
+            focus into it. Arrow keys changed aria-selected and left focus on the
+            container, so a screen reader heard nothing move (WCAG 4.1.2).
+            aria-activedescendant is the alternative the tree pattern allows to a
+            roving tabindex, and it suits an SVG better: focus never has to land
+            on a <g>, where outline rendering is uneven across browsers. */}
         <svg
           ref={svgRef}
           width={layout.width}
           height={layout.height + 8}
           role="tree"
           aria-label="The chosen plan"
+          aria-activedescendant={selectedId ?? undefined}
           className="plan-tree-svg"
           onKeyDown={(e) => handleKeys(e, layout.nodes, selectedId, onSelect)}
           tabIndex={0}
@@ -164,8 +171,8 @@ function PlanNode({
       aria-selected={selected}
       aria-level={node.depth + 1}
       aria-label={description}
+      id={plan.id}
       data-node-id={plan.id}
-      tabIndex={-1}
       onClick={() => onSelect(selected ? null : plan.id)}
     >
       <title>{`${planLabel(plan)}: ${OPERATOR_NOTES[plan.operator]}`}</title>
