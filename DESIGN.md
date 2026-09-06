@@ -242,6 +242,13 @@ is a lot of shouting. The display figure rises from 34 px to 40 px, because it i
 number the app has earned the right to set large and it was competing with the panel headings
 rather than dominating them.
 
+**Two utilities share the label size and are not interchangeable.** `.t-small` is the passive
+one: a `<dt>`, a legend, a figure caption, a `999 rows · 6.0 ms` strip. `.t-label` is the same
+size with more weight, for the label of a control the reader can operate, because a slider's
+name has to survive sitting beside its own live value. Both carry `--ink-mid`, and that is a
+property of the role rather than of the size: a label is always subordinate to the thing it
+labels. Running prose is `--t-prose` and never either of these.
+
 **The scale splits by role, not by taste.** Prose that orients a newcomer is 16 px: the
 orientation strip, the key above each instrument, the model-notes lede. Data keeps the dense
 scale, because a 16 px lattice cell at 255 cells is not a lattice and a 16 px plan node is not

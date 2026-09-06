@@ -284,15 +284,21 @@ button { font: inherit; color: inherit; }
   line-height: var(--t-prose-lh);
   max-width: 68ch;
 }
-.t-body { font-size: var(--t-body-size); line-height: var(--t-body-lh); max-width: 68ch; }
 .t-data {
   font-family: var(--mono); font-size: var(--t-data-size);
   line-height: var(--t-data-lh); font-variant-numeric: tabular-nums;
 }
+/* Passive labels and dense readouts: a <dt>, a legend, a figure caption, a
+ * "999 rows · 6.0 ms" strip. Carries --ink-mid because a label is always
+ * subordinate to the thing it labels; that is its role and not a coincidence of
+ * its size. Running prose is --t-prose and never this (DESIGN §3.1). */
 .t-small {
   font-family: var(--sans); font-size: var(--t-label-size);
   line-height: var(--t-label-lh); color: var(--ink-mid);
 }
+/* The same size, for the label of a control the reader can operate. The extra
+ * weight is the whole difference and it is doing work: a slider's name has to
+ * survive sitting beside its own live value. */
 .t-label {
   font-family: var(--sans); font-size: var(--t-label-size);
   line-height: var(--t-label-lh); font-weight: var(--t-label-weight);
