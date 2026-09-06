@@ -43,7 +43,8 @@ export function ThemeToggle() {
     <button
       type="button"
       className="control control-quiet theme-toggle"
-      title={TITLE[choice]}
+      // The title said less than the label and was announced alongside it.
+      title={`${TITLE[choice]}. Switch to ${next}.`}
       aria-label={`${TITLE[choice]}. Switch to ${next}.`}
       onClick={() => setChoice(next)}
     >

@@ -159,9 +159,12 @@ function PlanNode({
   const ratio = stats ? errorRatio(plan.estimatedRows, stats.actualRows) : null;
   const spilled = (stats?.spills ?? 0) > 0;
 
+  // The operator note lived only in <title>, which aria-label overrides, so the
+  // sentence explaining what a Hash Join does reached mouse users and nobody
+  // else (WCAG 1.3.1). It belongs in the name.
   const description = `${planLabel(plan)}, estimated ${exact(plan.estimatedRows)} rows`
     + (stats ? `, actual ${exact(stats.actualRows)} rows, ${ratio!.label} ${directionWord(ratio!.direction)}` : '')
-    + `, cost ${cost(plan.cost.total)}`;
+    + `, cost ${cost(plan.cost.total)}. ${OPERATOR_NOTES[plan.operator]}`;
 
   return (
     <g

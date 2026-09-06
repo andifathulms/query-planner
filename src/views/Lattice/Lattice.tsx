@@ -243,7 +243,8 @@ function Cell({
       }}
       style={{ opacity: progress === 0 ? 0.28 : 1 }}
     >
-      <title>{description}</title>
+      {/* No <title>: it repeated aria-label word for word, which buys a tooltip
+          at the cost of every screen reader hearing the cell twice. */}
       <rect width={CELL_W} height={CELL_H} rx={2} className="lattice-cell-box" />
 
       <text className="t-micro lattice-cell-label" x={5} y={11}>{label}</text>

@@ -369,6 +369,12 @@ function ResultGrid({ execution }: { execution: NonNullable<ReturnType<typeof us
   return (
     <div className="app-grid scroll-x">
       <table className="grid-table t-data">
+        {/* Every DataTable ships a hidden caption; the table holding the actual
+            answer was the one without a name (WCAG 1.3.1). */}
+        <caption className="visually-hidden">
+          The rows the plan produced, showing {exact(execution.rows.length)} of{' '}
+          {exact(execution.producedRows)}
+        </caption>
         <thead>
           {/* A join can project two columns of the same name — `SELECT k.nama,
               c.nama` returns `nama` twice, as Postgres does. Faithful, and

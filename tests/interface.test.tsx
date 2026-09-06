@@ -826,3 +826,28 @@ describe('nothing forces the page sideways at 320px', () => {
     expect(strip.getAttribute('viewBox')).toBe('0 0 300 16');
   });
 });
+
+describe('every figure and table is named, and named once', () => {
+  it('names the result table', () => {
+    renderApp('n=6000&s=2000');
+    const table = screen.getByRole('table', { name: /rows the plan produced/ });
+    expect(table.querySelector('caption')?.className).toMatch(/visually-hidden/);
+  });
+
+  it('puts the operator explanation in the node name, not only in a tooltip', () => {
+    // <title> is overridden by aria-label, so anything only in <title> reaches
+    // mouse users and nobody else.
+    renderApp('n=6000&s=2000');
+    const leaf = screen.getAllByRole('treeitem').at(-1)!;
+    const label = leaf.getAttribute('aria-label') ?? '';
+    expect(label).toMatch(/cost [\d.]+\. .+\./);
+    expect(label.length).toBeGreaterThan(60);
+  });
+
+  it('does not say the same thing twice on a lattice cell', () => {
+    renderApp('n=6000&s=2000');
+    const cell = screen.getAllByRole('button', { name: /candidate/ })[0];
+    const title = cell.querySelector('title')?.textContent;
+    expect(title === cell.getAttribute('aria-label')).toBe(false);
+  });
+});
