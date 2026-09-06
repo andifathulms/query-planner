@@ -673,3 +673,24 @@ describe('empty panels say what would be there', () => {
     expect(new Set(texts).size).toBe(texts.length);
   });
 });
+
+describe('the heading outline has no gaps', () => {
+  it('gives the active instrument a heading between the panel and its contents', () => {
+    renderApp('n=6000&s=2000');
+    fireEvent.click(screen.getByRole('tab', { name: 'recovery' }));
+    const panel = screen.getByRole('tabpanel');
+    const heading = within(panel).getByRole('heading', { level: 2 });
+    expect(heading.textContent).toBe('recovery');
+    // Hidden, because the tab strip already says this visually.
+    expect(heading.className).toMatch(/visually-hidden/);
+    // And the h3 inside Recovery now has an h2 above it rather than none.
+    expect(within(panel).getAllByRole('heading', { level: 3 }).length).toBeGreaterThan(0);
+  });
+
+  it('renames the heading with the tab', () => {
+    renderApp('n=6000&s=2000');
+    fireEvent.click(screen.getByRole('tab', { name: 'timeline' }));
+    expect(within(screen.getByRole('tabpanel')).getByRole('heading', { level: 2 }).textContent)
+      .toBe('timeline');
+  });
+});

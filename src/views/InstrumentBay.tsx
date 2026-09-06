@@ -53,6 +53,14 @@ export function InstrumentBay() {
         aria-labelledby={`tab-${active}`}
         tabIndex={0}
       >
+        {/* The outline ran h1, h2 for each panel, then fell straight to the h3
+            inside Recovery with nothing between. Someone navigating by heading
+            had no rung at the instrument level. Hidden rather than drawn: the
+            tab strip already says this visually, and repeating it in ink would
+            be chrome. */}
+        <h2 className="visually-hidden">
+          {INSTRUMENTS.find((i) => i.id === active)?.label}
+        </h2>
         {active === 'correlation' && (
           <Correlation
             schema={bundle.schema}
