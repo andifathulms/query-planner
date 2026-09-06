@@ -707,3 +707,24 @@ describe('the interface says what changed', () => {
     expect(status.textContent).toMatch(/produced [\d,]+, [\d.]+× (under|over)estimated\.$/);
   });
 });
+
+describe('focus order follows visual order', () => {
+  it('walks the lattice from the top level down, as it is drawn', () => {
+    // Laying the levels out with column-reverse put the DOM in L1..Ln order
+    // while the screen showed Ln at the top, so tabbing walked the lattice
+    // bottom to top (WCAG 2.4.3). The array is reversed instead.
+    const sql = `SELECT k.nama, c.nama, b.nama FROM kelurahan k
+      JOIN kecamatan c ON k.kecamatan_id = c.id
+      JOIN kabupaten b ON c.kabupaten_id = b.id`;
+    renderApp(`n=6000&s=2000&q=${encodeURIComponent(sql)}`);
+
+    const search = screen.getByRole('region', { name: 'The search' });
+    const levels = [...search.querySelectorAll('[role="group"]')]
+      .map((g) => Number(/Level (\d+):/.exec(g.getAttribute('aria-label') ?? '')?.[1]));
+    expect(levels.length).toBeGreaterThan(1);
+    // Descending in the DOM, which is how they are painted.
+    expect(levels).toEqual([...levels].sort((a, b) => b - a));
+    expect(getComputedStyle(search.querySelector('.lattice-levels')!).flexDirection)
+      .not.toBe('column-reverse');
+  });
+});

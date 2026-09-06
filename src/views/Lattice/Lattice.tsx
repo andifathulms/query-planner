@@ -54,10 +54,12 @@ export function Lattice({ planning, selectedKey, onSelect, fill }: LatticeProps)
       {/* The diagram sits on a sunken canvas: drawn straight onto panel ground
           it has no edge and no floor (DESIGN.md §4.5). */}
       <div className="lattice-levels canvas">
-        {/* Level 1 at the bottom, so the search reads upward as it builds — done
-            with column-reverse rather than by reversing the array, so the reading
-            order and the tab order run in the same direction the search does. */}
-        {levels.map((cells) => (
+        {/* Level 1 at the bottom, so the search reads upward as it builds.
+            Reversed here rather than with column-reverse: laying it out in
+            reverse put the tab order at odds with the visual order, walking the
+            screen bottom to top (WCAG 2.4.3). The direction the algorithm runs
+            is not a reason to make a reader tab backwards through it. */}
+        {[...levels].reverse().map((cells) => (
           <Level
             key={cells[0].level}
             cells={cells}

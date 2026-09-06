@@ -3,7 +3,7 @@
 
 .lattice-levels {
   display: flex;
-  flex-direction: column-reverse;
+  flex-direction: column;
   gap: 3px;
 }
 
