@@ -242,6 +242,12 @@ is a lot of shouting. The display figure rises from 34 px to 40 px, because it i
 number the app has earned the right to set large and it was competing with the panel headings
 rather than dominating them.
 
+**The scale is declared in `rem`, against a 16 px root.** Every value is its pixel size over
+sixteen, so nothing moves at default zoom. In `px` the scale ignored a reader who had raised
+their browser's default text size, and ignored text-only zoom entirely (WCAG 1.4.4). Sizes
+inside the drawings stay in `px`, because an SVG `viewBox` is a coordinate space rather than
+type.
+
 **Two utilities share the label size and are not interchangeable.** `.t-small` is the passive
 one: a `<dt>`, a legend, a figure caption, a `999 rows · 6.0 ms` strip. `.t-label` is the same
 size with more weight, for the label of a control the reader can operate, because a slider's

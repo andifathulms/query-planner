@@ -6,6 +6,6 @@
   padding: 0;
   justify-content: center;
   border-radius: var(--r-full);
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1;
 }

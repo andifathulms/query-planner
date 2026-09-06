@@ -83,3 +83,26 @@ describe.each(THEMES)('%s theme', (theme) => {
     expect(on('ink-mid') / on('ink-faint')).toBeGreaterThan(1.3);
   });
 });
+
+describe('the type scale scales with the reader', () => {
+  it('is declared in rem, not px', () => {
+    // Declared in px, the scale ignored a reader who had set a larger default
+    // text size, and ignored text-only zoom entirely (WCAG 1.4.4).
+    const sizes = [...CSS.matchAll(/--t-[\w-]+-size:\s*([^;]+);/g)].map((m) => m[1].trim());
+    expect(sizes.length).toBeGreaterThan(5);
+    expect(sizes.filter((v) => v.endsWith('px'))).toEqual([]);
+    expect(sizes.every((v) => v.endsWith('rem'))).toBe(true);
+  });
+
+  it('converts exactly at a 16px root, so nothing moves at default zoom', () => {
+    const expected: Record<string, number> = {
+      display: 40, figure: 24, h2: 15, prose: 16, body: 14,
+      data: 12.5, label: 11.5, micro: 10, sql: 13.5,
+    };
+    for (const [name, px] of Object.entries(expected)) {
+      const m = new RegExp(`--t-${name}-size:\\s*([\\d.]+)rem`).exec(CSS);
+      expect(m, `--t-${name}-size should be declared in rem`).toBeTruthy();
+      expect(Number(m![1]) * 16).toBeCloseTo(px, 6);
+    }
+  });
+});
