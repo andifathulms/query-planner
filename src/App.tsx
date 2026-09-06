@@ -23,6 +23,7 @@ import { ThemeToggle } from './ui/ThemeToggle.js';
 import { Mark } from './ui/Mark.js';
 import { MakerSignature } from './ui/MakerSignature.js';
 import { Lede } from './ui/Lede.js';
+import { PlanAnnouncement } from './ui/PlanAnnouncement.js';
 import { Select } from './ui/Select.js';
 import { useFill, usePrefersReducedMotion } from './ui/useFill.js';
 import { DEFAULT_COST_PARAMS, type Plan } from './planner/types.js';
@@ -173,6 +174,10 @@ export function App() {
             Every node carries what the planner predicted, drawn hollow and dashed, against
             what it measured, drawn solid. The distance between the two marks is the error.
           </p>
+          <PlanAnnouncement
+            plan={planning?.winner ?? null}
+            stats={execution?.stats ?? null}
+          />
           <PlanTree
             plan={planning?.winner ?? null}
             stats={execution?.stats ?? null}

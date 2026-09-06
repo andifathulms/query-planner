@@ -694,3 +694,16 @@ describe('the heading outline has no gaps', () => {
       .toBe('timeline');
   });
 });
+
+describe('the interface says what changed', () => {
+  it('carries a live region naming the plan and its error', () => {
+    renderApp('n=6000&s=2000');
+    const region = screen.getByRole('region', { name: 'The chosen plan' });
+    const status = region.querySelector('[role="status"]')!;
+    expect(status).toBeTruthy();
+    // Hidden: sighted readers already have the tree and the verdict block.
+    expect(status.className).toMatch(/visually-hidden/);
+    expect(status.textContent).toMatch(/^Plan: .+ estimated [\d,]+ rows/);
+    expect(status.textContent).toMatch(/produced [\d,]+, [\d.]+× (under|over)estimated\.$/);
+  });
+});
