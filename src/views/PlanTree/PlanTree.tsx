@@ -104,7 +104,7 @@ export function PlanTree({ plan, stats, selectedId, onSelect }: PlanTreeProps) {
             {ratio.label}
           </div>
           <div className="plan-tree-verdict-body">
-            <p className="t-body">
+            <p className="t-prose">
               {ratio.direction === 'exact'
                 ? 'The root estimate matched the actual row count.'
                 : `The root ${directionWord(ratio.direction)} by ${ratio.label}: `
