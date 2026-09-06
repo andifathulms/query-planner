@@ -851,3 +851,17 @@ describe('every figure and table is named, and named once', () => {
     expect(title === cell.getAttribute('aria-label')).toBe(false);
   });
 });
+
+describe('every instrument has a table equivalent', () => {
+  it('gives the cost breakdown one, like the other seven', () => {
+    // AC 9. This instrument emulated a table in ARIA over an SVG, which is
+    // reachable but gives no way to read a single candidate's terms.
+    renderApp('n=6000&s=2000');
+    const summary = screen.getByText('The candidates as a table');
+    fireEvent.click(summary);
+    const table = within(summary.closest('details')!).getByRole('table');
+    expect(within(table).getAllByRole('columnheader').map((h) => h.textContent))
+      .toEqual(['plan', 'startup', 'total', 'I/O', 'CPU']);
+    expect(within(table).getAllByRole('row').length).toBeGreaterThan(1);
+  });
+});

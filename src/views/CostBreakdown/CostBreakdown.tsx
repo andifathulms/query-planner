@@ -15,6 +15,7 @@ import { useMemo } from 'react';
 import { OperatorGlyph } from '../PlanTree/glyphs.js';
 import { cost as formatCost, exact, formatRatio, plural } from '../../ui/format.js';
 import { SIMPLIFICATIONS } from '../../planner/index.js';
+import { DataTable } from '../../ui/DataTable.js';
 import { planChildren, type Plan } from '../../planner/types.js';
 import type { DpCell } from '../../planner/selinger.js';
 import './CostBreakdown.css';
@@ -110,6 +111,21 @@ export function CostBreakdown({ cell, fallback }: CostBreakdownProps) {
           ))}
         </svg>
       </div>
+
+      {/* Acceptance criterion 9: every instrument has a keyboard-reachable table
+          equivalent. This one emulated a table in ARIA over an SVG instead, which
+          is reachable but gives no way to read a single bar's terms. */}
+      <DataTable
+        caption="The candidates"
+        columns={['plan', 'startup', 'total', 'I/O', 'CPU']}
+        rows={ranked.map((plan) => [
+          describe(plan),
+          formatCost(plan.cost.startup),
+          formatCost(plan.cost.total),
+          formatCost(sumTerms(plan, 'io')),
+          formatCost(sumTerms(plan, 'cpu')),
+        ])}
+      />
 
       <p className="t-prose cost-breakdown-note">
         {SIMPLIFICATIONS[noteKeyFor(winner)]}
@@ -241,4 +257,11 @@ function formatMargin(m: number): string {
   if (m < 0.01) return `${(m * 100).toFixed(2)}%`;
   if (m < 1) return `${Math.round(m * 100)}%`;
   return `${formatRatio(1 + m)}\u00d7`;
+}
+
+/** The cost of one kind of work in a plan, which the bars draw as one band. */
+function sumTerms(plan: Plan, kind: 'io' | 'cpu'): number {
+  return plan.cost.terms
+    .filter((t) => t.kind === kind)
+    .reduce((sum, t) => sum + t.value, 0);
 }
