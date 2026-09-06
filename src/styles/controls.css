@@ -12,7 +12,7 @@
   display: inline-flex;
   align-items: center;
   gap: var(--s0);
-  min-height: 26px;
+  min-height: var(--target-min);
   padding: 0 var(--s1);
   font-family: var(--sans);
   font-size: var(--t-label-size);
@@ -60,7 +60,7 @@
 
 /* ── Fields: text, number, and select ─────────────────────────────────────── */
 .field {
-  min-height: 26px;
+  min-height: var(--target-min);
   padding: 0 var(--s1);
   font-family: var(--mono);
   font-size: var(--t-label-size);
@@ -88,9 +88,12 @@ textarea.field {
 .field[aria-invalid='true'] { border-color: var(--warn); }
 
 /* ── Range: the app's continuous control ──────────────────────────────────── */
+/* The box is the hit area; the track the browser paints inside it stays as thin
+ * as it was, centred. Meeting the target size costs eight pixels of bar height
+ * and no visual weight. */
 .range {
   width: 100%;
-  height: 16px;
+  height: var(--target-min);
   margin: 0;
   background: transparent;
   accent-color: var(--ink);

@@ -106,3 +106,22 @@ describe('the type scale scales with the reader', () => {
     }
   });
 });
+
+describe('pointer targets', () => {
+  it('declares a minimum target size as a token, not per control', () => {
+    // WCAG 2.5.8 is a rule, so it is a token. Sliders declared 16 px and did not
+    // qualify for the user-agent exception, which covers only controls the
+    // author has not sized.
+    const m = /--target-min:\s*(\d+)px/.exec(CSS);
+    expect(m).toBeTruthy();
+    expect(Number(m![1])).toBeGreaterThanOrEqual(24);
+  });
+
+  it('sizes every author-sized control from it', () => {
+    const controls = readFileSync('src/styles/controls.css', 'utf8');
+    // No control may re-declare its own height in pixels.
+    const heights = [...controls.matchAll(/(?:min-)?height:\s*(\d+)px/g)].map((x) => x[1]);
+    expect(heights).toEqual([]);
+    expect(controls).toMatch(/height: var\(--target-min\)/);
+  });
+});

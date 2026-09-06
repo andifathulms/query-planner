@@ -64,9 +64,11 @@
 .cost-slider .range { position: relative; z-index: 1; }
 
 /* The default position, as a hairline tick behind the track. */
+/* Derived from the track height rather than left at a constant, so the tick
+ * stays centred on the track if --target-min ever moves again. */
 .cost-slider-default {
   position: absolute;
-  top: 3px;
+  top: calc((var(--target-min) - 10px) / 2);
   width: 1px;
   height: 10px;
   background: var(--ink-faint);
@@ -75,7 +77,7 @@
 
 .cost-slider-marker {
   position: absolute;
-  top: 2px;
+  top: calc((var(--target-min) - 12px) / 2);
   width: 0;
   color: var(--ink-mid);
   pointer-events: none;
@@ -93,7 +95,7 @@
 
 .cost-slider-marker-label {
   position: absolute;
-  top: 13px;
+  top: calc((var(--target-min) + 12px) / 2);
   left: 0;
   transform: translateX(-50%);
   white-space: nowrap;

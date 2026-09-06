@@ -224,6 +224,12 @@
 
   --measure: 1680px;
 
+  /* WCAG 2.5.8: the smallest a pointer target may be. A rule rather than a
+   * taste, so it is a token and not a number chosen per control. Sliders
+   * declared 16 px and did not qualify for the user-agent exception, because
+   * that exception covers controls the author has not sized. */
+  --target-min: 24px;
+
   /* ── Motion (§6.2) ─────────────────────────────────────────────────────── */
   --ease-out: cubic-bezier(0.32, 0.72, 0, 1);
   --ease-inout: cubic-bezier(0.4, 0, 0.2, 1);
