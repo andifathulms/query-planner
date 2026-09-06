@@ -728,3 +728,48 @@ describe('focus order follows visual order', () => {
       .not.toBe('column-reverse');
   });
 });
+
+describe('the lattice is one tab stop, not two hundred', () => {
+  const SQL = `SELECT k.nama, c.nama, b.nama FROM kelurahan k
+    JOIN kecamatan c ON k.kecamatan_id = c.id
+    JOIN kabupaten b ON c.kabupaten_id = b.id`;
+
+  function cells(): HTMLElement[] {
+    return screen.getAllByRole('button', { name: /candidate/ });
+  }
+
+  it('exposes exactly one focusable cell', () => {
+    renderApp(`n=6000&s=2000&q=${encodeURIComponent(SQL)}`);
+    const tabbable = cells().filter((c) => c.getAttribute('tabindex') === '0');
+    expect(cells().length).toBeGreaterThan(3);
+    expect(tabbable).toHaveLength(1);
+  });
+
+  it('moves focus with the arrow keys and keeps exactly one stop', () => {
+    renderApp(`n=6000&s=2000&q=${encodeURIComponent(SQL)}`);
+    const first = cells().find((c) => c.getAttribute('tabindex') === '0')!;
+    first.focus();
+    fireEvent.keyDown(first, { key: 'ArrowDown' });
+
+    const tabbable = cells().filter((c) => c.getAttribute('tabindex') === '0');
+    expect(tabbable).toHaveLength(1);
+    expect(tabbable[0]).not.toBe(first);
+    expect(document.activeElement).toBe(tabbable[0]);
+  });
+
+  it('clamps at the edges rather than wrapping', () => {
+    // A lattice has edges, and pretending otherwise loses a reader counting levels.
+    renderApp(`n=6000&s=2000&q=${encodeURIComponent(SQL)}`);
+    const first = cells().find((c) => c.getAttribute('tabindex') === '0')!;
+    first.focus();
+    fireEvent.keyDown(first, { key: 'ArrowUp' });
+    expect(document.activeElement).toBe(first);
+  });
+
+  it('still selects with Enter', () => {
+    renderApp(`n=6000&s=2000&q=${encodeURIComponent(SQL)}`);
+    const cell = cells().find((c) => c.getAttribute('tabindex') === '0')!;
+    fireEvent.keyDown(cell, { key: 'Enter' });
+    expect(cell.getAttribute('aria-pressed')).toBe('true');
+  });
+});

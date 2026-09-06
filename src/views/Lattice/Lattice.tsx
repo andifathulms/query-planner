@@ -13,7 +13,7 @@
  * Selecting a cell turns the lattice from an animation that plays once into a
  * navigable record of the entire search.
  */
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { OperatorGlyph } from '../PlanTree/glyphs.js';
 import type { useFill } from '../../ui/useFill.js';
 import { cost as formatCost, exact, plural } from '../../ui/format.js';
@@ -39,6 +39,44 @@ export function Lattice({ planning, selectedKey, onSelect, fill }: LatticeProps)
   // Cells within a level are ordered by relation set and that order never
   // changes between renders: a cell must not move.
   const levels = useMemo(() => groupByLevel(planning?.cells ?? []), [planning]);
+
+  // Levels top to bottom, as painted, so arrow keys move the way the eye does.
+  const rows = useMemo(
+    () => [...levels].reverse().map((cells) => cells.filter((c) => c.best !== null)),
+    [levels],
+  );
+
+  // One tab stop for the whole lattice, arrows to move inside it. Every cell
+  // carried tabIndex 0, so an eight-table search put 255 stops between the query
+  // and the plan tree below: reachable, and not operable (WCAG 2.1.1). This is
+  // the composite-widget pattern the plan tree already uses.
+  const [focusKey, setFocusKey] = useState<string | null>(null);
+  const firstKey = rows.flat()[0]?.key ?? null;
+  const roving = rows.some((r) => r.some((c) => c.key === focusKey)) ? focusKey : firstKey;
+
+  const move = useCallback((from: string, key: string): void => {
+    let r = rows.findIndex((row) => row.some((c) => c.key === from));
+    if (r < 0) return;
+    let col = rows[r].findIndex((c) => c.key === from);
+
+    if (key === 'ArrowLeft') col -= 1;
+    else if (key === 'ArrowRight') col += 1;
+    else if (key === 'ArrowUp') r -= 1;
+    else if (key === 'ArrowDown') r += 1;
+    else if (key === 'Home') col = 0;
+    else if (key === 'End') col = rows[r].length - 1;
+    else return;
+
+    // Clamp rather than wrap: a lattice has edges and pretending otherwise
+    // loses a reader who is counting levels.
+    r = Math.min(Math.max(r, 0), rows.length - 1);
+    col = Math.min(Math.max(col, 0), Math.max(rows[r].length - 1, 0));
+
+    const next = rows[r][col];
+    if (!next) return;
+    setFocusKey(next.key);
+    document.querySelector<SVGGElement>(`[data-cell="${next.key}"]`)?.focus();
+  }, [rows]);
 
   if (!planning) {
     return <p className="t-prose lattice-empty">
@@ -67,6 +105,8 @@ export function Lattice({ planning, selectedKey, onSelect, fill }: LatticeProps)
             selectedKey={selectedKey}
             rootKey={rootKey}
             onSelect={onSelect}
+            rovingKey={roving}
+            onMove={move}
           />
         ))}
       </div>
@@ -90,13 +130,15 @@ export function Lattice({ planning, selectedKey, onSelect, fill }: LatticeProps)
 }
 
 function Level({
-  cells, fill, selectedKey, rootKey, onSelect,
+  cells, fill, selectedKey, rootKey, onSelect, rovingKey, onMove,
 }: {
   cells: DpCell[];
   fill: ReturnType<typeof useFill>;
   selectedKey: string | null;
   rootKey: string | null;
   onSelect: (key: string | null) => void;
+  rovingKey: string | null;
+  onMove: (from: string, key: string) => void;
 }) {
   const level = cells[0].level;
   const width = cells.length * (CELL_W + GAP);
@@ -128,6 +170,8 @@ function Level({
                 cell={cell}
                 x={i * (CELL_W + GAP)}
                 progress={fill.progress(cell.key)}
+                rovingKey={rovingKey}
+                onMove={onMove}
                 selected={cell.key === selectedKey}
                 isRoot={cell.key === rootKey}
                 onSelect={onSelect}
@@ -141,7 +185,7 @@ function Level({
 }
 
 function Cell({
-  cell, x, progress, selected, isRoot, onSelect,
+  cell, x, progress, selected, isRoot, onSelect, rovingKey, onMove,
 }: {
   cell: DpCell;
   x: number;
@@ -149,6 +193,8 @@ function Cell({
   selected: boolean;
   isRoot: boolean;
   onSelect: (key: string | null) => void;
+  rovingKey: string | null;
+  onMove: (from: string, key: string) => void;
 }) {
   const label = [...cell.relations].sort().join('');
   const resolved = progress >= 1;
@@ -179,13 +225,20 @@ function Cell({
       data-cell={cell.key}
       transform={`translate(${x}, 1)`}
       role="button"
-      tabIndex={0}
+      tabIndex={cell.key === rovingKey ? 0 : -1}
       aria-pressed={selected}
       aria-label={description}
       onKeyDown={(e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
           onSelect(selected ? null : cell.key);
+          return;
+        }
+        // Arrows, Home and End move within the lattice. Everything else, Tab
+        // included, leaves it, which is the whole point of one tab stop.
+        if (e.key.startsWith('Arrow') || e.key === 'Home' || e.key === 'End') {
+          e.preventDefault();
+          onMove(cell.key, e.key);
         }
       }}
       style={{ opacity: progress === 0 ? 0.28 : 1 }}
