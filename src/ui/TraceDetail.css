@@ -51,3 +51,15 @@
   height: 1px;
   background: var(--ink-faint);
 }
+
+/* The arithmetic, ahead of the number it produces. Muted, because the answer is
+ * the figure and the working is how you check it. */
+.trace-formula { color: var(--ink-mid); font-weight: 400; }
+
+/* The rule that produced the row above, cited where it is applied rather than
+ * in a footnote block. */
+.trace-rule {
+  margin: 0;
+  max-width: 68ch;
+  color: var(--ink-mid);
+}

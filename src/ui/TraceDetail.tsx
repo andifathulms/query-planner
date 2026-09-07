@@ -10,6 +10,7 @@
  */
 import { selectivity as formatSelectivity } from './format.js';
 import type { SelectivityMethod, SelectivityTrace } from '../planner/types.js';
+import { formulaFor, METHOD_RULES } from './traceFormula.js';
 import './TraceDetail.css';
 
 /** What each method is, in one clause, for the reader who has not met it. */
@@ -33,6 +34,9 @@ const ASSUMED: ReadonlySet<SelectivityMethod> = new Set([
 ]);
 
 export function TraceDetail({ trace, depth = 0 }: { trace: SelectivityTrace; depth?: number }) {
+  const formula = formulaFor(trace);
+  const rule = METHOD_RULES[trace.method];
+
   return (
     <div className={`trace${depth > 0 ? ' is-nested' : ''}`}>
       <div className="trace-head">
@@ -40,8 +44,18 @@ export function TraceDetail({ trace, depth = 0 }: { trace: SelectivityTrace; dep
         <span className={`trace-method t-micro${ASSUMED.has(trace.method) ? ' is-assumed' : ''}`}>
           {METHOD_LABELS[trace.method]}
         </span>
-        <span className="t-data trace-result">{formatSelectivity(trace.result)}</span>
+        {/* The step that was missing: the operation, not just its operands and
+            its answer. Shown only when evaluating it reproduces the estimator's
+            own result, so it can be checked by hand and cannot drift. */}
+        <span className="t-data trace-result">
+          {formula?.verified && (
+            <span className="trace-formula">{formula.expression} = </span>
+          )}
+          {formatSelectivity(trace.result)}
+        </span>
       </div>
+
+      {rule && <p className="trace-rule t-small">{rule}</p>}
 
       {Object.keys(trace.inputs).length > 0 && (
         <dl className="trace-inputs t-micro">

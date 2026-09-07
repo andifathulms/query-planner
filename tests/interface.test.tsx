@@ -865,3 +865,25 @@ describe('every instrument has a table equivalent', () => {
     expect(within(table).getAllByRole('row').length).toBeGreaterThan(1);
   });
 });
+
+describe('the app shows its working', () => {
+  it('writes the multiplication out beside the number it produced', () => {
+    renderApp('n=6000&s=2000');
+    const leaf = screen.getAllByRole('treeitem')
+      .find((n) => /kelurahan/.test(n.getAttribute('aria-label') ?? ''))!;
+    fireEvent.click(leaf);
+    const trace = document.querySelector('.plan-detail .trace-formula');
+    expect(trace).toBeTruthy();
+    expect(trace!.textContent).toMatch(/^[\d.e+-]+ × [\d.e+-]+ = $/);
+  });
+
+  it('cites the rule where the rule is applied, not in a footnote', () => {
+    renderApp('n=6000&s=2000');
+    const leaf = screen.getAllByRole('treeitem')
+      .find((n) => /kelurahan/.test(n.getAttribute('aria-label') ?? ''))!;
+    fireEvent.click(leaf);
+    const rules = [...document.querySelectorAll('.plan-detail .trace-rule')]
+      .map((r) => r.textContent ?? '');
+    expect(rules.some((r) => /multiplies the selectivities of AND-ed clauses/.test(r))).toBe(true);
+  });
+});
