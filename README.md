@@ -1,9 +1,9 @@
 <div align="center">
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="public/brand/lockup-dark.png">
-  <source media="(prefers-color-scheme: light)" srcset="public/brand/lockup-light.png">
-  <img src="public/brand/lockup-light.png" alt="Query Planner" width="440">
+  <source media="(prefers-color-scheme: dark)" srcset="brand/lockup-dark.png">
+  <source media="(prefers-color-scheme: light)" srcset="brand/lockup-light.png">
+  <img src="brand/lockup-light.png" alt="Query Planner" width="440">
 </picture>
 
 ### Why your SQL is slow, and what the database believed when it chose
@@ -120,4 +120,5 @@ app exists to make.
 </div>
 
 Brand source artboards live in `exports/` and are not committed. `public/brand/` carries the
-subset the app actually serves.
+subset the app actually serves; `brand/` carries the lockups this README uses, which the app
+never fetches and so are not deployed.
