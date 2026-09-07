@@ -72,6 +72,18 @@ describe('the displayed arithmetic', () => {
     expect(offered).toBeGreaterThan(2);
   });
 
+  it('prints the interpolation arithmetic PRD §5.4 promises', () => {
+    // The docstring in Histogram.tsx claimed this printed and it did not: the
+    // only thing beneath the chart was a note about sample size.
+    const range = traces(
+      `SELECT k.nama FROM kelurahan k WHERE k.penduduk > 3000`,
+    ).find((t) => t.method === 'histogram')!;
+    expect(range).toBeTruthy();
+    const f = formulaFor(range)!;
+    expect(f.verified).toBe(true);
+    expect(f.expression).toMatch(/×/);
+  });
+
   it('offers nothing for a method whose answer is a table read, not a sum', () => {
     // A most-common-value lookup has no arithmetic to show. Silence is correct;
     // inventing an expression would be the failure mode.

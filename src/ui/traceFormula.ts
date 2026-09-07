@@ -79,6 +79,36 @@ export function formulaFor(trace: SelectivityTrace): Formula | null {
       }
       return null;
     }
+    case 'histogram': {
+      const {
+        histogramFraction, histogramShare, mcvInRange,
+        mcvTotal, nullFraction, remainingDistinct,
+      } = trace.inputs;
+
+      // A range: whole buckets plus the linear interpolation inside the partial
+      // one, scaled to the share of rows the histogram actually describes, plus
+      // any most-common value that falls in range. PRD §5.4 promises this is
+      // printed so it can be checked by hand.
+      if (histogramFraction !== undefined && histogramShare !== undefined) {
+        const mcv = mcvInRange ?? 0;
+        return {
+          expression: `${operand(histogramFraction)} × ${operand(histogramShare)}`
+            + (mcv > 0 ? ` + ${operand(mcv)}` : ''),
+          verified: close(histogramFraction * histogramShare + mcv, trace.result),
+        };
+      }
+
+      // An equality on a value the most-common list does not carry: whatever
+      // frequency is left over, spread across the distinct values left over.
+      if (mcvTotal !== undefined && nullFraction !== undefined
+        && remainingDistinct !== undefined && remainingDistinct !== 0) {
+        return {
+          expression: `(1 − ${operand(mcvTotal)} − ${operand(nullFraction)}) ÷ ${operand(remainingDistinct)}`,
+          verified: close((1 - mcvTotal - nullFraction) / remainingDistinct, trace.result),
+        };
+      }
+      return null;
+    }
     default:
       return null;
   }

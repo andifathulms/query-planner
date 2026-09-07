@@ -5,7 +5,7 @@
  * histogram as buckets, the null fraction as a segment.
  *
  * The active predicate is overlaid. Partially covered buckets are shown
- * partially covered, the interpolation arithmetic prints beneath so it can be
+ * partially covered, and the interpolation arithmetic prints in the trace so it can be
  * checked by hand, and the predicted selectivity sits beside the measured one as
  * a paired span.
  *
