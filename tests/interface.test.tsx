@@ -924,3 +924,16 @@ describe('the app defines its own vocabulary where the words appear', () => {
     expect(text).toMatch(/roughly the same number of rows rather than the same width/);
   });
 });
+
+describe('the app says where its estimates come from', () => {
+  it('marks the sampling boundary on the tree, not only in the sample tab', () => {
+    // PRD §6.3 commits to showing sampling error. It was honoured in one tab
+    // while the plan tree printed "estimated 12 rows" with no sign that 12
+    // descends from a sample of a much larger table.
+    renderApp('n=6000&s=2000');
+    const key = screen.getByRole('region', { name: 'The chosen plan' })
+      .querySelector('.app-plan-key')!.textContent ?? '';
+    expect(key).toMatch(/descends from a sample of [\d,]+ rows out of/);
+    expect(key).toMatch(/every actual is a count of what ran/);
+  });
+});

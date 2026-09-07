@@ -184,6 +184,11 @@ export function App() {
           <p className="t-prose app-plan-key">
             Every node carries what the planner predicted, drawn hollow and dashed, against
             what it measured, drawn solid. The distance between the two marks is the error.
+            {/* §6.3 commits to showing sampling error and the app did, in one tab.
+                Every estimate on this tree descends from that sample, and nothing
+                here said so. */}
+            {' '}Every estimate here descends from a sample of {exact(state.sampleSize)}{' '}
+            rows out of {rows(totalRows)}; every actual is a count of what ran.
           </p>
           <PlanAnnouncement
             plan={planning?.winner ?? null}
