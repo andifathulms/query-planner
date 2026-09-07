@@ -16,6 +16,7 @@
  * two can never disagree.
  */
 import { errorRatio, exact } from './format.js';
+import { DESCRIPTION } from '../state/types.js';
 import './Lede.css';
 
 export interface LedeProps {
@@ -30,11 +31,9 @@ export function Lede({ estimatedRows, actualRows }: LedeProps) {
 
   return (
     <section className="lede" aria-label="What this is">
-      <p className="t-prose lede-copy">
-        Databases guess how many rows a query will return, then choose a plan from the
-        guess. This one shows you the guess, every plan it considered, and what actually
-        happened when it ran.
-      </p>
+      {/* The same string the head and the manifest carry, so a search result
+          and this paragraph can never say different things. */}
+      <p className="t-prose lede-copy">{DESCRIPTION}</p>
 
       {ratio && (
         <div className={`lede-verdict${ratio.direction === 'under' ? ' is-under' : ''}`}>

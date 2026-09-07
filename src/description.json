@@ -1,0 +1,3 @@
+{
+  "description": "Databases guess how many rows a query will return, then choose a plan from the guess. This one shows you the guess, every plan it considered, and what actually happened."
+}

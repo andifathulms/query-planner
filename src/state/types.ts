@@ -40,6 +40,24 @@ export const INSTRUMENTS: Array<{ id: InstrumentId; label: string }> = [
 ];
 
 /**
+ * What this app is, in one sentence, from one place.
+ *
+ * The page says it in the lede, the head says it in four meta tags and the
+ * manifest says it in a fifth. Those were five hand-written copies, and they had
+ * already drifted: the description shipped in `index.html` was the old header
+ * tagline, which no longer appeared anywhere on the page. A description that
+ * describes text the reader will not find is worse than none, so there is now
+ * one constant and `vite.config.ts` writes it into the head at build time.
+ *
+ * It lives in `src/description.json` rather than in a module, because
+ * `vite.config.ts` belongs to a different TypeScript project and cannot import
+ * from `src`. A JSON file is readable from both without a project reference.
+ *
+ * Kept to roughly 160 characters, which is about what a search result shows.
+ */
+export { description as DESCRIPTION } from '../description.json';
+
+/**
  * The empty state (DESIGN.md §7): a dataset loaded and one query pre-filled.
  *
  * It has to be the correlated-predicate one, because that failure is what the

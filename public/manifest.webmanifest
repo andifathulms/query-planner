@@ -1,7 +1,7 @@
 {
   "name": "Query Planner",
   "short_name": "Query Planner",
-  "description": "Why your SQL is slow, and what the database believed when it chose.",
+  "description": "%DESCRIPTION%",
   "id": "./",
   "start_url": "./",
   "scope": "./",
@@ -9,11 +9,34 @@
   "orientation": "any",
   "background_color": "#0B0D0F",
   "theme_color": "#0B0D0F",
-  "categories": ["developer", "education", "productivity"],
+  "categories": [
+    "developer",
+    "education",
+    "productivity"
+  ],
   "icons": [
-    { "src": "./favicon.svg", "sizes": "any", "type": "image/svg+xml" },
-    { "src": "./brand/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "./brand/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "./brand/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    {
+      "src": "./favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "./brand/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./brand/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./brand/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
   ]
 }

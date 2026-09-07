@@ -89,3 +89,24 @@ describe('the type scale is applied by role', () => {
     expect(offenders).toEqual([]);
   });
 });
+
+describe('the description has one source', () => {
+  it('is the sentence the page opens with', () => {
+    // The shipped meta description was once an old header tagline that no
+    // longer appeared on the page. One file, read by the lede and written into
+    // the head at build time, makes that drift impossible.
+    const { description } = JSON.parse(readFileSync('src/description.json', 'utf8'));
+    expect(readFileSync('src/ui/Lede.tsx', 'utf8')).toMatch(/\{DESCRIPTION\}/);
+    expect(readFileSync('src/state/types.ts', 'utf8'))
+      .toMatch(/export \{ description as DESCRIPTION \}/);
+    // No hand-written copy left in the template.
+    const html = readFileSync('index.html', 'utf8');
+    expect(html).not.toContain(description);
+    expect(html.match(/%DESCRIPTION%/g)?.length).toBeGreaterThanOrEqual(4);
+  });
+
+  it('fits what a search result will show', () => {
+    const { description } = JSON.parse(readFileSync('src/description.json', 'utf8'));
+    expect(description.length).toBeLessThanOrEqual(170);
+  });
+});
