@@ -887,3 +887,23 @@ describe('the app shows its working', () => {
     expect(rules.some((r) => /multiplies the selectivities of AND-ed clauses/.test(r))).toBe(true);
   });
 });
+
+describe('the app explains its own units and its own algorithm', () => {
+  it('says what a cost is, since it is not a time', () => {
+    renderApp('n=6000&s=2000');
+    const panel = screen.getByRole('region', { name: 'Cost breakdown' });
+    const unit = panel.querySelector('.app-cost-unit')!.textContent ?? '';
+    expect(unit).toMatch(/not a time/);
+    // The definition, not just the disclaimer: one sequential page read is 1.0.
+    expect(unit).toMatch(/sequential page read as 1\.0/);
+  });
+
+  it('names the recurrence that makes the search tractable, with real counts', () => {
+    renderApp('n=6000&s=2000');
+    const search = screen.getByRole('region', { name: 'The search' });
+    const text = search.querySelector('.app-search-recurrence')!.textContent ?? '';
+    expect(text).toMatch(/built only from the level below it/);
+    // Numbers from this query's own enumeration, not a vague phrase.
+    expect(text).toMatch(/\d+ candidate plans across \d+ combinations/);
+  });
+});

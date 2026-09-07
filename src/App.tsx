@@ -147,6 +147,17 @@ export function App() {
             plan found for it and that plan&rsquo;s cost. A dashed box is a combination with
             no join condition to connect it.
           </p>
+          {/* The key described a table of results and omitted the recurrence,
+              which is the difference between a grid of costs and the reason the
+              search is tractable at all. */}
+          <p className="t-prose app-search-recurrence">
+            Each level is built only from the level below it: a three-table plan is found
+            by joining a two-table winner to one more table, never by trying every
+            ordering again.
+            {planning && ` That reuse is why this query took ${exact(planning.stats.candidates)} `
+              + `candidate plans across ${exact(planning.stats.subsets)} combinations, `
+              + 'rather than one for every possible join order.'}
+          </p>
           <Lattice
             planning={planning}
             selectedKey={state.selected.cell}
@@ -210,6 +221,17 @@ export function App() {
               <h2 className="t-h2">What each candidate costs</h2>
             </span>
           </div>
+          {/* Cost has no unit and nothing said so, which makes the whole panel
+              uninterpretable and the plan flip meaningless: a reader who thinks
+              72.1 is milliseconds concludes the app is simply wrong when it
+              takes 6 ms. */}
+          <p className="t-prose app-cost-unit">
+            Cost is not a time. It is Postgres&rsquo;s own unit, fixed by defining one
+            sequential page read as 1.0, so every other cost below is a multiple of that
+            one read. Only the ratios between the parameters matter, which is why dragging
+            <code> random_page_cost</code> from 4.0 to 1.1 says &ldquo;on this disk a random
+            read costs barely more than a sequential one&rdquo;.
+          </p>
           <p className="t-prose app-cost-hint">
             {state.selected.cell
               ? 'Candidates for the selected lattice cell, decomposed into the terms the cost model produced.'

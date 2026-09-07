@@ -72,8 +72,10 @@
 
 .app-placeholder { color: var(--ink-faint); }
 .app-cost-hint,
+.app-cost-unit,
 .app-plan-key,
-.app-search-key { color: var(--ink-mid); margin-bottom: var(--s2); }
+.app-search-key,
+.app-search-recurrence { color: var(--ink-mid); margin-bottom: var(--s2); }
 
 /* Choose a query, or shape the data it runs against. */
 .app-query-controls {
@@ -156,3 +158,7 @@
   .app-plan.is-waiting .plan-tree { opacity: 1; }
   .app-plan.is-descending .plan-tree { animation: none; }
 }
+
+/* A parameter name inside prose keeps its own face: the reader will meet it
+ * again in postgresql.conf. */
+.app-cost-unit code { font-family: var(--mono); color: var(--ink); }
