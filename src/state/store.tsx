@@ -6,8 +6,8 @@
  * easing (DESIGN.md §6.1); everything else is a discrete change.
  */
 import {
-  createContext, useCallback, useContext, useEffect, useMemo, useReducer, useRef,
-  type ReactNode,
+  createContext, useCallback, useContext, useDeferredValue, useEffect, useMemo,
+  useReducer, useRef, type ReactNode,
 } from 'react';
 import { decodeState, encodeState } from './url.js';
 import { runQuery, type EngineResult } from './engine.js';
@@ -84,16 +84,32 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     () => decodeState(window.location.hash.replace(/^#/, '')),
   );
 
-  // Planning is cheap enough to do synchronously on every render that changes
-  // its inputs (the 200 ms budget in PRD §8.3 exists for exactly this).
-  // Execution is not, so it is skipped while a continuous control is moving.
+  // The generator's inputs are deferred; the cost parameters are not, and the
+  // difference is measured rather than assumed.
+  //
+  // Re-planning and re-executing after a cost parameter moves costs about 11 ms,
+  // so it happens on the frame, which is what DESIGN §6.1 asks of a continuous
+  // control. Moving a generator input rebuilds the whole table and re-analyses
+  // it: 603 ms for one notch of the correlation slider, 360 ms for one notch of
+  // sample size. Run on the input event, that is not direct mapping, it is a
+  // slider whose own thumb stutters because the main thread is busy.
+  //
+  // Deferring them keeps the thumb at 60 fps and lets the picture redraw at
+  // whatever rate the machine can manage. The correlation sweep PRD §5.3 is
+  // built around gets faster this way, not slower: the rectangle still detaches
+  // from the cloud as you drag, and the control now tracks your hand while it
+  // does.
+  const generator = useDeferredValue(state.generator);
+  const dataset = useDeferredValue(state.dataset);
+  const seed = useDeferredValue(state.seed);
+  const sampleSize = useDeferredValue(state.sampleSize);
+
   const result = useMemo(
-    () => runQuery(state),
+    () => runQuery({ ...state, generator, dataset, seed, sampleSize }),
     // `selected` deliberately does not appear: selecting a cell must not re-plan.
     [
-      state.sql, state.dataset, state.seed, state.sampleSize, state.allowCartesian,
-      state.generator.rows, state.generator.correlation, state.generator.zipf,
-      state.costParams, state.multivariate,
+      state.sql, dataset, seed, sampleSize, state.allowCartesian,
+      generator, state.costParams, state.multivariate,
     ],
   );
 

@@ -631,6 +631,14 @@ Settled across five apps now:
 **Continuous control → direct mapping, zero easing.** Cost parameters, sample size,
 correlation coefficient. Re-plan and re-render on the frame.
 
+**With one measured exception.** A cost parameter re-plans and re-executes in about 11 ms, so
+it genuinely maps on the frame. A generator input rebuilds the table and re-analyses it:
+603 ms for one notch of the correlation slider, 360 ms for one notch of sample size. Run on
+the input event that is not direct mapping, it is a control whose own thumb stutters because
+the main thread is busy. Those four inputs are deferred, which keeps the thumb at 60 fps and
+lets the picture redraw as fast as the machine allows. The sweep §5.3 is built around gets
+faster, not slower.
+
 **Discrete control → timed transition.** Query change, dataset change, creating or dropping a
 statistic, lattice cell selection.
 
