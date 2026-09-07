@@ -24,6 +24,7 @@ import { Mark } from './ui/Mark.js';
 import { MakerSignature } from './ui/MakerSignature.js';
 import { Lede } from './ui/Lede.js';
 import { PlanAnnouncement } from './ui/PlanAnnouncement.js';
+import { WorkedExample } from './ui/WorkedExample.js';
 import { Select } from './ui/Select.js';
 import { useFill, usePrefersReducedMotion } from './ui/useFill.js';
 import { DEFAULT_COST_PARAMS, type Plan } from './planner/types.js';
@@ -93,6 +94,16 @@ export function App() {
       <Lede
         estimatedRows={planning?.winner.estimatedRows ?? null}
         actualRows={rootActualRows(planning, execution)}
+      />
+
+      {/* The steps of the derivation were each already on screen and never
+          connected. This is the chain, in the numbers of the query in front of
+          you, before any control has been touched. */}
+      <WorkedExample
+        plan={planning?.winner ?? null}
+        stats={execution?.stats ?? null}
+        sampleSize={state.sampleSize}
+        totalRows={totalRows}
       />
 
       <main className="app-main">

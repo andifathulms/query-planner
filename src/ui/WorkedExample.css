@@ -1,0 +1,41 @@
+/*
+ * The walkthrough (PRD §2's arc, as a list).
+ *
+ * It sits under the lede, above the derivation it describes, on the page ground
+ * rather than in a panel: it is the page explaining itself, not another
+ * instrument. Numbered, because the point is that step four causes step six.
+ */
+.worked {
+  width: 100%;
+  max-width: var(--measure);
+  margin: 0 auto;
+  padding: 0 var(--s3) var(--s3);
+}
+
+.worked-steps {
+  margin: var(--s2) 0 0;
+  padding: 0 0 0 var(--s4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  counter-reset: none;
+}
+
+.worked-steps li { color: var(--ink-mid); }
+.worked-steps li::marker {
+  color: var(--ink-faint);
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* The figures the reader is meant to carry from one step to the next. */
+.worked-steps b {
+  color: var(--ink);
+  font-weight: 500;
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+.worked-steps code {
+  font-family: var(--mono);
+  color: var(--ink);
+}

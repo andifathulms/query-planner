@@ -937,3 +937,42 @@ describe('the app says where its estimates come from', () => {
     expect(key).toMatch(/every actual is a count of what ran/);
   });
 });
+
+describe('a newcomer can follow one query end to end', () => {
+  it('chains the derivation in this run\'s own numbers, open by default', () => {
+    renderApp('n=6000&s=2000');
+    const worked = document.querySelector('.worked') as HTMLDetailsElement;
+    expect(worked).toBeTruthy();
+    // Visible before any control is touched.
+    expect(worked.open).toBe(true);
+
+    const steps = [...worked.querySelectorAll('.worked-steps > li')]
+      .map((li) => li.textContent ?? '');
+    expect(steps.length).toBeGreaterThanOrEqual(6);
+
+    // Sample, then each clause, then the multiplication, then cost, then truth.
+    expect(steps[0]).toMatch(/reading [\d,]+ rows of the [\d,]+/);
+    expect(steps.some((s) => /multiplied/.test(s))).toBe(true);
+    expect(steps.some((s) => /assumption rather than a measurement/.test(s))).toBe(true);
+    expect(steps.some((s) => /Running it produced [\d,]+ rows/.test(s))).toBe(true);
+  });
+
+  it('quotes figures the rest of the page agrees with', () => {
+    renderApp('n=6000&s=2000');
+    const worked = document.querySelector('.worked')!.textContent ?? '';
+    // The multiplication it shows is the one the trace shows.
+    const leaf = screen.getAllByRole('treeitem')
+      .find((n) => /kelurahan/.test(n.getAttribute('aria-label') ?? ''))!;
+    fireEvent.click(leaf);
+    const formula = document.querySelector('.plan-detail .trace-formula')!.textContent ?? '';
+    expect(worked).toContain(formula.replace(/ = $/, ''));
+  });
+
+  it('offers nothing for a query with no independence step to explain', () => {
+    // The walkthrough is about one assumption. A query that never makes it gets
+    // no walkthrough rather than a generic one.
+    const sql = 'SELECT k.nama FROM kelurahan k WHERE k.kota = \'Kupang\'';
+    renderApp(`n=6000&s=2000&q=${encodeURIComponent(sql)}`);
+    expect(document.querySelector('.worked')).toBeNull();
+  });
+});
