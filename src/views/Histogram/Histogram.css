@@ -29,3 +29,7 @@
 .histogram-pair { display: flex; align-items: center; gap: var(--s2); flex-wrap: wrap; }
 .histogram-pair .t-small { color: var(--ink-mid); }
 .histogram-note { color: var(--ink-faint); }
+
+/* What the two halves of the chart are, next to the chart. */
+.histogram-define { color: var(--ink-mid); }
+.histogram-define strong { color: var(--ink); font-weight: 500; }

@@ -907,3 +907,20 @@ describe('the app explains its own units and its own algorithm', () => {
     expect(text).toMatch(/\d+ candidate plans across \d+ combinations/);
   });
 });
+
+describe('the app defines its own vocabulary where the words appear', () => {
+  it('defines selectivity beside the first number that is one', () => {
+    renderApp('n=6000&s=2000');
+    const text = document.querySelector('.correlation-define')!.textContent ?? '';
+    expect(text).toMatch(/fraction of rows a condition keeps/);
+    expect(text).toMatch(/1 in 118/);
+  });
+
+  it('expands MCV and says what equi-depth means, beside the bars', () => {
+    renderApp('n=6000&s=2000');
+    fireEvent.click(screen.getByRole('tab', { name: 'histogram' }));
+    const text = document.querySelector('.histogram-define')!.textContent ?? '';
+    expect(text).toMatch(/most-common values/);
+    expect(text).toMatch(/roughly the same number of rows rather than the same width/);
+  });
+});

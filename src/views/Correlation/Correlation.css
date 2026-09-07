@@ -73,3 +73,7 @@
 .correlation-readout dd.is-true { color: var(--true-ink); }
 .correlation-readout dd.is-corrected { color: var(--order-ink); }
 .correlation-gap { color: var(--ink); margin-top: var(--s2); }
+
+/* The definition of the word the readout below is about to use. */
+.correlation-define { color: var(--ink-mid); }
+.correlation-define .mono { font-family: var(--mono); color: var(--ink); }

@@ -65,6 +65,14 @@ export function Correlation({
           />
           <output className="t-data">{correlation.toFixed(2)}</output>
         </label>
+        {/* "Selectivity" appears in this interface more than fifty times and was
+            defined nowhere. Defined here, next to the first place a reader meets
+            it as a number, rather than in a glossary they would have to go find. */}
+        <p className="t-prose correlation-define">
+          Selectivity is the fraction of rows a condition keeps. Written as
+          {' '}<span className="mono">1 in 118</span>, it means one row in a hundred and
+          eighteen survives the condition, so a table of 131,000 rows yields about 1,110.
+        </p>
         <p className="t-prose correlation-hint">
           Sweep it from 0 to 1 and watch the rectangle detach from the cloud.
         </p>

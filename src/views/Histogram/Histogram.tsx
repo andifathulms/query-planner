@@ -63,6 +63,17 @@ export function Histogram({ schema, statistics, spec }: HistogramProps) {
         </p>
       </div>
 
+      {/* "MCV" and "bucket" carry the whole view and neither was expanded. Said
+          once, here, beside the bars they name. */}
+      <p className="t-prose histogram-define">
+        The bars on the left are the <strong>most-common values</strong>: the handful of
+        values the sample saw most often, each stored with its measured frequency, so no
+        model is involved for them. The rest of the column is summarised as
+        {' '}<strong>equi-depth buckets</strong>, each holding roughly the same number of
+        rows rather than the same width of values, which is why they are narrow where the
+        data is dense.
+      </p>
+
       <ColumnChart stat={active.stat} restrictions={active.restrictions} />
 
       <DataTable
